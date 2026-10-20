@@ -1,0 +1,86 @@
+{
+  "ui_btn_blue.png" : {
+    "bottom" : 22,
+    "left" : 22,
+    "right" : 22,
+    "top" : 22
+  },
+  "ui_btn_gray.png" : {
+    "bottom" : 22,
+    "left" : 22,
+    "right" : 22,
+    "top" : 22
+  },
+  "ui_btn_green.png" : {
+    "bottom" : 22,
+    "left" : 22,
+    "right" : 22,
+    "top" : 22
+  },
+  "ui_btn_orange.png" : {
+    "bottom" : 22,
+    "left" : 22,
+    "right" : 22,
+    "top" : 22
+  },
+  "ui_btn_red_line.png" : {
+    "bottom" : 22,
+    "left" : 22,
+    "right" : 22,
+    "top" : 22
+  },
+  "ui_bubble.png" : {
+    "bottom" : 24,
+    "left" : 24,
+    "right" : 24,
+    "top" : 24
+  },
+  "ui_card_selected.png" : {
+    "bottom" : 26,
+    "left" : 26,
+    "right" : 26,
+    "top" : 26
+  },
+  "ui_card.png" : {
+    "bottom" : 26,
+    "left" : 26,
+    "right" : 26,
+    "top" : 26
+  },
+  "ui_panel.png" : {
+    "bottom" : 33,
+    "left" : 33,
+    "right" : 33,
+    "top" : 33
+  },
+  "ui_pill_cream.png" : {
+    "bottom" : 0,
+    "left" : 22,
+    "right" : 22,
+    "top" : 0
+  },
+  "ui_pill_green.png" : {
+    "bottom" : 0,
+    "left" : 16,
+    "right" : 16,
+    "top" : 0
+  },
+  "ui_pill_red.png" : {
+    "bottom" : 0,
+    "left" : 20,
+    "right" : 20,
+    "top" : 0
+  },
+  "ui_ribbon.png" : {
+    "bottom" : 0,
+    "left" : 60,
+    "right" : 60,
+    "top" : 0
+  },
+  "ui_sheet.png" : {
+    "bottom" : 5,
+    "left" : 37,
+    "right" : 37,
+    "top" : 37
+  }
+}
