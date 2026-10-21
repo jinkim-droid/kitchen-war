@@ -1,12 +1,14 @@
 // 주방 대전쟁 — 방치형 키우기 프로토타입 (도형만, 에셋 없음)
 // 코어 루프: 셰프 곰이 조리도구를 자동으로 던짐 → 썩은 채소 처치 → 골드 → 도구 구매·합성·업그레이드 → 다음 스테이지
 
-const W = 720, H = 1280, FW = 720, FH = 1090;
+// FH = 업그레이드 카드 위로 보이는 전장(카메라·조준 기준), CH = 캔버스 높이. 카드 뒤에도 바닥이 비치도록 캔버스는 화면 끝까지 그린다
+const W = 720, H = 1280, FW = 720, FH = 1090, CH = 1280;
 // 셰프 이동 범위 — 채소가 조리대(위)에서 내려오므로 주방 바닥 아래쪽을 돌아다닌다
 const COUNTER_Y = 300;
 // 주방(월드)은 화면보다 넓고, 카메라가 셰프를 따라간다
-const WW = 1100, WH = 1500;
-const ROAM = { x0: 80, x1: WW - 80, y0: 560, y1: WH - 110 };
+// 월드 아래쪽 CH - FH(190)는 카드 뒤에 깔리는 바닥 — 셰프는 거기로 가지 않는다
+const WW = 1100, WH = 1500 + (CH - FH);
+const ROAM = { x0: 80, x1: WW - 80, y0: 560, y1: WH - (CH - FH) - 110 };
 const cam = { x: 0, y: 0 };
 const HERO_SPEED = 120;
 const BOSS_TIME = BAL.bossTime; // 밸런스 숫자는 balance.js에 모여 있다 (tools/sim.js로 페이싱 확인)
@@ -22,43 +24,45 @@ const SAVE_KEY = 'kitchen-war-save-v1';
 const offlineCap = () => ((S.shop.offline12 ? 12 : 8) + baseOfflineHours()) * 3600; // 오프라인 보상 한도 (상점 12시간, 🏠 냉장고 +N시간)
 const OFFLINE_RATE = 0.5;      // 접속 중 수입의 절반
 
-// ---------- 스킨 — 보유만 해도 공격력 보너스(수집 효과), 장착은 겉모습 ----------
+// ---------- 스킨 — 보유만 해도 효과(공격력·공격속도·골드 중 하나), 장착은 겉모습 (총고식) ----------
 // 곰은 그대로, 옷·모자·소품만 바뀐다
 const BEAR = { fur: 0x8b5a3c, face: 0x9a6644, inner: 0xd9a27a, muzzle: 0xe8c49a };
 const SKINS = [
-  { id: 'brown', name: '기본 셰프', apron: 0xf7f7f2, neck: 'scarf', neckColor: 0xd93a3a, hat: 'chef', cost: 0, bonus: 0, look: {} },
-  { id: 'pirate', name: '해적 셰프', apron: 0xf7f7f2, stripes: 0xd93a3a, neck: 'scarf', neckColor: 0x2a2a2a, hat: 'pirate', eyepatch: true, cost: 300, bonus: 0.1,
+  { id: 'brown', name: t('skin.brown'), apron: 0xf7f7f2, neck: 'scarf', neckColor: 0xd93a3a, hat: 'chef', cost: 0, eff: {}, look: {} },
+  { id: 'pirate', name: t('skin.pirate'), apron: 0xf7f7f2, stripes: 0xd93a3a, neck: 'scarf', neckColor: 0x2a2a2a, hat: 'pirate', eyepatch: true, cost: 300, eff: { atk: 0.1 },
     look: { hat: 0x3a3a44, scarf: 0x2a2a2a, eyepatch: true, skull: true } },
-  { id: 'patissier', name: '파티시에', apron: 0xff9ec4, neck: 'bow', neckColor: 0x4aa3df, hat: 'beret', hatColor: 0xd94a6a, cost: 2500, bonus: 0.2,
+  { id: 'patissier', name: t('skin.patissier'), apron: 0xff9ec4, neck: 'bow', neckColor: 0x4aa3df, hat: 'beret', hatColor: 0xd94a6a, cost: 2500, eff: { gold: 0.2 },
     look: { hat: 0xff8fb8, coat: 0xffd6e6, scarf: 0x4aa3df } },
-  { id: 'santa', name: '산타 셰프', coat: 0xd93a3a, beard: true, neck: 'none', hat: 'santa', cost: 15000, bonus: 0.35,
+  { id: 'santa', name: t('skin.santa'), coat: 0xd93a3a, beard: true, neck: 'none', hat: 'santa', cost: 15000, eff: { atk: 0.35 },
     look: { hat: 0xd93a3a, coat: 0xd93a3a, scarf: 0xffffff, pom: true } },
-  { id: 'ninja', name: '닌자 셰프', gem: 300, cost: 0, bonus: 0.3,
+  { id: 'ninja', name: t('skin.ninja'), gem: 300, cost: 0, eff: { spd: 0.1 },
     look: { hat: 0x2a2f45, coat: 0x3a4060, scarf: 0xd93a3a } },
-  { id: 'hanbok', name: '한복 셰프', gem: 400, cost: 0, bonus: 0.4, look: {} },
-  { id: 'wizard', name: '마법사 셰프', gem: 800, cost: 0, bonus: 0.6, look: {} },
-  { id: 'sushi', name: '스시 장인', cost: 600000, bonus: 0.7, look: {} },
-  { id: 'pizza', name: '피자 장인', cost: 6000000, bonus: 0.8, look: {} },
-  { id: 'barista', name: '바리스타', cost: 60000000, bonus: 0.9, look: {} },
-  { id: 'space', name: '우주 셰프', req: 8, cost: 0, bonus: 1.0, look: {} }, // 보스 러시 최고 8마리
-  { id: 'king', name: '황금 셰프 킹', apron: 0x2a2a2a, apronTrim: 0xffd34d, cape: 0xb02a3a, neck: 'scarf', neckColor: 0xffd34d, hat: 'crown', cost: 120000, bonus: 0.6,
+  { id: 'hanbok', name: t('skin.hanbok'), gem: 400, cost: 0, eff: { gold: 0.4 }, look: {} },
+  { id: 'wizard', name: t('skin.wizard'), gem: 800, cost: 0, eff: { atk: 0.6 }, look: {} },
+  { id: 'sushi', name: t('skin.sushi'), cost: 600000, eff: { gold: 0.7 }, look: {} },
+  { id: 'pizza', name: t('skin.pizza'), cost: 6000000, eff: { atk: 0.8 }, look: {} },
+  { id: 'barista', name: t('skin.barista'), cost: 60000000, eff: { spd: 0.15 }, look: {} },
+  { id: 'space', name: t('skin.space'), req: 8, cost: 0, eff: { atk: 1.0 }, look: {} }, // 보스 러시 최고 8마리
+  { id: 'king', name: t('skin.king'), apron: 0x2a2a2a, apronTrim: 0xffd34d, cape: 0xb02a3a, neck: 'scarf', neckColor: 0xffd34d, hat: 'crown', cost: 120000, eff: { gold: 0.6 },
     look: { hat: 0xffd34d, coat: 0x34343c, scarf: 0xffd34d, gems: true } },
 ];
 // 예전 저장본(곰 종류 스킨) id를 의상 스킨으로 옮긴다
 const OLD_SKIN_IDS = { panda: 'pirate', polar: 'patissier', honey: 'santa' };
 const skinById = (id) => SKINS.find((k) => k.id === id) || SKINS[0];
-const skinBonus = () => SKINS.reduce((a, k) => a + (S.skins.includes(k.id) ? k.bonus : 0), 0);
+const SKIN_EFF = { atk: 'skin.eff_atk', spd: 'skin.eff_spd', gold: 'skin.eff_gold' }; // 문구 키 (strings.csv)
+const skinEff = (t) => SKINS.reduce((a, k) => a + (S.skins.includes(k.id) ? k.eff[t] || 0 : 0), 0);
+const skinEffText = (k) => { const e = Object.keys(k.eff)[0]; return e ? t(SKIN_EFF[e], { n: Math.round(k.eff[e] * 100) }) : t('skin.eff_none'); };
 
 // ---------- 동료 — 셰프를 따라다니며 각자 던진다 ----------
 const mateStat = (id) => { const [dmg, iv, cost] = BAL.mates[id]; return { dmg, iv, cost }; };
 const MATES = [
-  { id: 'chick', name: '병아리 조수', icon: '🐥', desc: '달걀을 던져요', proj: 'egg', ...mateStat('chick') },
-  { id: 'bunny', name: '토끼 파티시에', icon: '🐰', desc: '마카롱을 던져요', proj: 'macaron', ...mateStat('bunny') },
-  { id: 'penguin', name: '펭귄 바리스타', icon: '🐧', desc: '원두를 연사해요', proj: 'bean', ...mateStat('penguin') },
-  { id: 'squirrel', name: '다람쥐 제빵사', icon: '🐿️', desc: '갓 구운 크루아상을 던져요', proj: 'croissant', ...mateStat('squirrel') },
-  { id: 'fox', name: '여우 소스 셰프', icon: '🦊', desc: '케첩 방울을 톡톡 쏴요', proj: 'ketchup', ...mateStat('fox') },
-  { id: 'panda', name: '판다 만두 장인', icon: '🐼', desc: '뜨거운 만두를 던져요', proj: 'dumpling', ...mateStat('panda') },
-  { id: 'frog', name: '개구리 설거지 담당', icon: '🐸', desc: '비눗방울로 깨끗하게', proj: 'bubble', ...mateStat('frog') },
+  { id: 'chick', name: t('mate.chick'), icon: '🐥', desc: t('mate.chick.desc'), proj: 'egg', ...mateStat('chick') },
+  { id: 'bunny', name: t('mate.bunny'), icon: '🐰', desc: t('mate.bunny.desc'), proj: 'macaron', ...mateStat('bunny') },
+  { id: 'penguin', name: t('mate.penguin'), icon: '🐧', desc: t('mate.penguin.desc'), proj: 'bean', ...mateStat('penguin') },
+  { id: 'squirrel', name: t('mate.squirrel'), icon: '🐿️', desc: t('mate.squirrel.desc'), proj: 'croissant', ...mateStat('squirrel') },
+  { id: 'fox', name: t('mate.fox'), icon: '🦊', desc: t('mate.fox.desc'), proj: 'ketchup', ...mateStat('fox') },
+  { id: 'panda', name: t('mate.panda'), icon: '🐼', desc: t('mate.panda.desc'), proj: 'dumpling', ...mateStat('panda') },
+  { id: 'frog', name: t('mate.frog'), icon: '🐸', desc: t('mate.frog.desc'), proj: 'bubble', ...mateStat('frog') },
 ];
 const MATE_SPOTS = [{ x: -115, y: 25 }, { x: 115, y: 25 }, { x: 0, y: 110 }, { x: -205, y: 85 }, { x: 205, y: 85 }, { x: -115, y: 160 }, { x: 115, y: 160 }];
 const mateLv = (m) => S.mates[m.id] || 0;
@@ -66,32 +70,41 @@ const mateDmg = (m, lv = mateLv(m)) => m.dmg * Math.pow(BAL.mateG, lv - 1) * atk
 const mateCost = (m) => Math.ceil(m.cost * Math.pow(BAL.mateCostG, mateLv(m)));
 // 일일 미션 — 매일 3개, 자정에 바뀐다. 5~10분 플레이로 끝낼 수 있는 양
 const MISSIONS = [
-  { id: 'kill', text: '썩은 채소 150마리 처치', n: 150 },
-  { id: 'boss', text: '보스 3마리 처치', n: 3 },
-  { id: 'merge', text: '도구 합성 8번', n: 8 },
-  { id: 'upgrade', text: '공격력·공격 속도 업그레이드 10번', n: 10 },
-  { id: 'stage', text: '스테이지 5번 클리어', n: 5 },
-  { id: 'mate', text: '동료 고용·강화 3번', n: 3 },
-  { id: 'time', text: '10분 동안 주방 지키기', n: 600 },
-  { id: 'rush', text: '보스 러시 도전 1번', n: 1 },
+  { id: 'kill', text: t('mission.kill'), n: 150 },
+  { id: 'boss', text: t('mission.boss'), n: 3 },
+  { id: 'merge', text: t('mission.merge'), n: 8 },
+  { id: 'upgrade', text: t('mission.upgrade'), n: 10 },
+  { id: 'stage', text: t('mission.stage'), n: 5 },
+  { id: 'mate', text: t('mission.mate'), n: 3 },
+  { id: 'time', text: t('mission.time'), n: 600 },
+  { id: 'rush', text: t('mission.rush'), n: 1 },
 ];
-const BOSS_LINES = ['눈물 좀 흘리게 해주지!', '나를 썰 수 있을까?', '이 주방은 이제 우리 거다!', '썩은 게 아니라 숙성된 거다!'];
+const BOSS_LINES = [t('boss.line1'), t('boss.line2'), t('boss.line3'), t('boss.line4')];
 
 // ---------- 밸런스 ----------
 const gunDmg = (L) => BAL.toolBase * Math.pow(BAL.toolMerge, L - 1);
 // 벽: 10스테이지마다 강한 보스
 const WALL_EVERY = BAL.wallEvery, WALL_HP = BAL.wallHp, WALL_TIME = BAL.wallTime;
 const isWallStage = (st) => st % WALL_EVERY === 0;
-// 환생: STAGE BAL.prestigeMin부터, 셰프 별 1개당 공격력·골드 +BAL.starStep (balance.js)
+// 환생: STAGE BAL.prestigeMin부터 셰프 별을 받고, 별로 영구 강화(공격력·공격속도·골드)를 산다 (balance.js perm)
 const PRESTIGE_MIN = BAL.prestigeMin;
 const starsFor = (st) => st < PRESTIGE_MIN ? 0 : Math.floor(Math.pow(st - BAL.starFrom, BAL.starPow) / BAL.starDiv);
-const starMul = () => 1 + BAL.starStep * S.stars;
-const atkMul = () => (1 + BAL.atkStep * S.atkLv) * (1 + skinBonus()) * starMul() * baseAtkMul(); // baseAtkMul: 🏠 조리대 (base.js)
-const spdMul = () => Math.min(BAL.spdMax, 1 + BAL.spdStep * S.spdLv);
-const fireInterval = () => BAL.fireBase / spdMul();
+const PERM = [
+  { k: 'atk', name: t('perm.atk'), icon: 'icon_atk' },
+  { k: 'spd', name: t('perm.spd'), icon: 'icon_spd' },
+  { k: 'gold', name: t('perm.gold'), icon: 'icon_gold_up' },
+];
+const permLv = (k) => (S.perm && S.perm[k]) || 0;
+const permMul = (k) => 1 + BAL.perm[k].step * permLv(k);
+const permCost = (k) => 1 + Math.floor(permLv(k) / BAL.permCostEvery);
+const permMax = (k) => !!BAL.perm[k].max && permLv(k) >= BAL.perm[k].max;
+const atkMul = () => (1 + BAL.atkStep * S.atkLv) * (1 + skinEff('atk')) * permMul('atk') * baseAtkMul(); // baseAtkMul: 🏠 조리대 (base.js)
+const spdMul = () => Math.min(BAL.spdMax, 1 + BAL.spdStep * S.spdLv);                   // 업그레이드 카드 값 (상한 BAL.spdMax)
+const fireInterval = () => BAL.fireBase / (spdMul() * (1 + skinEff('spd')) * permMul('spd'));
 const costAtk = () => Math.ceil(BAL.atkCost * Math.pow(BAL.atkCostG, S.atkLv));
 const costSpd = () => Math.ceil(BAL.spdCost * Math.pow(BAL.spdCostG, S.spdLv));
-const goldMul = () => 1 + BAL.goldStep * S.goldLv;                          // 골드 획득량
+const goldMul = () => 1 + BAL.goldStep * S.goldLv;                          // 골드 획득량 (업그레이드 카드 값)
+const goldAll = () => goldMul() * (1 + skinEff('gold')) * permMul('gold');   // 스킨·영구 강화까지
 const costGold = () => Math.ceil(BAL.goldCost * Math.pow(BAL.goldCostG, S.goldLv));
 const costBuy = () => Math.ceil(BAL.buyCost * Math.pow(BAL.buyCostG, S.buys));
 const enemyHp = (st) => Math.ceil(BAL.hpBase * Math.pow(BAL.hpG, st - 1) * (BAL.earlyEase[st - 1] || 1));
@@ -101,17 +114,17 @@ const enemyGold = (st) => Math.ceil(BAL.goldBase * Math.pow(BAL.goldG, st - 1));
 const PALETTE = ['#9aa5b1', '#6cc070', '#4aa3df', '#a66cff', '#ff8c42', '#ff4d6d', '#ffd34d', '#3ee6c4'];
 const gunColor = (L) => PALETTE[(L - 1) % PALETTE.length];
 // 레벨별 조리도구 — 8단계 이후는 '전설' 단계로 이어진다
-const TOOLS = [['🥄', '숟가락'], ['🍴', '포크'], ['🥢', '젓가락'], ['🔪', '식칼'], ['🧂', '소금통'], ['🍳', '프라이팬'], ['🍲', '냄비'], ['🫖', '주전자']];
+const TOOLS = [['🥄', t('tool.1')], ['🍴', t('tool.2')], ['🥢', t('tool.3')], ['🔪', t('tool.4')], ['🧂', t('tool.5')], ['🍳', t('tool.6')], ['🍲', t('tool.7')], ['🫖', t('tool.8')]];
 const toolIcon = (L) => TOOLS[Math.min(L, TOOLS.length) - 1][0];
-const toolName = (L) => L <= TOOLS.length ? TOOLS[L - 1][1] : `전설 ${TOOLS[TOOLS.length - 1][1]} +${L - TOOLS.length}`;
+const toolName = (L) => L <= TOOLS.length ? TOOLS[L - 1][1] : t('tool.legend', { name: TOOLS[TOOLS.length - 1][1], n: L - TOOLS.length });
 const VEGGIES = ['tomato', 'carrot', 'broccoli'];
 
 // ---------- 상태 ----------
 function freshState() {
   return { gold: BAL.startGold, stage: 1, atkLv: 0, spdLv: 0, buys: 0, grid: [1, ...Array(SLOTS - 1).fill(0)],
     skin: 'brown', skins: ['brown'], mates: {}, introSeen: false, lastSeen: Date.now(),
-    stars: 0, prestiges: 0, sound: true, daily: null, goldLv: 0,
-    gems: 0, wallFirst: {}, shop: { slots: 0, autoMerge: false, offline12: false }, boostUntil: 0, rush: null, rushBest: 0,
+    stars: 0, prestiges: 0, perm: { atk: 0, spd: 0, gold: 0 }, chal: {}, sound: true, daily: null, goldLv: 0,
+    gems: 0, wallFirst: {}, shop: { slots: 0, autoMerge: false, offline12: false }, boostUntil: 0, rush: null, rushBest: 0, horde: null, hordeBest: 0,
     settings: { sfx: true, music: true, vibrate: true, dmgNum: true, shake: true, saver: false } };
 }
 function load() {
@@ -121,6 +134,7 @@ function load() {
     if (s && Array.isArray(s.grid) && s.grid.length >= SLOTS && s.grid.length <= MAX_SLOTS) {
       const st = Object.assign(freshState(), s);
       st.settings = Object.assign(freshState().settings, s.settings || {});
+      st.perm = Object.assign(freshState().perm, s.perm || {}); // 예전 저장본: 별은 그대로 쓸 수 있는 재화가 된다
       if (s.sound === false && !s.settings) { st.settings.sfx = false; st.settings.music = false; } // 예전 소리 버튼 설정 이어받기
       st.skins = [...new Set(st.skins.map((id) => OLD_SKIN_IDS[id] || id))];
       st.skin = OLD_SKIN_IDS[st.skin] || st.skin;
@@ -156,7 +170,7 @@ function fit() {
   // 셸을 CSS로 확대하므로 백버퍼는 기기 픽셀 비율 × 셸 배율로 키운다 (ux:runtime-resize#c3)
   if (app) {
     const r = backbufferRes();
-    if (Math.abs(app.renderer.resolution - r) > 0.01) app.renderer.resize(FW, FH, r);
+    if (Math.abs(app.renderer.resolution - r) > 0.01) app.renderer.resize(FW, CH, r);
   }
 }
 addEventListener('resize', fit);
@@ -180,8 +194,11 @@ const ART_KEYS = ['bg_floor_tile', 'bg_wall', 'prop_shelf', 'prop_window', 'prop
   'hero_chef', 'hero_pirate', 'hero_patissier', 'hero_santa', 'hero_king', ...TOOL_ART.map((_, i) => toolKey(i + 1))];
 const ART = {};
 const AVAIL = new Set(); // manifest에 있는 그림 이름 (HTML에서만 쓰는 UI·아이콘은 여기서 있는지만 확인)
+// 한국어 글자가 그려진 그림(꼬리표·도장·로고 등)은 한국어 화면에서만 쓰고, 다른 언어에서는 글자로 대신한다
+const KO_TEXT_ART = new Set(['ui_tag_best', 'ui_tag_new', 'ui_stamp_done', 'ui_equipped', 'ui_logo']);
+const hasTextArt = (k) => AVAIL.has(k) && (LANG === 'ko' || !KO_TEXT_ART.has(k) && !k.startsWith('ui_chapter_'));
 // 전장(PixiJS)에 그리는 그림만 텍스처로 올린다 — UI·아이콘은 HTML <img>가 필요할 때 받는다
-const PIXI_ART = /^(bg_|prop_|enemy_|boss_|mate_|proj_|fx_|hero_|tool_|icon_coin$)/;
+const PIXI_ART = /^(bg_|prop_|enemy_|boss_|mate_|proj_|fx_|hero_|tool_|icon_coin$|ui_hero_hp_|ui_hp_heart$|ui_enemy_hp_|ui_boss_crown$|ui_aim$)/;
 // assets/img/manifest.json (tools/convert_assets.py 가 만든다)에 있는 그림만 불러온다 — 없는 그림은 임시 그림으로
 async function loadArt() {
   let keys = ART_KEYS;
@@ -198,23 +215,69 @@ function artSprite(key, h, ay = 1) {
   sp.scale.set(h / sp.texture.height);
   return sp;
 }
+// 셰프·동료 발밑 체력 막대 (가운데 기준, 위쪽 y). 손그림 ui_hero_hp_*(300×42, 3x 판)를 좌우 3분할로 늘린다 (사내 기준 ux:nine-slice)
+// 자르기 값은 텍스처 px(1x 7 × 3 = 21). 35% 아래는 빨강 채움 ui_hero_hp_fill_low(330×48, 자르기 24) — 그림이 없으면 코드 빨강
+// 왼쪽 끝에 작은 하트(ui_hp_heart)
+const HP_TEX_W = 300, HP_TEX_H = 42, HP_SLICE = 21, HP_LOW_W = 330, HP_LOW_H = 48, HP_LOW_SLICE = 24;
+function makeHpBar(w, y) {
+  const c = new PIXI.Container();
+  const h = w * HP_TEX_H / HP_TEX_W;
+  const low = new PIXI.Graphics();
+  c.y = y;
+  if (ART.ui_hero_hp_bg && ART.ui_hero_hp_fill) {
+    const opt = { leftWidth: HP_SLICE, rightWidth: HP_SLICE, topHeight: 0, bottomHeight: 0 };
+    const bg = new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_bg, ...opt });
+    const fill = new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_fill, ...opt });
+    for (const sp of [bg, fill]) { sp.scale.set(w / HP_TEX_W); sp.x = -w / 2; }
+    const lowSp = ART.ui_hero_hp_fill_low
+      ? new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_fill_low, leftWidth: HP_LOW_SLICE, rightWidth: HP_LOW_SLICE, topHeight: 0, bottomHeight: 0 }) : null;
+    if (lowSp) { lowSp.scale.set(h / HP_LOW_H); lowSp.x = -w / 2; }
+    c.addChild(bg, fill, lowSp || low);
+    if (ART.ui_hp_heart) { const hs = artSprite('ui_hp_heart', h * 1.7, 0.5); hs.position.set(-w / 2, h / 2); c.addChild(hs); }
+    c.set = (r) => {
+      r = Math.max(0, Math.min(1, r));
+      fill.visible = r > 0.35;
+      fill.width = HP_TEX_W * r;
+      if (lowSp) {
+        lowSp.visible = r > 0 && r <= 0.35;
+        lowSp.width = Math.max(HP_LOW_SLICE * 2, (w * r) / lowSp.scale.x);
+        return;
+      }
+      low.clear();
+      if (r > 0 && r <= 0.35) low.roundRect(-w / 2 + h * 0.15, h * 0.2, (w - h * 0.3) * r, h * 0.6, h * 0.3).fill(0xff5a5a);
+    };
+  } else {
+    c.addChild(low);
+    c.set = (r) => {
+      r = Math.max(0, Math.min(1, r));
+      low.clear().roundRect(-w / 2, 0, w, h, h / 2).fill({ color: 0x000000, alpha: 0.4 });
+      low.roundRect(-w / 2, 0, w * r, h, h / 2).fill(r > 0.35 ? 0x7ee07e : 0xff5a5a);
+    };
+  }
+  c.set(1);
+  return c;
+}
 
 // ---------- 챕터: 10스테이지마다 장소·적·보스가 바뀐다 ----------
 // 그림이 아직 없는 챕터는 주방 그림에 장소 색(tint)을 입혀 임시로 보여준다
+// props: [이름, 자리, x, y, 높이] — 그림 비율이 제각각이라 폭이 아니라 '높이'로 맞춘다 (셰프 키 168 기준)
+//   'wall' = 벽에 건 것(가운데 기준), 'floor' = 바닥에 선 것(y = 발밑). 벽 아래선(가구) y≈450, 바닥 아래쪽 y≈1150
 const CHAPTERS = [
-  { id: 'kitchen', name: '주방', icon: '🍳', enemies: ['tomato', 'carrot', 'broccoli'], boss: 'onion', tint: 0xffffff },
-  { id: 'fridge', name: '냉장고 안', icon: '🧊', enemies: ['cheese', 'milk', 'jelly'], boss: 'cake', tint: 0xd8ecff,
-    props: ['milk', 'eggs', 'ice', 'pudding'] },
-  { id: 'pantry', name: '식료품 창고', icon: '📦', enemies: ['potato', 'garlic', 'mushroom'], boss: 'potato', tint: 0xf2dcc0,
-    props: ['flour_sack', 'onion_basket', 'crate', 'garlic'] },
-  { id: 'hall', name: '레스토랑 홀', icon: '🍽️', enemies: ['steak', 'noodle', 'shrimp'], boss: 'turkey', tint: 0xf8d2d2,
-    props: ['table', 'candle', 'menu', 'cart'] },
-  { id: 'bakery', name: '빵집', icon: '🥐', enemies: ['bread', 'donut', 'croissant'], boss: 'baguette', tint: 0xfff2c8,
-    props: ['bread_shelf', 'oven', 'cake_stand', 'dough_table'] },
+  { id: 'kitchen', name: t('ch.kitchen'), icon: '🍳', enemies: ['tomato', 'carrot', 'broccoli'], boss: 'onion', tint: 0xffffff },
+  { id: 'fridge', name: t('ch.fridge'), icon: '🧊', enemies: ['cheese', 'milk', 'jelly'], boss: 'cake', tint: 0xd8ecff,
+    props: [['milk', 'floor', 190, 460, 110], ['eggs', 'floor', 890, 450, 70], ['ice', 'floor', 180, 1180, 105], ['pudding', 'floor', 920, 1130, 75]] },
+  { id: 'pantry', name: t('ch.pantry'), icon: '📦', enemies: ['potato', 'garlic', 'mushroom'], boss: 'potato', tint: 0xf2dcc0,
+    props: [['garlic', 'wall', 540, 150, 120], ['flour_sack', 'floor', 200, 450, 120], ['crate', 'floor', 880, 450, 110], ['onion_basket', 'floor', 190, 1170, 85]] },
+  { id: 'hall', name: t('ch.hall'), icon: '🍽️', enemies: ['steak', 'noodle', 'shrimp'], boss: 'turkey', tint: 0xf8d2d2,
+    props: [['menu', 'floor', 190, 460, 160], ['cart', 'floor', 890, 460, 150], ['table', 'floor', 200, 1200, 140], ['candle', 'floor', 930, 1170, 100]] },
+  { id: 'bakery', name: t('ch.bakery'), icon: '🥐', enemies: ['bread', 'donut', 'croissant'], boss: 'baguette', tint: 0xfff2c8,
+    props: [['bread_shelf', 'wall', 540, 160, 130], ['dough_table', 'floor', 200, 450, 120], ['oven', 'floor', 880, 460, 180], ['cake_stand', 'floor', 200, 1200, 110]] },
 ];
-const ARENA = { id: 'arena', name: '결투장', icon: '🔥', tint: 0xb06060 };
+const ARENA = { id: 'arena', name: t('place.arena'), icon: '🔥', tint: 0xb06060 };
 const chapterIdx = (st) => Math.floor((st - 1) / 10) % CHAPTERS.length;
 const chapterOf = (st) => CHAPTERS[chapterIdx(st)];
+// 10스테이지마다 나오는 강한 보스의 화면 이름: 챕터마다 '대왕 양파'(King Onion)… (2026-10-21 사용자 결정, 한국어 보스 이름은 모두 받침 없음 → 조사 '가')
+const wallBossName = (st) => t('king.' + chapterOf(st).id);
 // 적 그림: 그 챕터 그림이 있으면 그것, 없으면 주방 적을 장소 색으로 칠해 대신
 function enemyArt(ch, boss, i) {
   const own = boss ? 'boss_' + ch.boss : 'enemy_' + ch.enemies[i];
@@ -231,32 +294,49 @@ function makeBackground(ch = CHAPTERS[0]) {
   const fk = kitchen ? 'bg_floor_tile' : `bg_${ch.id}_floor_tile`, wk = kitchen ? 'bg_wall' : `bg_${ch.id}_wall`;
   const own = !!(ART[fk] && ART[wk]);
   const floor = new PIXI.TilingSprite({ texture: own ? ART[fk] : ART.bg_floor_tile, width: WW, height: WH - WALL_H + 20 });
-  floor.tileScale.set(160 / 512); // 타일 2×2칸 = 160 디자인 px
+  floor.tileScale.set(112 / 512); // 타일 그림 2×2칸 = 112 디자인 px (한 칸 56 ≈ 셰프 키의 1/3)
   floor.y = WALL_H - 20;
   const wall = new PIXI.Sprite(own ? ART[wk] : ART.bg_wall);
   wall.width = WW; wall.height = WALL_H;
   if (!own) { floor.tint = ch.tint; wall.tint = ch.tint; } // 그림이 오기 전 임시 색
   c.addChild(floor, wall);
-  const put = (key, x, y, w, ay = 0.5) => {
+  // 눕혀 놓은 것·벽에 건 것의 그림자: 같은 그림을 검게 칠해 아래로 살짝 비킨다
+  // (발밑 타원 그림자 0.18보다 조금 진하게 — 그림 밑으로 삐져나오는 폭이 좁아서 같은 값이면 체크무늬 바닥에서 안 보인다)
+  const dropShadow = (sp, dy) => {
+    const sh = new PIXI.Sprite(sp.texture); sh.anchor.copyFrom(sp.anchor); sh.scale.copyFrom(sp.scale);
+    sh.position.set(sp.x, sp.y + dy); sh.tint = 0x000000; sh.alpha = 0.24; c.addChild(sh);
+  };
+  const SHADOW_FLAT = 9, SHADOW_WALL = 10;
+  const put = (key, x, y, w, dy, ay = 0.5) => {
     if (!ART[key]) return;
     const sp = new PIXI.Sprite(ART[key]); sp.anchor.set(0.5, ay);
-    sp.scale.set(w / sp.texture.width); sp.position.set(x, y); c.addChild(sp);
+    sp.scale.set(w / sp.texture.width); sp.position.set(x, y);
+    dropShadow(sp, dy); c.addChild(sp);
   };
   if (!kitchen) {
-    // 챕터 소품: 벽에 2개, 바닥에 2개 (그림이 있는 것만)
-    const spots = [[190, 150, 260], [830, 140, 220], [520, 820, 260], [160, 1150, 180]];
-    (ch.props || []).forEach((name, i) => { const sp = spots[i]; if (sp) put(`prop_${ch.id}_${name}`, sp[0], sp[1], sp[2]); });
+    // 챕터 소품: 높이로 크기를 맞추고, 바닥에 선 것은 발밑을 y에 둔다 (그림이 있는 것만)
+    for (const [name, place, x, y, h] of ch.props || []) {
+      const key = `prop_${ch.id}_${name}`;
+      if (!ART[key]) continue;
+      const sp = new PIXI.Sprite(ART[key]);
+      sp.anchor.set(0.5, place === 'wall' ? 0.5 : 1);
+      sp.scale.set(h / sp.texture.height); sp.position.set(x, y);
+      // 바닥에 선 소품은 발밑에 타원 그림자, 벽에 건 것은 그림 모양 그림자 (셰프·적과 같은 색·진하기)
+      if (place === 'floor') c.addChild(new PIXI.Graphics().ellipse(x, y - 4, sp.width * 0.46, Math.max(8, sp.width * 0.09)).fill({ color: 0x000000, alpha: 0.18 }));
+      else dropShadow(sp, SHADOW_WALL);
+      c.addChild(sp);
+    }
     return c;
   }
   // 벽 장식
-  put('prop_utensil_rack', 470, 120, 190);
-  put('prop_shelf', 190, 150, 270);
-  put('prop_window', 830, 125, 220);
-  // 바닥 소품 — 카메라 이동이 눈에 띄게 흩어 둔다
-  put('prop_rug', 520, 820, 300);
-  put('prop_board', 130, 640, 140);
-  put('prop_flour', 190, 1170, 150);
-  put('prop_onion_peel', 900, 1050, 90);
+  put('prop_utensil_rack', 470, 120, 190, SHADOW_WALL);
+  put('prop_shelf', 190, 150, 270, SHADOW_WALL);
+  put('prop_window', 830, 125, 220, SHADOW_WALL);
+  // 바닥 소품 — 카메라 이동이 눈에 띄게 흩어 둔다 (바닥에 눕혀 놓은 것이라 그림 모양 그림자)
+  put('prop_rug', 520, 820, 300, SHADOW_FLAT);
+  put('prop_board', 130, 640, 140, SHADOW_FLAT);
+  put('prop_flour', 190, 1170, 150, SHADOW_FLAT);
+  put('prop_onion_peel', 900, 1050, 90, SHADOW_FLAT);
   return c;
 }
 function makeBackgroundVector() {
@@ -500,9 +580,8 @@ function makeHero() {
   tool.position.set(34, 30);
   c.addChild(tool);
 
-  const hpBg = new PIXI.Graphics().roundRect(-46, 82, 92, 10, 5).fill({ color: 0x000000, alpha: 0.4 });
-  const hp = new PIXI.Graphics();
-  c.addChild(hpBg, hp);
+  const hp = makeHpBar(100, 78);
+  c.addChild(hp);
   const h = { c, body, g, eyes, footL, footR, gun: tool, hp };
   drawHero(h, skinById(S.skin));
   return h;
@@ -522,9 +601,8 @@ function makeSpriteHero() {
   const dummy = () => { const g = new PIXI.Graphics(); g.visible = false; return g; };
   const footL = dummy(), footR = dummy(), eyes = dummy(), tool = dummy();
   c.addChild(shadow, body, footL, footR, tool);
-  const hpBg = new PIXI.Graphics().roundRect(-46, 82, 92, 10, 5).fill({ color: 0x000000, alpha: 0.4 });
-  const hp = new PIXI.Graphics();
-  c.addChild(hpBg, hp);
+  const hp = makeHpBar(100, 78);
+  c.addChild(hp);
   return { c, body, g: sprite, sprite, eyes, footL, footR, gun: tool, hp };
 }
 
@@ -791,17 +869,16 @@ function buildMenus() {
       <div class="info"><b>${m.name}</b><span class="desc">${m.desc}</span><span class="stat"></span></div>
       <button class="act"></button>
     </div>`).join('');
+  // 스킨 (총고식 4열 격자): 칸에는 그림만, 잠긴 건 어둡게 + 자물쇠, 장착 중은 노랑 칸 + 체크. 누르면 구매·장착 창
   $('skinList').innerHTML = SKINS.map((k) => {
     const hex = (n) => '#' + n.toString(16).padStart(6, '0');
     return `
-    <div class="skin" data-skin="${k.id}">
+    <button class="skin" data-skin="${k.id}" aria-label="${k.name}">
       ${skinThumb[k.id] ? `<img class="thumb" src="${skinThumb[k.id]}" alt="">` : `<div class="mini hat-${k.hat} ${k.eyepatch ? 'eyepatch' : ''} ${k.beard ? 'beard' : ''}" style="--fur:${hex(BEAR.fur)};--face:${hex(BEAR.face)};--muz:${hex(BEAR.muzzle)};--hat:${hex(k.hatColor || 0xffffff)};--outfit:${hex(k.coat || k.apron)};--neck:${hex(k.neckColor || k.coat || 0)}">
         <i class="body"></i><i class="ear l"></i><i class="ear r"></i><i class="head"></i><i class="eye l"></i><i class="eye r"></i><i class="muz"></i><i class="beard"></i><i class="nose"></i><i class="hat"></i><i class="pom"></i>
       </div>`}
-      <b>${k.name}</b>
-      <span class="desc">${k.bonus ? `보유 효과 공격력 +${Math.round(k.bonus * 100)}%` : '기본 스킨'}</span>
-      <button class="act"></button>
-    </div>`;
+      <img class="lock" src="${IMG}icon_lock.webp" alt="">
+    </button>`;
   }).join('');
   $('mateList').onclick = (e) => {
     const row = e.target.closest('.act') && e.target.closest('.row');
@@ -810,24 +887,36 @@ function buildMenus() {
     if (S.gold < c) return;
     S.gold -= c; S.mates[m.id] = mateLv(m) + 1;
     Sound.play('buy'); mission('mate');
-    if (S.mates[m.id] === 1) banner(`${m.icon} ${m.name} 합류!`, 1.2);
+    if (S.mates[m.id] === 1) banner(t('mates.joined', { icon: m.icon, name: m.name }), 1.2);
     syncMates(); updateUI();
   };
   $('skinList').onclick = (e) => {
-    const card = e.target.closest('.act') && e.target.closest('.skin');
-    if (!card) return;
-    const k = skinById(card.dataset.skin);
-    if (!S.skins.includes(k.id)) {
-      if (k.req) { if ((S.rushBest || 0) < k.req) return; }
-      else if (k.gem) { if (S.gems < k.gem) return; S.gems -= k.gem; }
-      else { if (S.gold < k.cost) return; S.gold -= k.cost; }
-      S.skins.push(k.id);
-      Sound.play('claim');
-    }
-    S.skin = k.id;
-    drawHero(hero, k);
-    renderGrid(); updateUI();
+    const card = e.target.closest('.skin');
+    if (card) openSkin(skinById(card.dataset.skin));
   };
+}
+// 스킨 하나 창: 그림·이름·효과 + 구매(골드·다이아·러시 기록) / 장착 / 장착 중
+function skinCanGet(k) { return k.req ? (S.rushBest || 0) >= k.req : k.gem ? S.gems >= k.gem : S.gold >= k.cost; }
+function openSkin(k) {
+  const own = S.skins.includes(k.id), on = S.skin === k.id, can = skinCanGet(k);
+  const price = k.req ? t('skin.req_rush', { n: k.req, best: S.rushBest || 0 }) : k.gem ? `${GEM} ${k.gem}` : `${COIN} ${fmt(k.cost)}`;
+  const btn = on ? t('skin.equipped') : own ? t('skin.equip') : k.req ? (can ? t('skin.claim') : t('skin.locked')) : can ? t('skin.buy') : t('skin.poor');
+  showModal(`<div class="title small">${k.name}</div>
+    <img class="skin-big" src="${skinThumb[k.id] || IMG + 'hero_chef.webp'}" alt="">
+    <div class="skin-eff">${skinEffText(k)}</div>
+    ${own ? `<p class="sub">${t('skin.owned_note')}</p>` : `<div class="skin-price">${price}</div>`}`,
+    btn, () => {
+      if (on || (!own && !can)) return;
+      if (!own) {
+        if (k.gem) S.gems -= k.gem; else if (!k.req) S.gold -= k.cost;
+        S.skins.push(k.id);
+        Sound.play('claim');
+      }
+      S.skin = k.id;
+      drawHero(hero, k);
+      renderGrid(); updateUI(); save();
+    }, null, { xClose: true });
+  $('modalBtn').disabled = on || (!own && !can);
 }
 
 function updateMenus() {
@@ -835,64 +924,71 @@ function updateMenus() {
   document.querySelectorAll('#mateList .row').forEach((row) => {
     const m = MATES.find((x) => x.id === row.dataset.mate), lv = mateLv(m), c = mateCost(m);
     row.querySelector('.stat').textContent = lv
-      ? `Lv ${lv} · ⚔ ${fmt(mateDmg(m))} / ${m.iv}초 · ❤ ${fmt(mateMaxHp(m))}  →  다음 ⚔ ${fmt(mateDmg(m, lv + 1))}`
-      : `⚔ ${fmt(mateDmg(m, 1))} / ${m.iv}초 · ❤ ${fmt(mateMaxHp(m, 1))}`;
+      ? t('mates.stat_owned', { lv, dmg: fmt(mateDmg(m)), iv: m.iv, hp: fmt(mateMaxHp(m)), next: fmt(mateDmg(m, lv + 1)) })
+      : t('mates.stat_new', { dmg: fmt(mateDmg(m, 1)), iv: m.iv, hp: fmt(mateMaxHp(m, 1)) });
     const b = row.querySelector('.act');
-    b.innerHTML = `${lv ? '강화' : '고용'}<span class="cost">${COIN} ${fmt(c)}</span>`;
+    b.innerHTML = `${lv ? t('mates.upgrade') : t('mates.hire')}<span class="cost">${COIN} ${fmt(c)}</span>`;
     b.disabled = S.gold < c;
     row.classList.toggle('locked', !lv);
-    if (!lv && S.gold >= c) mateReady = true;
+    if (S.gold >= c) mateReady = true; // 고용·강화 둘 다 살 수 있으면 동료 메뉴에 빨간 점 (2026-10-21)
   });
   document.querySelectorAll('#skinList .skin').forEach((card) => {
-    const k = skinById(card.dataset.skin), own = S.skins.includes(k.id), on = S.skin === k.id;
-    const b = card.querySelector('.act');
-    const can = k.req ? (S.rushBest || 0) >= k.req : k.gem ? S.gems >= k.gem : S.gold >= k.cost;
-    b.innerHTML = on ? '장착 중' : own ? '장착'
-      : k.req ? (can ? '받기<span class="cost">러시 기록 달성!</span>' : `${icon('icon_lock')}<span class="cost">러시 ${k.req}마리 (최고 ${S.rushBest || 0})</span>`)
-      : `구매<span class="cost">${k.gem ? GEM + ' ' + k.gem : COIN + ' ' + fmt(k.cost)}</span>`;
-    b.disabled = on || (!own && !can);
-    card.classList.toggle('on', on);
+    const k = skinById(card.dataset.skin), own = S.skins.includes(k.id);
+    card.classList.toggle('on', S.skin === k.id);
     card.classList.toggle('locked', !own);
-    if (!own && !k.gem && can) skinReady = true;
+    if (!own && !k.gem && skinCanGet(k)) skinReady = true;
   });
-  $('skinBonus').textContent = `모은 스킨 ${S.skins.length}/${SKINS.length} · 보유 효과 공격력 +${Math.round(skinBonus() * 100)}%`;
+  const pct = (t) => `+${Math.round(skinEff(t) * 100)}%`;
+  $('sumAtk').textContent = pct('atk'); $('sumSpd').textContent = pct('spd'); $('sumGold').textContent = pct('gold');
+  $('skinCount').textContent = t('skins.count', { n: S.skins.length, total: SKINS.length });
   return { mateReady, skinReady, missionReady: updateMissions(), prestigeReady: updatePrestige() };
 }
 
 function updateUI() {
   const bossOn = wave.bossSpawned && enemies.some((e) => e.boss);
   const wall = isWallStage(S.stage);
-  if (rush) {
-    $('stageLabel').textContent = '⚔️ 보스 러시';
-    $('chapterLabel').textContent = '🔥 결투장';
-    $('bossTimer').classList.add('on');
-    $('bossTimer').innerHTML = `⏱ ${Math.ceil(rush.t)} · 처치 ${rush.kills} · ${GEM} ${rush.gems}`;
+  if (chal) {
+    $('stageLabel').textContent = chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 });
+    $('chapterLabel').textContent = CHAPTERS[chal.ci].name;
+    $('bossTimer').classList.add('on', 'rush');
+    if (chal.horde) $('bossTimer').innerHTML = t('horde.pill', { sec: Math.ceil(chal.t), n: chal.kills, coin: COIN, gold: fmt(chal.gold) });
+    else $('bossTimer').textContent = t('chal.pill', { sec: Math.ceil(chal.t), n: chal.kills, total: CHAL_N });
+  } else if (rush) {
+    $('stageLabel').textContent = t('rush.label');
+    $('chapterLabel').textContent = '🔥 ' + t('place.arena');
+    $('bossTimer').classList.add('on', 'rush');
+    $('bossTimer').innerHTML = t('rush.pill', { sec: Math.ceil(rush.t), n: rush.kills, gem: GEM, gems: rush.gems });
   } else {
+    $('bossTimer').classList.remove('rush');
     $('stageLabel').textContent = `${wall ? '🔥 ' : ''}Stage ${S.stage}-${wave.idx + 1}`;
     const ch = chapterOf(S.stage);
     $('chapterLabel').innerHTML = `${AVAIL.has('icon_chapter_' + ch.id) ? icon('icon_chapter_' + ch.id, ch.icon) : ch.icon} ${ch.name}`;
     $('bossTimer').classList.toggle('on', bossOn);
-    if (bossOn) $('bossTimer').textContent = `${wall ? '🔥 강한 보스' : '👑 보스'} ⏱ ${Math.ceil(bossT)}`;
+    if (bossOn) $('bossTimer').textContent = (wall ? t('hud.king_timer', { boss: wallBossName(S.stage), sec: Math.ceil(bossT) }) : t('hud.boss_timer', { sec: Math.ceil(bossT) }));
   }
-  $('gemLabel').innerHTML = GEM + ' ' + fmt(S.gems);
+  // 일반 보스전의 남은 시간은 보스 체력 바 안에 (빨간 알약은 보스 러시·도전 때만 보인다 — 2026-10-21 위쪽 표시 정리)
+  $('bossTime').textContent = !rush && !chal && bossOn ? `⏱ ${Math.ceil(bossT)}` : '';
+  // 스테이지 명판: 보스가 나왔거나 강한 보스 스테이지·보스 러시면 보스 명판(ui_stage_plate_boss)
+  $('stageLabel').classList.toggle('boss', !!(rush || wall || bossOn) && !chal);
+  $('gemLabel').innerHTML = GEM + ' ' + fmt(S.gems) + (AVAIL.has('ui_btn_plus') ? '<i class="plus"></i>' : ''); // + = 상점 열기
   const boostLeft = (S.boostUntil - Date.now()) / 1000;
   $('boostPill').classList.toggle('on', boostLeft > 0);
-  if (boostLeft > 0) $('boostPill').textContent = `⏩ 2배속 ${Math.floor(boostLeft / 60)}:${String(Math.floor(boostLeft % 60)).padStart(2, '0')}`;
+  if (boostLeft > 0) $('boostPill').textContent = t('hud.boost', { time: `${Math.floor(boostLeft / 60)}:${String(Math.floor(boostLeft % 60)).padStart(2, '0')}` });
   const mr = $('gemLabel').getBoundingClientRect(), fr0 = $('field').getBoundingClientRect();
   gemTarget = { x: (mr.left - fr0.left + 26 * scale) / scale, y: (mr.top - fr0.top + mr.height / 2) / scale };
   $('goldLabel').innerHTML = COIN + ' ' + fmt(S.gold);
   const gr = $('goldLabel').getBoundingClientRect(), fr = $('field').getBoundingClientRect();
   goldTarget = { x: (gr.left - fr.left + 26 * scale) / scale, y: (gr.top - fr.top + gr.height / 2) / scale };
-  $('dpsLabel').textContent = 'DPS ' + fmt(dps());
   // 스테이지 전체 진행도: 끝난 웨이브 + 현재 웨이브 진행 (마지막 웨이브는 보스 체력을 깎은 만큼)
   const boss = enemies.find((e) => e.boss);
   const cur = isFinalWave() ? (boss ? 1 - Math.max(0, boss.hp) / boss.max : 0) : Math.min(1, wave.kills / waveSize(wave.idx));
   const pct = Math.min(1, (wave.idx + cur) / wave.total);
   // 보스 러시 중에는 맨 위 바가 남은 시간을 보여주고 웨이브 트랙은 숨긴다
-  const topV = rush ? Math.min(1, rush.t / RUSH_TIME) : pct;
+  const timed = rush || chal;
+  const topV = rush ? Math.min(1, rush.t / RUSH_TIME) : chal ? chal.t / CHAL_TIME : pct;
   $('topFill').style.width = topV * 100 + '%';
-  $('topPct').textContent = rush ? `${Math.ceil(rush.t)}초` : Math.floor(pct * 100) + '%';
-  $('track').style.visibility = rush ? 'hidden' : '';
+  $('topPct').textContent = timed ? t('hud.seconds', { n: Math.ceil(timed.t) }) : Math.floor(pct * 100) + '%';
+  $('track').style.visibility = timed ? 'hidden' : '';
   // 트랙: 22px 여백 안쪽에 웨이브 점을 고르게, 마지막 점은 보스
   const W = $('track').clientWidth - 44, at = (f) => 22 + f * W;
   $('trackFill').style.width = pct * 100 + '%';
@@ -907,22 +1003,28 @@ function updateUI() {
   $('trackHero').style.left = at(pct) + 'px';
   const thumb = skinThumb[S.skin];
   if (thumb && $('trackHeroImg').dataset.skin !== S.skin) { $('trackHeroImg').src = thumb; $('trackHeroImg').dataset.skin = S.skin; }
-  const atk = $('btnAtk'), spd = $('btnSpd'), gld = $('btnGold'), buy = $('btnBuy');
-  atk.querySelector('.lv').textContent = `Lv.${S.atkLv}`;
-  atk.querySelector('.val').textContent = `x${(1 + BAL.atkStep * S.atkLv).toFixed(2)}`;
-  atk.querySelector('.cost').innerHTML = COIN + ' ' + fmt(costAtk());
-  atk.disabled = S.gold < costAtk();
-  const spdMax = spdMul() >= 3;
-  spd.querySelector('.lv').textContent = `Lv.${S.spdLv}`;
-  spd.querySelector('.val').textContent = `x${spdMul().toFixed(2)}`;
-  spd.querySelector('.cost').innerHTML = spdMax ? 'MAX' : COIN + ' ' + fmt(costSpd());
-  spd.disabled = spdMax || S.gold < costSpd();
-  gld.querySelector('.lv').textContent = `Lv.${S.goldLv}`;
-  gld.querySelector('.val').textContent = `x${goldMul().toFixed(2)}`;
-  gld.querySelector('.cost').innerHTML = COIN + ' ' + fmt(costGold());
-  gld.disabled = S.gold < costGold();
+  const buy = $('btnBuy');
+  // 업그레이드 카드: 바탕 게이지 = 모은 골드 ÷ 가격 (가득 차면 살 수 있음). 저장하지 않고 매번 계산한다 (ux:ui-state)
+  const card = (el, lv, val, cost, max) => {
+    el.querySelector('.lv').textContent = `Lv.${lv}`;
+    el.querySelector('.val').textContent = val;
+    el.querySelector('.cost').innerHTML = max ? 'MAX' : COIN + ' ' + fmt(cost);
+    const f = max ? 1 : Math.min(1, S.gold / cost);
+    // 게이지는 카드 폭 전체로 그리고 오른쪽을 잘라 줄인다 (3분할 그림 ui_up_gauge의 둥근 끝이 겹치지 않게)
+    el.querySelector('.gauge i').style.clipPath = `inset(0 ${((1 - f) * 100).toFixed(1)}% 0 0 round 0 12px 12px 0)`;
+    el.classList.toggle('poor', !max && S.gold < cost);
+    el.classList.toggle('full', !max && S.gold >= cost);
+    el.disabled = max || S.gold < cost;
+  };
+  card($('btnAtk'), S.atkLv, `x${(1 + BAL.atkStep * S.atkLv).toFixed(2)}`, costAtk(), false);
+  card($('btnSpd'), S.spdLv, `x${spdMul().toFixed(2)}`, costSpd(), spdMul() >= BAL.spdMax);
+  card($('btnGold'), S.goldLv, `x${goldMul().toFixed(2)}`, costGold(), false);
+  $('btnSaver').classList.toggle('on', !!S.settings.saver);
+  // 절전모드: 가려진 전장은 그리지 않는다(전투 계산은 그대로), 가운데 셰프는 지금 스킨으로
+  if (world) world.visible = !S.settings.saver;
+  if (S.settings.saver && $('saverChef').dataset.skin !== S.skin) { $('saverChef').dataset.skin = S.skin; $('saverChef').src = skinThumb[S.skin] || `${IMG}hero_chef.webp`; }
   const full = !S.grid.includes(0);
-  buy.querySelector('.cost').innerHTML = full ? '칸이 가득 찼어요 — 합성하세요' : COIN + ' ' + fmt(costBuy());
+  buy.querySelector('.cost').innerHTML = full ? t('tools.full') : COIN + ' ' + fmt(costBuy());
   buy.disabled = full || S.gold < costBuy();
   // 배지: 도구를 살 수 있거나 합성할 쌍이 있을 때, 새 동료를 고용하거나 새 스킨을 살 수 있을 때
   const lv = S.grid.filter((L) => L);
@@ -940,32 +1042,87 @@ function showTab(name) {
 }
 document.querySelector('.tabs').onclick = (e) => { const t = e.target.closest('.tab'); if (t) showTab(t.dataset.tab); };
 
-// 모달 — 타이틀·오프라인 보상. 떠 있는 동안 게임을 멈춘다
-function showModal(html, btn, onOk, cancelText) {
+// 모달 — 타이틀·오프라인 보상·확인 창. 떠 있는 동안 게임을 멈춘다
+// opt: { variant: 'orange', peek: 그림 주소(패널 위로 머리를 내민다), x: false(X 없음) | 'below'(패널 아래 가운데), xClose: X는 그냥 닫기 }
+// X는 취소가 있으면 취소, 없으면 확인과 같다(보상 받기). btn이 없으면 확인 버튼을 숨긴다
+function showModal(html, btn, onOk, cancelText, opt = {}) {
   paused = true;
-  $('modalBody').innerHTML = html;
-  $('modalBtn').textContent = btn;
+  const box = $('modal').querySelector('.box');
+  box.className = 'box' + (opt.variant ? ' ' + opt.variant : '') + (opt.peek ? ' has-peek' : '');
+  $('modalBody').innerHTML = (opt.peek ? `<img class="peek" src="${opt.peek}" alt="">` : '') + html;
+  $('modalBtn').textContent = btn || '';
+  $('modalBtn').classList.toggle('hidden', !btn);
+  $('modalBtn').disabled = false;
   $('modal').classList.remove('hidden');
   const close = () => { $('modal').classList.add('hidden'); paused = false; };
-  $('modalBtn').onclick = () => { close(); Sound.unlock(); onOk && onOk(); };
+  const ok = () => { close(); Sound.unlock(); onOk && onOk(); };
+  $('modalBtn').onclick = ok;
   $('modalCancel').classList.toggle('hidden', !cancelText);
   $('modalCancel').textContent = cancelText || '';
   $('modalCancel').onclick = close;
+  $('modalX').classList.toggle('hidden', opt.x === false);
+  $('modalX').classList.toggle('below', opt.x === 'below');
+  $('modalX').onclick = cancelText || opt.xClose ? close : ok;
 }
 // 자리 비운 동안의 보상 (처음 켤 때와 앱을 다시 올렸을 때). 보상을 띄웠으면 true
+// 총고식: 번 골드로 업그레이드 3종을 알아서 사고, 그 전투력으로 스테이지를 올린다(최고 기록까지만). 남은 골드는 지갑으로
+const OFFLINE_EFF = 0.75; // 실제 DPS 효율 (tools/sim.js 와 같은 값)
+function planOffline(sec) {
+  const keep = { atkLv: S.atkLv, spdLv: S.spdLv, goldLv: S.goldLv, stage: S.stage };
+  let gold = Math.floor(offlineGoldPerSec() * sec);
+  // 1) 업그레이드: 셋 중 가장 싼 것부터 산다 (공격속도는 상한까지)
+  for (let guard = 0; guard < 2000; guard++) {
+    const opts = [['atkLv', costAtk()], ['goldLv', costGold()]];
+    if (spdMul() < BAL.spdMax) opts.push(['spdLv', costSpd()]);
+    opts.sort((x, y) => x[1] - y[1]);
+    if (opts[0][1] > gold) break;
+    gold -= opts[0][1]; S[opts[0][0]]++;
+  }
+  // 2) 스테이지: 웨이브 적 + 보스를 잡는 시간을 그 시점 DPS로 계산. 보스를 제한시간 안에 못 잡으면 멈춘다
+  const cap = Math.max(S.stage, S.bestStage || S.stage);
+  let t = sec;
+  while (S.stage < cap) {
+    const st = S.stage, D = dps() * OFFLINE_EFF, hp = enemyHp(st), wall = isWallStage(st);
+    let n = 0; for (let i = 0; i < waveCount(st); i++) n += waveSize(i);
+    const bossHp = hp * BAL.bossHp * (wall ? WALL_HP : 1);
+    if (bossHp / D > (wall ? WALL_TIME : BOSS_TIME)) break;
+    const need = Math.max(n * hp / D, n * SPAWN_GAP) + waveCount(st) * (WAVE_BREAK + 3) + bossHp / D;
+    if (need > t) break;
+    t -= need; S.stage++;
+  }
+  const after = { atkLv: S.atkLv, spdLv: S.spdLv, goldLv: S.goldLv, stage: S.stage };
+  Object.assign(S, keep); // 미리 보기만 — 받을 때 적용한다
+  return { before: keep, after, gold, max: after.stage >= cap && cap > keep.stage };
+}
 function offerOffline(away) {
   if (away < 60) return false;
   const sec = Math.min(away, offlineCap());
-  const earned = Math.floor(offlineGoldPerSec() * sec);
-  if (earned <= 0) return false;
-  const take = () => { S.gold += earned; popText(P.x, P.y - 130, '+' + fmt(earned), 'gold big'); coinBurst(FW / 2, FH * 0.5, 30); save(); };
+  if (offlineGoldPerSec() * sec <= 0) return false;
+  const plan = planOffline(sec);
+  const take = () => {
+    const moved = plan.after.stage !== S.stage;
+    Object.assign(S, plan.after);
+    S.gold += plan.gold;
+    if (moved) { clearField(); resetWave(); syncChapter(false); }
+    if (plan.gold > 0) { popText(P.x, P.y - 130, '+' + fmt(plan.gold), 'gold big'); coinBurst(FW / 2, FH * 0.5, 30); }
+    renderGrid(); updateUI(); save();
+    banner(`STAGE ${S.stage}`);
+  };
   // 다른 창이 떠 있으면 창을 덮지 않고 바로 받는다
   if (!$('modal').classList.contains('hidden')) { take(); return true; }
-  showModal(`<div class="title small">다녀오셨어요!</div>
-    <p>자리 비운 <b>${fmtTime(sec)}</b> 동안<br>셰프 곰이 주방을 지켰어요</p>
-    <div class="reward">${COIN} ${fmt(earned)}</div>
-    ${away > offlineCap() ? `<p class="sub">오프라인 보상은 최대 ${offlineCap() / 3600}시간까지 쌓여요</p>` : ''}`,
-    '받기', take);
+  const lvRow = (ic, k) => `<div class="off-lv"><img src="${IMG}${ic}.webp" alt=""><span>Lv.${plan.before[k]}</span></div>`;
+  const lvRowA = (ic, k) => `<div class="off-lv${plan.after[k] > plan.before[k] ? ' grew' : ''}"><img src="${IMG}${ic}.webp" alt=""><span>Lv.${plan.after[k]}</span></div>`;
+  const art = SKIN_ART[S.skin];
+  showModal(`<div class="title small">${t('offline.title')}</div>
+    <div class="off-time">${fmtTime(sec)}</div>
+    <div class="off-grid">
+      <div class="off-col"><b class="off-st">Stage ${plan.before.stage}</b>${lvRow('icon_atk', 'atkLv')}${lvRow('icon_spd', 'spdLv')}${lvRow('icon_gold_up', 'goldLv')}</div>
+      <div class="off-arrow">▶</div>
+      <div class="off-col"><b class="off-st">Stage ${plan.after.stage}${plan.max ? '<i class="off-max">Max!</i>' : ''}</b>${lvRowA('icon_atk', 'atkLv')}${lvRowA('icon_spd', 'spdLv')}${lvRowA('icon_gold_up', 'goldLv')}</div>
+    </div>
+    ${plan.gold > 0 ? `<div class="off-gold">${t('offline.gold_left', { coin: COIN, n: fmt(plan.gold) })}</div>` : ''}
+    <p class="off-note">${t('offline.note')}${away > offlineCap() ? `<br>${t('offline.cap', { h: offlineCap() / 3600 })}` : ''}</p>`,
+    null, take, null, { variant: 'orange', x: 'below', peek: AVAIL.has('illust_offline_peek') ? `${IMG}illust_offline_peek.webp` : art && ART[art] ? `${IMG}${art}.webp` : (skinThumb[S.skin] || `${IMG}hero_chef.webp`) });
   return true;
 }
 
@@ -977,8 +1134,8 @@ let backArmed = false, exitT = 0;
 function armBack() { if (!backArmed) { history.pushState({ kw: 1 }, ''); backArmed = true; } }
 function closeTopLayer() {
   if (!$('modal').classList.contains('hidden')) {
-    // 취소가 있으면 취소, 없으면(보상·안내) 확인 버튼과 같다
-    ($('modalCancel').classList.contains('hidden') ? $('modalBtn') : $('modalCancel')).click();
+    // X가 있으면 X(취소 또는 받기), 없으면(타이틀) 확인 버튼과 같다
+    ($('modalX').classList.contains('hidden') ? $('modalBtn') : $('modalX')).click();
     return true;
   }
   if (!$('settings').classList.contains('hidden')) { closeSettings(); return true; }
@@ -991,7 +1148,7 @@ addEventListener('popstate', () => {
   if (closeTopLayer()) { armBack(); return; }
   // 열린 창이 없다: 2초 안에 한 번 더 누르면 종료 (가드를 다시 쌓지 않는다)
   save();
-  banner('<small>뒤로 버튼을 한 번 더 누르면 게임이 꺼져요</small>', 1.8);
+  banner(`<small>${t('system.back_exit')}</small>`, 1.8);
   clearTimeout(exitT);
   exitT = setTimeout(armBack, 2000);
 });
@@ -1001,9 +1158,9 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTopLayer(); })
 
 function offlineGoldPerSec() {
   const killsPerSec = Math.min(dps() / enemyHp(S.stage), 1 / (SPAWN_GAP + 0.2));
-  return killsPerSec * enemyGold(S.stage) * starMul() * goldMul() * OFFLINE_RATE;
+  return killsPerSec * enemyGold(S.stage) * goldAll() * OFFLINE_RATE;
 }
-const fmtTime = (sec) => sec >= 3600 ? `${Math.floor(sec / 3600)}시간 ${Math.floor((sec % 3600) / 60)}분` : `${Math.max(1, Math.floor(sec / 60))}분`;
+const fmtTime = (sec) => sec >= 3600 ? t('time.hm', { h: Math.floor(sec / 3600), m: Math.floor((sec % 3600) / 60) }) : t('time.m', { m: Math.max(1, Math.floor(sec / 60)) });
 
 // ---------- 화면 흔들림·진동 ----------
 let shakeAmp = 0;
@@ -1058,7 +1215,7 @@ $('btnBonus').onclick = () => {
   if (!S.daily || S.daily.bonus || !S.daily.ids.every((id) => S.daily.claimed[id])) return;
   S.daily.bonus = true; S.stars += 1; S.gems += 20;
   gemBurst(FW / 2, FH * 0.55, 12);
-  banner(`⭐ 셰프 별 +1<small>공격력·골드가 영원히 ${Math.round(BAL.starStep * 100)}% 올랐어요</small>`, 2);
+  banner(`${t('mission.star_banner')}<small>${t('common.star_use')}</small>`, 2);
   Sound.play('prestige'); renderGrid(); updateUI(); save();
 };
 function updateMissions() {
@@ -1067,10 +1224,10 @@ function updateMissions() {
   document.querySelectorAll('#missionList .mission').forEach((row) => {
     const id = row.dataset.mid, m = MISSIONS.find((x) => x.id === id);
     const p = Math.min(m.n, Math.floor(S.daily.prog[id] || 0)), done = p >= m.n, got = !!S.daily.claimed[id];
-    row.querySelector('.stat').textContent = id === 'time' ? `${Math.floor(p / 60)}분 / ${m.n / 60}분` : `${p} / ${m.n}`;
+    row.querySelector('.stat').textContent = id === 'time' ? t('mission.minutes', { n: Math.floor(p / 60), total: m.n / 60 }) : `${p} / ${m.n}`;
     row.querySelector('.bar2 i').style.width = (p / m.n) * 100 + '%';
     const b = row.querySelector('.act');
-    b.innerHTML = got ? '받음' : done ? `받기<span class="cost">${COIN} ${fmt(missionGold())} · ${GEM} 5</span>` : '진행 중';
+    b.innerHTML = got ? t('mission.claimed') : done ? `${t('mission.claim')}<span class="cost">${COIN} ${fmt(missionGold())} · ${GEM} 5</span>` : t('mission.progress');
     b.disabled = got || !done;
     b.classList.toggle('claimed', got);
     row.classList.toggle('done', got);
@@ -1078,40 +1235,61 @@ function updateMissions() {
   });
   const all = S.daily.ids.every((id) => S.daily.claimed[id]);
   const bb = $('btnBonus');
-  bb.innerHTML = S.daily.bonus ? '받음' : `받기<span class="cost">${STAR} 1 · ${GEM} 20</span>`;
+  bb.innerHTML = S.daily.bonus ? t('mission.claimed') : `${t('mission.claim')}<span class="cost">${STAR} 1 · ${GEM} 20</span>`;
   bb.disabled = S.daily.bonus || !all;
   bb.classList.toggle('claimed', S.daily.bonus);
   if (all && !S.daily.bonus) ready = true;
   // 자정까지 남은 시간
   const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const left = Math.max(0, (mid - now) / 1000);
-  $('missionHint').textContent = `오늘의 미션 · ${Math.floor(left / 3600)}시간 ${Math.floor((left % 3600) / 60)}분 뒤 새 미션`;
+  $('missionHint').textContent = t('mission.hint', { h: Math.floor(left / 3600), m: Math.floor((left % 3600) / 60) });
   return ready;
 }
 
-// ---------- 환생 ----------
+// ---------- 환생 (총고식) — 받은 셰프 별로 영구 강화 3종을 직접 산다 ----------
+function buildPerm() {
+  $('permList').innerHTML = PERM.map((p) => `
+    <div class="perm" data-perm="${p.k}">
+      <span class="perm-ico"><img src="${IMG}${p.icon}.webp" alt=""><i class="perm-lv"></i></span>
+      <div class="info"><span>${p.name}</span><b class="perm-val"></b></div>
+      <button class="perm-btn"><span>${t('perm.upgrade')}</span><i class="perm-cost"></i></button>
+    </div>`).join('');
+  $('permList').onclick = (e) => {
+    const row = e.target.closest('.perm-btn') && e.target.closest('.perm');
+    if (!row) return;
+    const k = row.dataset.perm, c = permCost(k);
+    if (permMax(k) || S.stars < c) return;
+    S.stars -= c; S.perm[k] = permLv(k) + 1;
+    Sound.play('claim'); buzz(15);
+    renderGrid(); updateUI(); save();
+  };
+}
 function updatePrestige() {
   const gain = starsFor(S.stage);
-  $('starNow').innerHTML = `${STAR} ${S.stars}`;
-  $('starBonus').textContent = `셰프 별 효과: 공격력·골드 +${Math.round(S.stars * BAL.starStep * 100)}%` + (S.prestiges ? ` · 환생 ${S.prestiges}회` : '');
+  $('starNow').textContent = fmt(S.stars);
   const b = $('btnPrestige');
-  if (S.stage < PRESTIGE_MIN) {
-    $('starGain').textContent = `STAGE ${PRESTIGE_MIN}부터 환생할 수 있어요 (지금 ${S.stage})`;
-    b.textContent = '환생하기'; b.disabled = true;
-  } else {
-    $('starGain').textContent = `지금 환생하면 ⭐ +${gain} → 공격력·골드 +${Math.round((S.stars + gain) * BAL.starStep * 100)}%`;
-    b.textContent = `환생하기 (⭐ +${gain})`; b.disabled = gain < 1;
-  }
-  // 받을 별이 지금 가진 별의 절반 이상이면 알림
-  return S.stage >= PRESTIGE_MIN && gain >= Math.max(3, Math.ceil(S.stars * 0.5));
+  $('starGain').textContent = fmt(gain);
+  $('starBonus').textContent = S.stage < PRESTIGE_MIN ? t('prestige.need', { min: PRESTIGE_MIN, now: S.stage }) : S.prestiges ? t('prestige.count', { n: S.prestiges }) : '';
+  b.disabled = S.stage < PRESTIGE_MIN || gain < 1;
+  let permReady = false;
+  document.querySelectorAll('#permList .perm').forEach((row) => {
+    const k = row.dataset.perm, c = permCost(k), max = permMax(k);
+    row.querySelector('.perm-lv').textContent = `Lv.${permLv(k)}`;
+    row.querySelector('.perm-val').textContent = `+${Math.round(BAL.perm[k].step * permLv(k) * 100)}%`;
+    row.querySelector('.perm-cost').innerHTML = max ? 'MAX' : `${STAR} ${c}`;
+    row.querySelector('.perm-btn').disabled = max || S.stars < c;
+    if (!max && S.stars >= c) permReady = true;
+  });
+  // 별로 살 수 있는 강화가 있거나, 받을 별이 많으면 알림
+  return permReady || (S.stage >= PRESTIGE_MIN && gain >= 3);
 }
 $('btnPrestige').onclick = () => {
   const gain = starsFor(S.stage);
   if (gain < 1) return;
-  showModal(`<div class="title small">⭐ 환생</div>
-    <p>STAGE ${S.stage}에서 환생하면<br><b>셰프 별 ${gain}개</b>를 받아요</p>
-    <p class="sub">스테이지·골드·업그레이드·도구는 처음으로 돌아가요.<br>스킨은 그대로, 동료는 Lv 1로 남아요.</p>`,
-    '환생하기', () => {
+  showModal(`<div class="title small">${t('prestige.title')}</div>
+    <p>${t('prestige.confirm', { stage: S.stage, n: gain })}</p>
+    <p class="sub">${t('prestige.confirm_sub')}</p>`,
+    t('prestige.btn'), () => {
       S.stars += gain; S.prestiges++;
       S.stage = 1; S.gold = BAL.startGold; S.atkLv = 0; S.spdLv = 0; S.goldLv = 0; S.buys = 0;
       S.grid = [1, ...Array(gridSize() - 1).fill(0)];
@@ -1121,9 +1299,9 @@ $('btnPrestige').onclick = () => {
       heroHp = heroMax;
       for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
       closeSheet(); renderGrid(); updateUI(); save();
-      banner(`⭐ 환생! 셰프 별 +${gain}<small>공격력·골드 +${Math.round(S.stars * BAL.starStep * 100)}% 로 다시 시작해요</small>`, 2.6);
+      banner(`${t('prestige.done', { n: gain })}<small>${t('common.star_use')}</small>`, 2.6);
       Sound.play('prestige'); shake(14); buzz(60);
-    }, '취소');
+    }, t('common.cancel'), { peek: `${IMG}illust_prestige.webp` });
 };
 
 // ---------- ⚙️ 설정 ----------
@@ -1132,12 +1310,16 @@ function applySettings() {
   const st = S.settings;
   Sound.setSfx(st.sfx); Sound.setMusic(st.music);
   if (app) app.ticker.maxFPS = st.saver ? 30 : 0; // 절전: 30fps
+  $('saverScreen').classList.toggle('on', !!st.saver); // 절전: 전장을 가리는 화면 (그림은 updateUI에서)
   fit();                                          // 절전: 백버퍼 해상도 낮춤
   document.querySelectorAll('#settings .switch').forEach((b) => b.classList.toggle('on', !!st[b.dataset.key]));
 }
 function openSettings() { applySettings(); $('settings').classList.remove('hidden'); paused = true; }
 function closeSettings() { $('settings').classList.add('hidden'); paused = false; }
 $('btnSettings').onclick = openSettings;
+// 스테이지 아래 절전모드 알약: 설정의 절전 모드와 같은 값
+$('gemLabel').onclick = (e) => { if (e.target.closest('.plus')) openSheet('shop'); };
+$('btnSaver').onclick = () => { S.settings.saver = !S.settings.saver; Sound.unlock(); applySettings(); save(); updateUI(); banner(`<small>${t(S.settings.saver ? 'hud.saver_on' : 'hud.saver_off')}</small>`, 1); };
 $('btnSetClose').onclick = closeSettings;
 $('settings').onclick = (e) => { if (e.target.id === 'settings') closeSettings(); };
 document.querySelectorAll('#settings .switch').forEach((b) => {
@@ -1152,29 +1334,29 @@ document.querySelectorAll('#settings .switch').forEach((b) => {
 // 게임 초기화: 두 번 확인한 뒤 저장을 지우고 처음부터
 $('btnReset').onclick = () => {
   closeSettings();
-  showModal(`<div class="title small">게임 초기화</div><p>스테이지·골드·도구·동료·스킨·별·다이아가<br><b>모두 사라져요.</b></p>`, '초기화할게요', () => {
-    showModal(`<div class="title small">정말요?</div><p>되돌릴 수 없어요.<br>정말 처음부터 시작할까요?</p>`, '처음부터 시작', () => {
+  showModal(`<div class="title small">${t('reset.title')}</div><p>${t('reset.body')}</p>`, t('reset.ok'), () => {
+    showModal(`<div class="title small">${t('reset2.title')}</div><p>${t('reset2.body')}</p>`, t('reset2.ok'), () => {
       window.__resetting = true;
       try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 저장소 없음 */ }
       location.reload();
-    }, '취소');
-  }, '취소');
+    }, t('common.cancel'));
+  }, t('common.cancel'));
 };
 // 브라우저 정책상 첫 터치에서 오디오를 깨운다
 addEventListener('pointerdown', () => Sound.unlock(), true);
 
 // ---------- 💎 다이아 상점 ----------
 const SHOP = [
-  { id: 'slots', icon: '🧰', art: 'icon_slots', name: '도구함 칸 +4', desc: '합성할 공간이 넓어져요 (최대 2번)', price: 100,
+  { id: 'slots', icon: '🧰', art: 'icon_slots', name: t('shop.slots'), desc: t('shop.slots_desc'), price: 100,
     owned: () => S.shop.slots >= 2, label: () => `${S.shop.slots}/2`,
     buy: () => { S.shop.slots++; S.grid.push(0, 0, 0, 0); renderGrid(); } },
-  { id: 'auto', icon: '🔄', art: 'icon_auto_merge', name: '자동 합성', desc: '같은 도구가 생기면 알아서 합쳐줘요', price: 150,
+  { id: 'auto', icon: '🔄', art: 'icon_auto_merge', name: t('shop.automerge'), desc: t('shop.automerge_desc'), price: 150,
     owned: () => S.shop.autoMerge, buy: () => { S.shop.autoMerge = true; } },
-  { id: 'boost', icon: '⏩', art: 'icon_boost', name: '2배속 10분', desc: '게임이 두 배로 빨라져요 (겹쳐 사면 시간 연장)', price: 20,
+  { id: 'boost', icon: '⏩', art: 'icon_boost', name: t('shop.boost'), desc: t('shop.boost_desc'), price: 20,
     owned: () => false, buy: () => { S.boostUntil = Math.max(Date.now(), S.boostUntil) + 10 * 60 * 1000; } },
-  { id: 'offline', icon: '🌙', art: 'icon_offline', name: '오프라인 보상 12시간', desc: '자리를 비운 동안 보상이 12시간까지 쌓여요 (기본 8시간)', price: 80,
+  { id: 'offline', icon: '🌙', art: 'icon_offline', name: t('shop.offline'), desc: t('shop.offline_desc'), price: 80,
     owned: () => S.shop.offline12, buy: () => { S.shop.offline12 = true; } },
-  { id: 'ninja', icon: '🥷', art: 'hero_ninja', name: '닌자 셰프 스킨', desc: '다이아 전용 스킨 · 보유 효과 공격력 +30%', price: 300,
+  { id: 'ninja', icon: '🥷', art: 'hero_ninja', name: t('shop.ninja'), desc: t('shop.ninja_desc'), price: 300,
     owned: () => S.skins.includes('ninja'),
     buy: () => { S.skins.push('ninja'); S.skin = 'ninja'; drawHero(hero, skinById('ninja')); } },
 ];
@@ -1227,7 +1409,7 @@ function rushToday() {
 }
 function startRush() {
   const r = rushToday();
-  if (rush || r.used >= RUSH_TRIES) return;
+  if (rush || chal || r.used >= RUSH_TRIES) return;
   r.used++;
   mission('rush');
   closeSheet();
@@ -1235,7 +1417,7 @@ function startRush() {
   heroHp = heroMax;
   rush = { t: RUSH_TIME, kills: 0, gems: 0, next: 1.2 };
   syncChapter(false);
-  banner('⚔️ 보스 러시!<small>60초 동안 보스를 최대한 많이 잡으세요</small>', 1.8);
+  banner(t('rush.start_banner'), 1.8);
   Sound.play('wall'); shake(10);
   save();
 }
@@ -1272,15 +1454,122 @@ function endRush(reason) {
   const best = r.kills > S.rushBest;
   if (best) S.rushBest = r.kills;
   save();
-  showModal(`<div class="title small">⚔️ 보스 러시 끝</div>
-    <p>${reason}<br>보스 <b>${r.kills}마리</b> 처치${best ? ' · 🏆 최고 기록!' : ''}</p>
+  showModal(`<div class="title small">${t('rush.end_title')}</div>
+    <p>${reason}<br>${t('rush.end_kills', { n: r.kills })}</p>
+    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}ui_tag_best.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
     <div class="reward">${GEM} ${r.gems}</div>
-    <p class="sub">남은 도전 ${RUSH_TRIES - rushToday().used}번 · 자정에 다시 3번</p>`, '확인', () => {
+    <p class="sub">${t('end.tries_left', { n: RUSH_TRIES - rushToday().used, total: RUSH_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
       banner(`STAGE ${S.stage}`);
     });
 }
 $('btnRush').onclick = startRush;
+
+// ---------- ⚔️ 스테이지 도전 (총고식): 챕터마다 한 번, 1분 안에 그 챕터 적을 모두 처치하면 💎 ----------
+const CHAL_TIME = 60, CHAL_N = 40, CHAL_GEMS = 30, CHAL_GAP = 0.35;
+let chal = null;
+const chalOpen = (ci) => (S.bestStage || S.stage) > (ci + 1) * 10; // 그 챕터 강한 보스(10·20…)를 넘었으면 열린다
+const chalArt = (ch, boss) => { const k = boss ? 'boss_' + ch.boss : 'enemy_' + ch.enemies[0]; return AVAIL.has(k) ? `${IMG}${k}.webp` : `${IMG}${boss ? 'boss_onion' : 'enemy_tomato'}.webp`; };
+function buildChal() {
+  $('chalList').innerHTML = CHAPTERS.map((ch, ci) => `
+    <div class="row chal" data-ci="${ci}">
+      <span class="big"><img src="${chalArt(ch)}" alt=""></span>
+      <div class="info"><b>${t('chal.row', { n: ci + 1, name: ch.name })}</b><span class="desc">${t('chal.row_desc', { n: CHAL_N })}</span></div>
+      <button class="act gem"></button>
+    </div>`).join('');
+  $('chalList').onclick = (e) => {
+    const row = e.target.closest('.act') && e.target.closest('.chal');
+    if (row) openChal(+row.dataset.ci);
+  };
+}
+function openChal(ci) {
+  if (S.chal[ci] || !chalOpen(ci) || rush || chal) return;
+  const ch = CHAPTERS[ci];
+  showModal(`<div class="chal-title">CHAPTER ${ci + 1}</div>
+    <div class="chal-band">${t('chal.band', { place: ch.name, n: CHAL_N })}</div>
+    <div class="chal-reward"><small>${t('chal.reward')}</small><span>${GEM}</span><b>${CHAL_GEMS}</b></div>`,
+    t('chal.confirm'), () => startChal(ci), null, { peek: chalArt(ch, true), xClose: true, variant: 'chal' });
+}
+function startChal(ci) {
+  if (rush || chal) return;
+  closeSheet();
+  clearField();
+  heroHp = heroMax;
+  chal = { ci, st: (ci + 1) * 10, t: CHAL_TIME, spawned: 0, kills: 0, spawnT: 0.4 };
+  syncChapter(false);
+  banner(t('chal.start_banner', { n: CHAL_N }), 1.8);
+  Sound.play('wall'); shake(8);
+}
+function endChal(ok, reason) {
+  if (chal.horde) { endHorde(reason); return; }
+  const c = chal;
+  chal = null;
+  clearField(); resetWave();
+  syncChapter(false);
+  heroHp = heroMax;
+  for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
+  const first = ok && !S.chal[c.ci];
+  if (first) { S.chal[c.ci] = true; S.gems += CHAL_GEMS; }
+  save();
+  showModal(`<div class="title small">${ok ? t('chal.win') : t('chal.lose')}</div>
+    <p>${ok ? t('chal.win_desc', { c: c.ci + 1, n: CHAL_N }) : `${reason}<br>${t('chal.lose_desc', { n: c.kills, total: CHAL_N })}`}</p>
+    ${first ? `<div class="reward">${GEM} ${CHAL_GEMS}</div>` : `<p class="sub">${t('chal.retry')}</p>`}`, t('common.ok'), () => {
+      Sound.play('clear');
+      banner(`STAGE ${S.stage}`);
+    }, null, { peek: chalArt(CHAPTERS[c.ci], true) });
+}
+
+// ---------- ⚔️ 대군 모드 (2026-10-21): 60초 동안 약한 적이 끝없이 몰려온다 — 잡은 만큼 골드. 스테이지 도전(chal) 위에 얹는다 ----------
+const HORDE_TIME = 60, HORDE_TRIES = 3, HORDE_MAX = 36, HORDE_BURST = 4, HORDE_GAP = 0.5;
+const HORDE_HP = 0.35, HORDE_ATK = 0.5; // 적 체력 = 지금 스테이지 일반 적의 35% (대부분 한두 방), 공격력은 절반
+function hordeToday() {
+  const key = todayKey();
+  if (!S.horde || S.horde.date !== key) S.horde = { date: key, used: 0 };
+  return S.horde;
+}
+function startHorde() {
+  const h = hordeToday();
+  if (rush || chal || h.used >= HORDE_TRIES) return;
+  h.used++;
+  closeSheet();
+  clearField();
+  heroHp = heroMax;
+  chal = { horde: true, ci: chapterIdx(S.stage), st: S.stage, t: HORDE_TIME, spawned: 0, kills: 0, spawnT: 0.4, gold: 0 };
+  syncChapter(false);
+  banner(t('horde.start_banner'), 1.8);
+  Sound.play('wall'); shake(10);
+  save();
+}
+function updateHorde(dt) {
+  if ((chal.spawnT -= dt) > 0) return;
+  chal.spawnT = HORDE_GAP;
+  for (let k = 0; k < HORDE_BURST && enemies.length < HORDE_MAX; k++) {
+    spawnEnemy(false);
+    const e = enemies[enemies.length - 1];
+    e.hp = e.max = Math.max(1, Math.ceil(e.max * HORDE_HP));
+    chal.spawned++;
+  }
+}
+function endHorde(reason) {
+  const c = chal;
+  chal = null;
+  clearField(); resetWave();
+  syncChapter(false);
+  heroHp = heroMax;
+  for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
+  const best = c.kills > (S.hordeBest || 0);
+  if (best) S.hordeBest = c.kills;
+  save();
+  showModal(`<div class="title small">${t('horde.end_title')}</div>
+    <p>${reason}<br>${t('horde.end_kills', { n: c.kills })}</p>
+    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}ui_tag_best.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
+    <div class="reward">${COIN} ${fmt(c.gold)}</div>
+    <p class="sub">${t('end.tries_left', { n: HORDE_TRIES - hordeToday().used, total: HORDE_TRIES })}</p>`, t('common.ok'), () => {
+      Sound.play('clear');
+      banner(`STAGE ${S.stage}`);
+    });
+}
+$('btnHorde').onclick = startHorde;
 
 function updateShopRush() {
   let shopReady = false;
@@ -1288,18 +1577,33 @@ function updateShopRush() {
     const it = SHOP.find((x) => x.id === row.dataset.shop), own = it.owned();
     row.querySelector('.lbl').textContent = it.label ? it.label() : '';
     const b = row.querySelector('.act');
-    b.innerHTML = own ? '보유 중' : `구매<span class="cost">${GEM} ${it.price}</span>`;
+    b.innerHTML = own ? t('shop.owned') : `${t('shop.buy')}<span class="cost">${GEM} ${it.price}</span>`;
     b.disabled = own || S.gems < it.price;
     b.classList.toggle('claimed', own);
     if (!own && it.id !== 'boost' && S.gems >= it.price) shopReady = true;
   });
-  $('shopGems').innerHTML = `${GEM} ${fmt(S.gems)}`;
+  $('shopHint').innerHTML = t('shop.hint', { n: `<b>${GEM} ${fmt(S.gems)}</b>` });
   const r = rushToday(), left = RUSH_TRIES - r.used;
-  $('rushTries').textContent = `오늘 남은 도전 ${left} / ${RUSH_TRIES}`;
-  $('rushBest').textContent = `최고 기록: 보스 ${S.rushBest}마리`;
+  $('rushTries').textContent = t('chal.tries', { n: left, total: RUSH_TRIES });
+  $('rushBest').textContent = t('rush.best', { n: S.rushBest });
   $('btnRush').disabled = left <= 0 || !!rush;
-  $('btnRush').textContent = rush ? '도전 중…' : left > 0 ? '도전 시작' : '내일 다시 도전';
-  return { shopReady, rushReady: left > 0 };
+  $('btnRush').textContent = rush ? t('chal.running') : left > 0 ? t('chal.start') : t('chal.tomorrow');
+  let chalReady = false;
+  document.querySelectorAll('#chalList .chal').forEach((row) => {
+    const ci = +row.dataset.ci, done = !!S.chal[ci], open = chalOpen(ci), b = row.querySelector('.act');
+    b.innerHTML = done ? t('chal.done') : open ? `${t('chal.go')}<span class="cost">${GEM} ${CHAL_GEMS}</span>` : `${icon('icon_lock', '🔒')}<span class="cost">${t('chal.locked', { n: (ci + 1) * 10 })}</span>`;
+    b.disabled = done || !open || !!rush || !!chal;
+    b.classList.toggle('claimed', done);
+    row.classList.toggle('locked', !open);
+    if (open && !done) chalReady = true;
+  });
+  const hLeft = HORDE_TRIES - hordeToday().used, hImg = chalArt(chapterOf(S.stage));
+  if ($('hordeImg').dataset.src !== hImg) { $('hordeImg').dataset.src = hImg; $('hordeImg').src = hImg; } // 지금 챕터 적 그림
+  $('hordeTries').textContent = t('chal.tries', { n: hLeft, total: HORDE_TRIES });
+  $('hordeBest').textContent = t('horde.best', { n: S.hordeBest || 0 });
+  $('btnHorde').disabled = hLeft <= 0 || !!rush || !!chal;
+  $('btnHorde').textContent = chal && chal.horde ? t('chal.running') : hLeft > 0 ? t('chal.start') : t('chal.tomorrow');
+  return { shopReady, rushReady: left > 0 || chalReady || hLeft > 0 };
 }
 
 function openSheet(tab) { if (tab) showTab(tab); renderGrid(); updateUI(); $('sheet').classList.remove('closed'); }
@@ -1369,7 +1673,8 @@ let world, field, hero;
 function spawnEnemy(boss, wall = false) {
   const r = wall ? 58 : boss ? 46 : 22;
   const c = new PIXI.Container();
-  const ch = rush ? CHAPTERS[rush.kills % CHAPTERS.length] : chapterOf(S.stage); // 러시는 잡을 때마다 다음 챕터 보스
+  const ch = rush ? CHAPTERS[rush.kills % CHAPTERS.length] : chal ? CHAPTERS[chal.ci] : chapterOf(S.stage); // 러시는 잡을 때마다 다음 챕터 보스
+  const est = chal ? chal.st : S.stage; // 도전은 그 챕터 강한 보스 스테이지 세기
   const art = enemyArt(ch, boss, Math.floor(Math.random() * 3));
   let g, barY = -r - 22;
   if (ART[art.key]) {
@@ -1381,8 +1686,10 @@ function spawnEnemy(boss, wall = false) {
     g.addChild(sp);
     barY = sp.y - h - 14;
   } else { g = new PIXI.Graphics(); drawVeg(g, r, art.kind); g.tint = art.tint; }
-  const bar = new PIXI.Graphics();
-  c.addChild(g, bar);
+  const bar = new PIXI.Container(); // 머리 위 체력 막대 (drawBar)
+  // 발밑 그림자 — 셰프·동료와 같은 색·진하기. 몸(g)이 튀거나 찌그러져도 바닥에 남게 컨테이너에 둔다
+  const shadow = new PIXI.Graphics().ellipse(0, r * 1.0, r * 1.15, r * 0.28).fill({ color: 0x000000, alpha: 0.18 });
+  c.addChild(shadow, g, bar);
   // 지금 보이는 화면 바로 바깥(위·왼쪽·오른쪽)에서 들어온다
   let x, y;
   const side = boss ? 0 : Math.floor(Math.random() * 4); // 위쪽이 두 배로 자주
@@ -1391,18 +1698,47 @@ function spawnEnemy(boss, wall = false) {
   else { x = cam.x + FW + 50; y = cam.y + 150 + Math.random() * (FH * 0.6); }
   c.position.set(x, y);
   field.addChild(c);
-  const hp = enemyHp(S.stage) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1);
+  const hp = enemyHp(est) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1);
   const e = { c, g, bar, x, y, r, hp, max: hp, boss, speed: boss ? 34 : 50 + Math.random() * 22 + S.stage * 0.5,
-    gold: enemyGold(S.stage) * (boss ? BAL.bossGold : 1) * (wall ? BAL.wallGold : 1) * starMul() * goldMul(), wall, hit: 0, dead: false, wob: Math.random() * 6, atkT: 0.3, lunge: 0, lx: 0, ly: 0, barY };
+    gold: enemyGold(est) * (boss ? BAL.bossGold : 1) * (wall ? BAL.wallGold : 1) * goldAll(), wall, hit: 0, dead: false, wob: Math.random() * 6, atkT: 0.3, lunge: 0, lx: 0, ly: 0, barY };
   drawBar(e);
   enemies.push(e);
 }
+// 적 머리 위 체력 막대: 일반 적은 맞았을 때만 손그림 ui_enemy_hp_*(240×36, 자르기 18), 보스는 빨강 + 왼쪽 왕관
+const EHP_TEX_W = 240, EHP_TEX_H = 36, EHP_SLICE = 18;
 function drawBar(e) {
-  e.bar.clear();
-  if (e.hp >= e.max && !e.boss) return;
-  const w = e.r * 2.2;
-  e.bar.roundRect(-w / 2, e.barY, w, 8, 4).fill({ color: 0x000000, alpha: 0.5 });
-  e.bar.roundRect(-w / 2, e.barY, w * Math.max(0, e.hp / e.max), 8, 4).fill(e.boss ? 0xff4d6d : 0x7ee07e);
+  const b = e.bar, w = e.r * 2.2, r = Math.max(0, e.hp / e.max);
+  b.visible = e.hp < e.max || e.boss;
+  if (!b.visible) return;
+  if (!b.built) {
+    b.built = true;
+    const art = !e.boss && ART.ui_enemy_hp_bg && ART.ui_enemy_hp_fill;
+    if (art) {
+      const opt = { leftWidth: EHP_SLICE, rightWidth: EHP_SLICE, topHeight: 0, bottomHeight: 0 };
+      const h = w * EHP_TEX_H / EHP_TEX_W, sc = h / EHP_TEX_H;
+      b.bg = new PIXI.NineSliceSprite({ texture: ART.ui_enemy_hp_bg, ...opt });
+      b.fill = new PIXI.NineSliceSprite({ texture: ART.ui_enemy_hp_fill, ...opt });
+      for (const sp of [b.bg, b.fill]) { sp.scale.set(sc); sp.position.set(-w / 2, e.barY); b.addChild(sp); }
+      b.bg.width = EHP_TEX_W;
+    } else {
+      b.g = new PIXI.Graphics(); b.addChild(b.g);
+      if (e.boss && ART.ui_boss_crown) { const cr = artSprite('ui_boss_crown', 30, 0.5); cr.position.set(-w / 2 - 10, e.barY + 4); b.addChild(cr); }
+    }
+  }
+  if (b.fill) { b.fill.visible = r > 0; b.fill.width = Math.max(EHP_SLICE * 2, EHP_TEX_W * r); return; }
+  b.g.clear().roundRect(-w / 2, e.barY, w, 8, 4).fill({ color: 0x000000, alpha: 0.5 });
+  b.g.roundRect(-w / 2, e.barY, w * r, 8, 4).fill(e.boss ? 0xff4d6d : 0x7ee07e);
+}
+// 화면 위쪽 보스 체력 바 — 채움을 오른쪽부터 잘라 줄인다(잘린 끝도 둥글게). 채움 칸 = 그림 480×60 중 x 91~478
+let bossBarR = -1;
+function updateBossBar() {
+  const b = enemies.find((e) => e.boss && !e.dead);
+  const r = b ? Math.max(0, b.hp / b.max) : -1;
+  if (r === bossBarR) return;
+  bossBarR = r;
+  $('bossBar').classList.toggle('on', !!b);
+  $('bossBar').classList.toggle('wall', !!(b && b.wall));
+  if (b) $('bossFill').style.clipPath = `inset(0 ${((1 - r) * 100).toFixed(2)}% 0 0 round 0 999px 999px 0)`;
 }
 function removeEnemy(e) {
   e.dead = true;
@@ -1412,6 +1748,7 @@ function removeEnemy(e) {
 function clearField() {
   while (enemies.length) removeEnemy(enemies[0]);
   while (bullets.length) bullets.pop().g.destroy();
+  if (aimG) { aimG.visible = false; aimG.target = null; } // 잡던 적이 없어졌으니 조준 표시도 끈다
 }
 function resetWave() {
   wave = { idx: 0, total: waveCount(S.stage), spawned: 0, kills: 0, bossSpawned: false, spawnT: 0.8, breakT: 0 };
@@ -1420,8 +1757,8 @@ const isFinalWave = () => wave.idx === wave.total - 1;
 function startWave() {
   if (isFinalWave()) {
     const wall = isWallStage(S.stage);
-    if (wall) banner(`🔥 강한 보스 🔥<small>체력 ${WALL_HP}배! ${WALL_TIME}초 안에 처치하세요</small>`, 2);
-    else banner(`FINAL WAVE<small>👑 보스 등장! ${BOSS_TIME}초 안에 처치하세요</small>`, 1.6);
+    if (wall) banner(t('battle.king', { boss: wallBossName(S.stage), hp: WALL_HP, sec: WALL_TIME }), 2);
+    else banner(t('battle.boss', { sec: BOSS_TIME }), 1.6);
     wave.bossSpawned = true;
     spawnEnemy(true, wall);
     bossT = wall ? WALL_TIME : BOSS_TIME;
@@ -1455,15 +1792,15 @@ let bgNode = null, bgKey = '', lastChapter = -1;
 // 지금 장소(챕터 또는 보스 러시 결투장)에 맞게 배경을 바꾸고, 새 챕터에 들어가면 간판을 띄운다
 function syncChapter(announce = true) {
   const ci = chapterIdx(S.stage);
-  const key = rush ? 'arena' : CHAPTERS[ci].id;
+  const key = rush ? 'arena' : chal ? CHAPTERS[chal.ci].id : CHAPTERS[ci].id;
   if (key !== bgKey) {
     if (bgNode) bgNode.destroy({ children: true });
-    bgNode = makeBackground(rush ? ARENA : CHAPTERS[ci]);
+    bgNode = makeBackground(rush ? ARENA : chal ? CHAPTERS[chal.ci] : CHAPTERS[ci]);
     bgNode.zIndex = -2;
     world.addChild(bgNode);
     bgKey = key;
   }
-  if (!rush && ci !== lastChapter) {
+  if (!rush && !chal && ci !== lastChapter) {
     if (announce && lastChapter >= 0) chapterSign(ci);
     lastChapter = ci;
   }
@@ -1471,52 +1808,81 @@ function syncChapter(announce = true) {
 function chapterSign(ci) {
   const ch = CHAPTERS[ci], el = $('chapterSign');
   const lap = Math.floor((S.stage - 1) / (10 * CHAPTERS.length));
-  el.innerHTML = AVAIL.has('ui_chapter_' + ch.id)
+  el.innerHTML = hasTextArt('ui_chapter_' + ch.id)
     ? `<img src="${IMG}ui_chapter_${ch.id}.webp" alt="${ch.name}">`
-    : `<div class="sign"><small>CHAPTER ${ci + 1}${lap ? ` · ${lap + 1}바퀴` : ''}</small><b>${ch.icon} ${ch.name}</b><span>새로운 썩은 음식들이 나타났다!</span></div>`;
+    : `<div class="sign"><small>${t('chapter.sign', { n: ci + 1 })}${lap ? t('chapter.lap', { n: lap + 1 }) : ''}</small><b>${ch.icon} ${ch.name}</b><span>${t('chapter.sign_sub')}</span></div>`;
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   Sound.play('claim');
 }
 
+// 강한 보스에서 같은 스테이지를 연속으로 못 넘으면 환생을 안내한다 (스테이지마다 이번 실행에 한 번)
+const WALL_HINT_FAILS = 2;
+let wallFail = { st: 0, n: 0 };
+const wallHintShown = new Set();
+function wallPrestigeHint(st) {
+  if (wallHintShown.has(st) || !$('modal').classList.contains('hidden')) return;
+  const gain = starsFor(S.stage), spend = S.stars >= permCost('atk') && !permMax('atk');
+  if (gain < 1 && !spend) return;
+  wallHintShown.add(st);
+  const step = Math.round(BAL.perm.atk.step * 100);
+  showModal(`<div class="title small">${t('wallhint.title', { boss: wallBossName(st) })}</div>
+    ${gain >= 1 ? `<p class="sub">${t('wallhint.gain', { star: STAR, n: fmt(gain), pct: step })}</p>` : ''}
+    ${spend ? `<p class="sub">${t('wallhint.spend', { star: STAR, n: fmt(S.stars) })}</p>` : ''}`,
+  t('wallhint.go'), () => openSheet('prestige'), t('wallhint.later'));
+}
+
 function retreat() {
-  if (rush) { endRush('셰프가 쓰러졌어요'); return; }
+  if (rush) { endRush(t('end.down')); return; }
+  if (chal) { endChal(false, t('end.down')); return; }
+  const failSt = S.stage, wallFailNow = isWallStage(failSt);
+  if (wallFailNow) wallFail = wallFail.st === failSt ? { st: failSt, n: wallFail.n + 1 } : { st: failSt, n: 1 };
   clearField();
   S.stage = Math.max(1, S.stage - 1);
   resetWave();
   syncChapter(false);
   heroHp = heroMax;
   for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
-  banner(`후퇴!<small>${retreatHint()}</small>`, 2.6);
+  banner(`${t('battle.retreat')}<small>${retreatHint()}</small>`, 2.6);
   Sound.play('retreat');
+  if (wallFailNow && wallFail.n >= WALL_HINT_FAILS) setTimeout(() => wallPrestigeHint(failSt), 1200); // 후퇴 배너를 먼저 보여 준 뒤
 }
 // 막혔을 때 지금 가장 효과적인 다음 행동을 알려준다
 function retreatHint() {
   const lv = S.grid.filter((L) => L);
-  if (lv.some((L, i) => lv.indexOf(L) !== i)) return '🧰 같은 도구를 합성하면 공격력이 2.6배!';
-  if (S.grid.includes(0) && S.gold >= costBuy()) return '🧰 빈 칸에 도구를 더 사보세요';
-  if (S.gold >= costAtk()) return '⚔ 공격력을 올려보세요';
+  if (lv.some((L, i) => lv.indexOf(L) !== i)) return t('hint.merge');
+  if (S.grid.includes(0) && S.gold >= costBuy()) return t('hint.buy');
+  if (S.gold >= costAtk()) return t('hint.atk');
   const m = MATES.find((x) => S.gold >= mateCost(x));
-  if (m) return `${m.icon} ${m.name} ${mateLv(m) ? '강화' : '고용'}로 화력을 보태세요`;
-  if (starsFor(S.stage + 1) >= 3) return '⭐ 환생하면 영원히 강해져요';
-  return '조금 방치해서 골드를 모은 뒤 다시 도전해요';
+  if (m) return t(mateLv(m) ? 'hint.mate_up' : 'hint.mate_hire', { icon: m.icon, name: m.name });
+  if (starsFor(S.stage + 1) >= 3) return t('hint.prestige');
+  return t('hint.idle');
 }
 function stageClear() {
+  if (wallFail.st === S.stage) wallFail = { st: 0, n: 0 };
   // 보스가 쓰러지면 남은 채소는 도망간다
   for (const e of [...enemies]) { popText(e.x, e.y, '💨', ''); removeEnemy(e); }
   S.stage++;
   S.bestStage = Math.max(S.bestStage || 0, S.stage); // 🏠 주방 레벨 기준 (환생해도 유지)
   resetWave();
   syncChapter();
-  banner(isWallStage(S.stage) ? `STAGE ${S.stage}<small>🔥 이번 스테이지는 강한 보스가 나와요</small>` : `STAGE ${S.stage}`, isWallStage(S.stage) ? 2 : 1.4);
+  banner(isWallStage(S.stage) ? `${t('battle.stage', { n: S.stage })}<small>${t('battle.king_next', { boss: wallBossName(S.stage) })}</small>` : t('battle.stage', { n: S.stage }), isWallStage(S.stage) ? 2 : 1.4);
   Sound.play('clear');
   mission('stage');
   save();
 }
+// 공격 범위: 화면 가장자리·위쪽 표시(명판) 뒤의 적은 아직 노리지 않는다 — 들어오는 게 보인 뒤에 맞게 (2026-10-21 사용자 요청)
+// 좌우 = 옆 메뉴 알약 폭, 위 = 스테이지 명판·절전모드 아래, 아래 = 카드 위. 셰프 가까이(AIM_NEAR) 온 적은 화면 안이면 언제나 노린다
+const AIM_ZONE = { side: 110, top: 300, bottom: 40 }, AIM_NEAR = 220;
+function canAim(e) {
+  if (e.x < cam.x || e.x > cam.x + FW || e.y < cam.y + 20 || e.y > cam.y + FH) return false; // 화면 밖
+  if (chal && chal.horde) return true; // 대군 모드는 화면 가득 공격 (2026-10-21 사용자 요청)
+  const inner = e.x >= cam.x + AIM_ZONE.side && e.x <= cam.x + FW - AIM_ZONE.side && e.y >= cam.y + AIM_ZONE.top && e.y <= cam.y + FH - AIM_ZONE.bottom;
+  return inner || (e.x - P.x) ** 2 + (e.y - P.y) ** 2 <= AIM_NEAR * AIM_NEAR;
+}
 function nearestEnemy() {
   let best = null, bd = Infinity;
   for (const e of enemies) {
-    // 화면 안에 들어온 적만 노린다 — 안 보이는 곳에서 죽지 않게
-    if (e.x < cam.x || e.x > cam.x + FW || e.y < cam.y + 20 || e.y > cam.y + FH) continue;
+    if (!canAim(e)) continue;
     const d = (e.x - P.x) ** 2 + (e.y - P.y) ** 2;
     if (d < bd) { bd = d; best = e; }
   }
@@ -1551,7 +1917,8 @@ function syncMates() {
     let g;
     if (ART['mate_' + m.id]) { g = new PIXI.Container(); const sp = artSprite('mate_' + m.id, MATE_H[m.id]); sp.y = 30; g.addChild(sp); }
     else { g = new PIXI.Graphics(); drawMate(g, m.id); g.scale.set(1.35); }
-    const bar = new PIXI.Graphics();
+    const bar = makeHpBar(44, 33);
+    bar.visible = false;
     // 기절했을 때 머리 위에서 도는 별
     let stars;
     if (ART.fx_stun) { stars = artSprite('fx_stun', 34, 0.5); stars.position.set(0, -MATE_H[m.id] + 18); }
@@ -1574,7 +1941,7 @@ function hurtMate(ms, dmg) {
   if (ms.stun > 0) return;
   ms.hp -= dmg; ms.hitT = 0.2;
   popText(ms.x, ms.y - 50, '-' + fmt(dmg), 'hurt small');
-  if (ms.hp <= 0) { ms.hp = 0; ms.stun = 5; popText(ms.x, ms.y - 80, '기절!', 'hurt'); Sound.play('stun'); }
+  if (ms.hp <= 0) { ms.hp = 0; ms.stun = 5; popText(ms.x, ms.y - 80, t('mates.stunned'), 'hurt'); Sound.play('stun'); }
 }
 function updateMates(dt) {
   for (const id in mateSprites) {
@@ -1585,18 +1952,15 @@ function updateMates(dt) {
       ms.stun -= dt;
       ms.g.rotation = 1.45 * ms.face; ms.g.y = 12; ms.g.alpha = 0.75;
       ms.stars.visible = true; ms.stars.rotation = Math.sin(ms.stun * 6) * 0.4; // 좌우로 흔들리는 별
-      ms.bar.clear();
+      ms.bar.visible = false;
       if (ms.stun <= 0) { ms.hp = max; ms.g.rotation = 0; ms.g.alpha = 1; ms.stars.visible = false; }
       ms.c.zIndex = ms.y;
       continue;
     }
     ms.hp = Math.min(max, ms.hp + max * 0.04 * dt);
     if (ms.hitT > 0) { ms.hitT -= dt; ms.g.tint = 0xff7070; ms.g.x = (Math.random() - 0.5) * 6; } else { ms.g.tint = 0xffffff; ms.g.x = 0; }
-    ms.bar.clear();
-    if (ms.hp < max) {
-      ms.bar.roundRect(-22, 36, 44, 6, 3).fill({ color: 0x000000, alpha: 0.45 });
-      ms.bar.roundRect(-22, 36, 44 * ms.hp / max, 6, 3).fill(ms.hp / max > 0.35 ? 0x7ee07e : 0xff5a5a);
-    }
+    ms.bar.visible = ms.hp < max;
+    if (ms.bar.visible) ms.bar.set(ms.hp / max);
     const tx = P.x + ms.spot.x, ty = P.y + ms.spot.y;
     const dx = tx - ms.x, dy = ty - ms.y;
     const a = Math.min(1, dt * 4);
@@ -1638,8 +2002,84 @@ function pickTarget(e) {
   return best;
 }
 
-// 목적지를 바꿔 가며 돌아다니고, 가까운 채소에게서는 멀어진다
+// ---------- 조준 표시 (총고식 흰 원 + 십자) — 셰프가 노리는 적 위에 ----------
+let aimG = null;
+const USE_AIM_ART = false;
+function makeAim() {
+  // 6차 손그림 ui_aim(80×80)도 있지만 코드 그림이 더 낫다는 사용자 판단(2026-10-21)으로 꺼 둠 — 다시 쓰려면 USE_AIM_ART = true
+  // updateAim이 크기를 바꾸므로 그림은 틀 안에 넣는다
+  if (USE_AIM_ART && ART.ui_aim) { const c = new PIXI.Container(); c.addChild(artSprite('ui_aim', 80, 0.5)); c.zIndex = 99998; c.visible = false; return c; }
+  const g = new PIXI.Graphics();
+  const ring = (w, c) => {
+    g.circle(0, 0, 26).stroke({ width: w, color: c });
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2, cx = Math.cos(a), cy = Math.sin(a);
+      g.moveTo(cx * 16, cy * 16).lineTo(cx * 36, cy * 36).stroke({ width: w, color: c, cap: 'round' });
+    }
+  };
+  ring(9, 0x3a2418); ring(4.5, 0xffffff); // 진갈색 외곽선 위에 흰 선
+  g.zIndex = 99998; g.visible = false;
+  return g;
+}
+function updateAim(t, dt) {
+  if (!aimG) return;
+  aimG.visible = !!t;
+  if (!t) return;
+  const tx = t.x, ty = t.y - t.r * 0.4;
+  // 새 목표로 바뀌면 바로 옮기고, 같은 목표면 부드럽게 따라간다
+  if (aimG.target !== t) { aimG.target = t; aimG.position.set(tx, ty); aimG.pop = 0.18; }
+  else aimG.position.set(aimG.x + (tx - aimG.x) * Math.min(1, dt * 20), aimG.y + (ty - aimG.y) * Math.min(1, dt * 20));
+  aimG.pop = Math.max(0, (aimG.pop || 0) - dt);
+  aimG.rotation += dt * 1.2;
+  aimG.scale.set(Math.max(0.8, t.r / 30) * (1 + aimG.pop * 2));
+}
+
+// ---------- 가상 조이스틱 (총고식): 빈 전장을 누르고 끌면 셰프를 직접 움직인다. 떼면 다시 알아서 돌아다닌다 ----------
+// 캔버스가 터치 제스처를 가져가게 touch-action: none (사내 기준 ux:touch-input 'WebView 터치 함정')
+// 좌표는 셸 배율을 나눠 디자인 px로 바꾼다 (ux:touch-input '포인터 좌표')
+const JOY_R = 60;
+const joy = { id: null, active: false, ox: 0, oy: 0, dx: 0, dy: 0 };
+function joyPoint(e) { const r = $('field').getBoundingClientRect(); return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale }; }
+function bindJoystick(canvas) {
+  canvas.style.touchAction = 'none';
+  const el = $('joy'), knob = el.firstElementChild;
+  canvas.addEventListener('pointerdown', (e) => {
+    if (joy.id !== null || paused) return;
+    const p = joyPoint(e);
+    joy.id = e.pointerId; joy.active = true; joy.ox = p.x; joy.oy = p.y; joy.dx = 0; joy.dy = 0;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 캡처를 못 해도 이동은 받는다 */ }
+    el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    knob.style.transform = 'translate(-50%, -50%)';
+    el.classList.add('on');
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== joy.id) return;
+    const p = joyPoint(e);
+    let dx = p.x - joy.ox, dy = p.y - joy.oy;
+    const d = Math.hypot(dx, dy);
+    if (d > JOY_R) { dx *= JOY_R / d; dy *= JOY_R / d; }
+    joy.dx = dx / JOY_R; joy.dy = dy / JOY_R;
+    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+  });
+  const end = (e) => {
+    if (e.pointerId !== joy.id) return;
+    joy.id = null; joy.active = false; joy.dx = 0; joy.dy = 0;
+    el.classList.remove('on');
+    P.wp = null; // 떼면 새 목적지를 골라 다시 돌아다닌다
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+}
+
+// 목적지를 바꿔 가며 돌아다니고, 가까운 채소에게서는 멀어진다. 조이스틱을 잡고 있으면 그 방향으로만 간다
 function moveHero(dt) {
+  if (joy.active) {
+    const tx = joy.dx * HERO_SPEED * 1.6, ty = joy.dy * HERO_SPEED * 1.6, a = Math.min(1, dt * 10);
+    P.vx += (tx - P.vx) * a; P.vy += (ty - P.vy) * a;
+    P.x = Math.max(ROAM.x0, Math.min(ROAM.x1, P.x + P.vx * dt));
+    P.y = Math.max(ROAM.y0, Math.min(ROAM.y1, P.y + P.vy * dt));
+    return animateHero(dt);
+  }
   P.wpT -= dt;
   if (!P.wp || P.wpT <= 0 || Math.hypot(P.wp.x - P.x, P.wp.y - P.y) < 20) {
     P.wp = { x: ROAM.x0 + Math.random() * (ROAM.x1 - ROAM.x0), y: ROAM.y0 + Math.random() * (ROAM.y1 - ROAM.y0) };
@@ -1664,7 +2104,9 @@ function moveHero(dt) {
   P.vx += (tx - P.vx) * a; P.vy += (ty - P.vy) * a;
   P.x = Math.max(ROAM.x0, Math.min(ROAM.x1, P.x + P.vx * dt));
   P.y = Math.max(ROAM.y0, Math.min(ROAM.y1, P.y + P.vy * dt));
-
+  animateHero(dt);
+}
+function animateHero(dt) {
   // 걷기 연출: 통통 튀기 + 좌우 흔들기, 진행 방향으로 몸을 돌린다
   const sp = Math.hypot(P.vx, P.vy);
   if (Math.abs(P.vx) > 15) P.face = P.vx > 0 ? 1 : -1;
@@ -1690,7 +2132,7 @@ function moveHero(dt) {
   hero.eyes.scale.y = (P.blinkT < 0.12 || P.hitT > 0) ? 0.15 : 1; // 맞으면 질끈 감는다
   // 카메라: 셰프를 화면 가운데보다 조금 아래에 두고 부드럽게 따라간다 (월드 밖은 안 보이게)
   const camTx = Math.max(0, Math.min(WW - FW, P.x - FW / 2));
-  const camTy = Math.max(0, Math.min(WH - FH, P.y - FH * 0.6));
+  const camTy = Math.max(0, Math.min(WH - CH, P.y - FH * 0.6));
   const ca = Math.min(1, dt * 3.5);
   cam.x += (camTx - cam.x) * ca; cam.y += (camTy - cam.y) * ca;
   world.position.set(-Math.round(cam.x), -Math.round(cam.y));
@@ -1705,10 +2147,16 @@ function moveHero(dt) {
 }
 
 function update(dt) {
-  if (rush) {
+  if (chal) {
+    // 스테이지 도전: 제한시간 안에 정해진 수의 적을 모두 잡는다
+    chal.t -= dt;
+    if (chal.t <= 0) { endChal(false, t('end.timeout')); return; }
+    if (chal.horde) updateHorde(dt);
+    else if (chal.spawned < CHAL_N && (chal.spawnT -= dt) <= 0) { spawnEnemy(false); chal.spawned++; chal.spawnT = CHAL_GAP; }
+  } else if (rush) {
     // 보스 러시: 제한시간 안에 갈수록 강해지는 보스를 계속 잡는다
     rush.t -= dt;
-    if (rush.t <= 0) { endRush('시간 종료'); return; }
+    if (rush.t <= 0) { endRush(t('end.timeout')); return; }
     if (!enemies.some((e) => e.boss)) { rush.next -= dt; if (rush.next <= 0) spawnRushBoss(); }
   } else
   // 웨이브 진행: 웨이브 채소를 다 잡으면 잠깐 쉬고 다음 웨이브 (마지막은 보스를 잡아야 클리어)
@@ -1725,8 +2173,8 @@ function update(dt) {
       wave.breakT = WAVE_BREAK;
     }
   }
-  // 보스 제한시간은 같이 나온 졸개를 다 잡은 뒤부터 줄어든다 (졸개 잡는 동안 시간이 다 가지 않게)
-  if (!rush && wave.bossSpawned && enemies.some((e) => e.boss) && wave.spawned >= waveSize(wave.idx) && !enemies.some((e) => !e.boss)) {
+  // 보스 제한시간은 같이 나온 졸개를 다 잡은 뒤부터, 보스가 공격 범위에 들어온 뒤부터 줄어든다 (걸어 들어오는 동안 시간이 가지 않게)
+  if (!rush && !chal && wave.bossSpawned && enemies.some((e) => e.boss && canAim(e)) && wave.spawned >= waveSize(wave.idx) && !enemies.some((e) => !e.boss)) {
     bossT -= dt;
     if (bossT <= 0) { retreat(); return; }
   }
@@ -1743,7 +2191,7 @@ function update(dt) {
     } else if (e.atkT <= 0) {
       e.atkT = e.boss ? 1.4 : 1.0;
       e.lunge = 0.18; e.lx = dx / d; e.ly = dy / d;
-      const dmg = enemyAtk(S.stage) * (e.boss ? 3 : 1);
+      const dmg = enemyAtk(chal ? chal.st : S.stage) * (e.boss ? 3 : 1) * (chal && chal.horde ? HORDE_ATK : 1);
       if (tgt.hero) { if (hurtHero(dmg)) return; } else hurtMate(tgt.ms, dmg);
     }
     // 때릴 때 상대 쪽으로 확 덤벼든다
@@ -1757,13 +2205,15 @@ function update(dt) {
     if (e.hit > 0) { e.hit -= dt; e.c.scale.set(1 + e.hit * 1.2); e.c.alpha = 0.75; } else { e.c.scale.set(1); e.c.alpha = 1; }
   }
 
-  // 총 발사
+  // 총 발사 — 이번 프레임에 노리는 적 하나 (조준 표시도 이 적에)
   const iv = fireInterval();
+  const aim = nearestEnemy();
+  updateAim(aim, dt);
   S.grid.forEach((L, i) => {
     if (!L) return;
     gunTimers[i] -= dt;
     if (gunTimers[i] > 0) return;
-    const t = nearestEnemy();
+    const t = aim;
     if (!t) { gunTimers[i] = 0; return; }
     fire(L, i, t);
     gunTimers[i] = iv * (0.9 + Math.random() * 0.2);
@@ -1781,7 +2231,8 @@ function update(dt) {
       e.hp -= b.dmg;
       e.hit = 0.12;
       const crit = e.boss || b.dmg >= e.max * 0.5;
-      if (S.settings.dmgNum) popText(e.x + (Math.random() - 0.5) * 40, e.y - e.r - 6, fmt(b.dmg), crit ? (e.boss ? 'crit boss' : 'crit') : '');
+      // 데미지 숫자는 흰색·초록을 반반 무작위로 (총고식, 2026-10-21) — 얻은 골드는 노랑
+      if (S.settings.dmgNum) popText(e.x + (Math.random() - 0.5) * 40, e.y - e.r - 6, fmt(b.dmg), (crit ? (e.boss ? 'crit boss' : 'crit') : '') + (Math.random() < 0.5 ? ' green' : ''));
       if (e.boss) { Sound.play('bossHit'); shake(e.wall ? 2.5 : 1.5); } else Sound.play('hit');
       if (crit) spawnFx('fx_hit', e.x + (Math.random() - 0.5) * e.r, e.y - e.r * 0.6, e.boss ? 90 : 60, 0.25);
       b.g.destroy(); bullets.splice(k, 1);
@@ -1794,12 +2245,15 @@ function update(dt) {
         if (wasBoss) { Sound.play('coin'); shake(e.wall ? 16 : 10); buzz(40); mission('boss'); }
         if (wasBoss && e.wall && !rush && !S.wallFirst[S.stage]) {
           S.wallFirst[S.stage] = true; S.gems += 10;
-          popText(e.x, e.y - 60, '💎 +10 첫 처치!', 'crit'); gemBurst(e.x - cam.x, e.y - cam.y, 8);
+          popText(e.x, e.y - 60, t('battle.king_first'), 'crit'); gemBurst(e.x - cam.x, e.y - cam.y, 8);
         }
         else { Sound.play('kill'); mission('kill'); }
         removeEnemy(e);
         if (rush && wasBoss) rushKill(e);
-        else if (wasBoss) { stageClear(); } else { wave.kills++; }
+        else if (wasBoss) { stageClear(); }
+        else if (chal && chal.horde) { chal.kills++; chal.gold += e.gold; }
+        else if (chal) { chal.kills++; if (chal.kills >= CHAL_N) { endChal(true); return; } }
+        else { wave.kills++; }
       } else drawBar(e);
       continue;
     }
@@ -1817,7 +2271,8 @@ function update(dt) {
   heroHp = Math.min(heroMax, heroHp + BAL.heroRegen * dt);
   $('vignette').classList.toggle('low', heroHp / heroMax < 0.35);
   $('vignette').classList.toggle('flash', P.hitT > 0);
-  hero.hp.clear().roundRect(-50, 80, 100 * Math.max(0, heroHp / heroMax), 10, 5).fill(heroHp / heroMax > 0.35 ? 0x7ee07e : 0xff5a5a);
+  hero.hp.set(heroHp / heroMax);
+  updateBossBar();
 
   // 떠오르는 숫자
   for (let k = fxList.length - 1; k >= 0; k--) {
@@ -1834,7 +2289,7 @@ function update(dt) {
 // ---------- 부팅 ----------
 (async () => {
   app = new PIXI.Application();
-  await app.init({ width: FW, height: FH, background: '#e9dcc4', resolution: backbufferRes(), autoDensity: true, antialias: true });
+  await app.init({ width: FW, height: CH, background: '#e9dcc4', resolution: backbufferRes(), autoDensity: true, antialias: true });
   $('field').prepend(app.canvas);
   world = new PIXI.Container();
   field = new PIXI.Container();
@@ -1848,28 +2303,30 @@ function update(dt) {
   syncChapter(false);
   app.stage.addChild(world);
   fxLayer = new PIXI.Container(); fxLayer.zIndex = 99999; world.addChild(fxLayer);
+  aimG = makeAim(); world.addChild(aimG);
+  bindJoystick(app.canvas);
   coinLayer = new PIXI.Container(); // 코인은 카메라와 상관없이 화면 좌표로 날아간다
   app.stage.addChild(coinLayer);
   coinTex = ART.icon_coin || makeCoinTexture();
   gemTex = makeGemTexture();
   // 시작할 때 카메라를 셰프 위치에 바로 맞춘다
   cam.x = Math.max(0, Math.min(WW - FW, P.x - FW / 2));
-  cam.y = Math.max(0, Math.min(WH - FH, P.y - FH * 0.6));
+  cam.y = Math.max(0, Math.min(WH - CH, P.y - FH * 0.6));
 
   buildMenus();
   syncMates();
   resetWave();
-  ensureDaily(); buildMissions(); buildShop();
+  ensureDaily(); buildMissions(); buildShop(); buildPerm(); buildChal();
   applySettings();
-  $('verLabel').textContent = `주방 대전쟁 ${GAME_VERSION} · 게임잼 프로토타입`;
+  $('verLabel').textContent = t('settings.version', { ver: GAME_VERSION });
   renderGrid(); updateUI();
 
   // 처음이면 한 줄 설정, 아니면 자리 비운 동안의 보상
   if (!S.introSeen) {
-    showModal(`<img class="logo" src="${IMG}ui_logo.webp" alt="주방 대전쟁">
+    showModal(`${hasTextArt('ui_logo') ? `<img class="logo" src="${IMG}ui_logo.webp" alt="${t('game.title')}">` : `<div class="logo-text">${t('game.title')}</div>`}
       <img class="titleart" src="${IMG}ui_title_art.webp" alt="">
-      <p>냉장고 속 채소들이 썩어서<br><b>반란</b>을 일으켰다!</p>
-      <p class="sub">셰프 곰이 주방을 지킨다.</p>`, '주방 지키러 가기', () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); });
+      <p>${t('intro.line1')}</p>
+      <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); }, null, { x: false });
   } else if (!offerOffline(awaySec)) banner(`STAGE ${S.stage}`);
 
   let uiT = 0, saveT = 0;

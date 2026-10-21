@@ -27,12 +27,24 @@ const starsFor = (st) => (st < BAL.prestigeMin ? 0 : Math.floor(Math.pow(st - BA
 const gunDmg = (L) => BAL.toolBase * Math.pow(BAL.toolMerge, L - 1);
 const MATE_IDS = Object.keys(BAL.mates);
 
-function newRun(stars) {
-  return { stage: 1, gold: BAL.startGold, atkLv: 0, spdLv: 0, goldLv: 0, buys: 0, tools: [1], mates: {}, stars, runBest: 1, lastProgress: 0 };
+// perm: 셰프 별로 산 영구 강화 레벨 { atk, spd, gold } (환생해도 남는다)
+function newRun(perm) {
+  return { stage: 1, gold: BAL.startGold, atkLv: 0, spdLv: 0, goldLv: 0, buys: 0, tools: [1], mates: {}, perm, runBest: 1, lastProgress: 0 };
 }
-const atkMul = (r) => (1 + BAL.atkStep * r.atkLv) * (1 + BAL.starStep * r.stars);
-const spdMul = (r) => Math.min(BAL.spdMax, 1 + BAL.spdStep * r.spdLv);
-const goldMul = (r) => (1 + BAL.goldStep * r.goldLv) * (1 + BAL.starStep * r.stars);
+const permMul = (r, k) => 1 + BAL.perm[k].step * (r.perm[k] || 0);
+const permCost = (lv) => 1 + Math.floor(lv / BAL.permCostEvery);
+// 별을 쓴다: 공격력 → 골드 → 공격속도 중 가장 싼 것부터 번갈아
+function spendStars(perm, stars) {
+  for (;;) {
+    const opts = ['atk', 'gold', 'spd'].filter((k) => !(BAL.perm[k].max && perm[k] >= BAL.perm[k].max))
+      .map((k) => ({ k, c: permCost(perm[k]) })).sort((a, b) => a.c - b.c);
+    if (!opts.length || opts[0].c > stars) return stars;
+    stars -= opts[0].c; perm[opts[0].k]++;
+  }
+}
+const atkMul = (r) => (1 + BAL.atkStep * r.atkLv) * permMul(r, 'atk');
+const spdMul = (r) => Math.min(BAL.spdMax, 1 + BAL.spdStep * r.spdLv) * permMul(r, 'spd');
+const goldMul = (r) => (1 + BAL.goldStep * r.goldLv) * permMul(r, 'gold');
 const toolDps = (r) => r.tools.reduce((a, L) => a + gunDmg(L), 0) * atkMul(r) / (BAL.fireBase / spdMul(r));
 const mateDps = (r, id, lv = r.mates[id] || 0) => {
   if (!lv) return 0;
@@ -60,7 +72,7 @@ function spend(r) {
     const D = dps(r), opts = [];
     if (r.tools.length < SLOTS) opts.push({ k: 'tool', c: BAL.buyCost * Math.pow(BAL.buyCostG, r.buys), g: gunDmg(1) * atkMul(r) / (BAL.fireBase / spdMul(r)) / D });
     opts.push({ k: 'atk', c: BAL.atkCost * Math.pow(BAL.atkCostG, r.atkLv), g: BAL.atkStep / (1 + BAL.atkStep * r.atkLv) });
-    if (spdMul(r) < BAL.spdMax) opts.push({ k: 'spd', c: BAL.spdCost * Math.pow(BAL.spdCostG, r.spdLv), g: (BAL.spdStep / spdMul(r)) * toolDps(r) / D });
+    if (1 + BAL.spdStep * r.spdLv < BAL.spdMax) opts.push({ k: 'spd', c: BAL.spdCost * Math.pow(BAL.spdCostG, r.spdLv), g: (BAL.spdStep / spdMul(r)) * toolDps(r) / D });
     opts.push({ k: 'gold', c: BAL.goldCost * Math.pow(BAL.goldCostG, r.goldLv), g: 0.5 * BAL.goldStep / (1 + BAL.goldStep * r.goldLv) });
     for (const id of MATE_IDS) {
       const lv = r.mates[id] || 0, c = BAL.mates[id][2] * Math.pow(BAL.mateCostG, lv);
@@ -125,7 +137,8 @@ function runStage(r) {
 const fmtT = (s) => { const m = Math.round(s / 60); return m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`; };
 let simT = 0;
 let t = 0, stars = 0, prestiges = 0, firstBlock = null, best = 1, earlyFails = 0;
-let r = newRun(0);
+const perm = { atk: 0, spd: 0, gold: 0 };
+let r = newRun(perm);
 const reach = {}, events = [];
 while (t < HOURS * 3600) {
   simT = t;
@@ -143,9 +156,9 @@ while (t < HOURS * 3600) {
   // 오래 막히면 환생
   if (t - r.lastProgress > STALL_MIN * 60 && r.runBest >= BAL.prestigeMin) {
     const g = starsFor(r.runBest);
-    stars += g; prestiges++;
-    events.push(`${fmtT(t)}  환생 #${prestiges}: STAGE ${r.runBest}에서 ⭐ +${g} (합계 ${stars}, 공격력·골드 x${(1 + BAL.starStep * stars).toFixed(1)})`);
-    r = newRun(stars); r.lastProgress = t;
+    stars = spendStars(perm, stars + g); prestiges++;
+    events.push(`${fmtT(t)}  환생 #${prestiges}: STAGE ${r.runBest}에서 ⭐ +${g} (영구 강화 공격력 Lv ${perm.atk}·골드 Lv ${perm.gold}·속도 Lv ${perm.spd}, 남은 별 ${stars})`);
+    r = newRun(perm); r.lastProgress = t;
   }
 }
 

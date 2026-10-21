@@ -1,86 +1,320 @@
 {
-  "ui_btn_blue.png" : {
-    "bottom" : 22,
-    "left" : 22,
-    "right" : 22,
-    "top" : 22
+  "ui_btn_blue.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
   },
-  "ui_btn_gray.png" : {
-    "bottom" : 22,
-    "left" : 22,
-    "right" : 22,
-    "top" : 22
+  "ui_btn_gray.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
   },
-  "ui_btn_green.png" : {
-    "bottom" : 22,
-    "left" : 22,
-    "right" : 22,
-    "top" : 22
+  "ui_btn_green.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
   },
-  "ui_btn_orange.png" : {
-    "bottom" : 22,
-    "left" : 22,
-    "right" : 22,
-    "top" : 22
+  "ui_btn_orange.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
   },
-  "ui_btn_red_line.png" : {
-    "bottom" : 22,
-    "left" : 22,
-    "right" : 22,
-    "top" : 22
+  "ui_btn_red_line.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
   },
-  "ui_bubble.png" : {
-    "bottom" : 24,
-    "left" : 24,
-    "right" : 24,
-    "top" : 24
+  "ui_bubble.png": {
+    "bottom": 24,
+    "left": 24,
+    "right": 24,
+    "top": 24
   },
-  "ui_card_selected.png" : {
-    "bottom" : 26,
-    "left" : 26,
-    "right" : 26,
-    "top" : 26
+  "ui_card_selected.png": {
+    "bottom": 26,
+    "left": 26,
+    "right": 26,
+    "top": 26
   },
-  "ui_card.png" : {
-    "bottom" : 26,
-    "left" : 26,
-    "right" : 26,
-    "top" : 26
+  "ui_card.png": {
+    "bottom": 26,
+    "left": 26,
+    "right": 26,
+    "top": 26
   },
-  "ui_panel.png" : {
-    "bottom" : 33,
-    "left" : 33,
-    "right" : 33,
-    "top" : 33
+  "ui_panel.png": {
+    "bottom": 33,
+    "left": 33,
+    "right": 33,
+    "top": 33
   },
-  "ui_pill_cream.png" : {
-    "bottom" : 0,
-    "left" : 22,
-    "right" : 22,
-    "top" : 0
+  "ui_pill_cream.png": {
+    "bottom": 0,
+    "left": 22,
+    "right": 22,
+    "top": 0
   },
-  "ui_pill_green.png" : {
-    "bottom" : 0,
-    "left" : 16,
-    "right" : 16,
-    "top" : 0
+  "ui_pill_green.png": {
+    "bottom": 0,
+    "left": 16,
+    "right": 16,
+    "top": 0
   },
-  "ui_pill_red.png" : {
-    "bottom" : 0,
-    "left" : 20,
-    "right" : 20,
-    "top" : 0
+  "ui_pill_red.png": {
+    "bottom": 0,
+    "left": 20,
+    "right": 20,
+    "top": 0
   },
-  "ui_ribbon.png" : {
-    "bottom" : 0,
-    "left" : 60,
-    "right" : 60,
-    "top" : 0
+  "ui_ribbon.png": {
+    "bottom": 0,
+    "left": 60,
+    "right": 60,
+    "top": 0
   },
-  "ui_sheet.png" : {
-    "bottom" : 5,
-    "left" : 37,
-    "right" : 37,
-    "top" : 37
+  "ui_sheet.png": {
+    "bottom": 5,
+    "left": 37,
+    "right": 37,
+    "top": 37
+  },
+  "ui_popup_title.png": {
+    "bottom": 0,
+    "left": 36,
+    "right": 36,
+    "top": 0
+  },
+  "ui_content_box.png": {
+    "bottom": 21,
+    "left": 21,
+    "right": 21,
+    "top": 21
+  },
+  "ui_st_card.png": {
+    "bottom": 26,
+    "left": 26,
+    "right": 26,
+    "top": 26
+  },
+  "ui_st_card_lock.png": {
+    "bottom": 26,
+    "left": 26,
+    "right": 26,
+    "top": 26
+  },
+  "ui_bar_bg.png": {
+    "bottom": 0,
+    "left": 12,
+    "right": 12,
+    "top": 0
+  },
+  "ui_bar_fill.png": {
+    "bottom": 0,
+    "left": 12,
+    "right": 12,
+    "top": 0
+  },
+  "ui_bar_fill_yellow.png": {
+    "bottom": 0,
+    "left": 12,
+    "right": 12,
+    "top": 0
+  },
+  "ui_pill_purple.png": {
+    "bottom": 0,
+    "left": 20,
+    "right": 20,
+    "top": 0
+  },
+  "ui_hero_hp_bg.png": {
+    "bottom": 0,
+    "left": 7,
+    "right": 7,
+    "top": 0
+  },
+  "ui_hero_hp_fill.png": {
+    "bottom": 0,
+    "left": 7,
+    "right": 7,
+    "top": 0
+  },
+  "ui_ribbon_title.png": {
+    "bottom": 0,
+    "left": 70,
+    "right": 70,
+    "top": 0
+  },
+  "ui_panel_paw.png": {
+    "bottom": 34,
+    "left": 34,
+    "right": 34,
+    "top": 34
+  },
+  "ui_panel_orange.png": {
+    "bottom": 34,
+    "left": 34,
+    "right": 34,
+    "top": 34
+  },
+  "ui_btn_yellow.png": {
+    "bottom": 30,
+    "left": 30,
+    "right": 30,
+    "top": 30
+  },
+  "ui_up_card.png": {
+    "bottom": 20,
+    "left": 20,
+    "right": 20,
+    "top": 20
+  },
+  "ui_up_gauge.png": {
+    "bottom": 0,
+    "left": 14,
+    "right": 14,
+    "top": 0
+  },
+  "ui_up_cost.png": {
+    "bottom": 0,
+    "left": 17,
+    "right": 17,
+    "top": 0
+  },
+  "ui_side_pill_l.png": {
+    "bottom": 24,
+    "left": 0,
+    "right": 26,
+    "top": 24
+  },
+  "ui_side_pill_l_blue.png": {
+    "bottom": 24,
+    "left": 0,
+    "right": 26,
+    "top": 24
+  },
+  "ui_side_pill_r.png": {
+    "bottom": 24,
+    "left": 26,
+    "right": 0,
+    "top": 24
+  },
+  "ui_side_pill_r_cream.png": {
+    "bottom": 24,
+    "left": 26,
+    "right": 0,
+    "top": 24
+  },
+  "ui_pill_gray.png": {
+    "bottom": 0,
+    "left": 18,
+    "right": 18,
+    "top": 0
+  },
+  "ui_row_purple.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
+  },
+  "ui_btn_purple.png": {
+    "bottom": 22,
+    "left": 22,
+    "right": 22,
+    "top": 22
+  },
+  "ui_skin_slot.png": {
+    "bottom": 18,
+    "left": 18,
+    "right": 18,
+    "top": 18
+  },
+  "ui_skin_slot_on.png": {
+    "bottom": 18,
+    "left": 18,
+    "right": 18,
+    "top": 18
+  },
+  "ui_chal_band.png": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0
+  },
+  "ui_stage_plate.png": {
+    "bottom": 0,
+    "left": 40,
+    "right": 40,
+    "top": 0
+  },
+  "ui_stage_plate_boss.png": {
+    "bottom": 0,
+    "left": 40,
+    "right": 40,
+    "top": 0
+  },
+  "ui_chapter_tag.png": {
+    "bottom": 0,
+    "left": 24,
+    "right": 24,
+    "top": 0
+  },
+  "ui_currency_bar.png": {
+    "bottom": 0,
+    "left": 48,
+    "right": 24,
+    "top": 0
+  },
+  "ui_dps_tag.png": {
+    "bottom": 0,
+    "left": 15,
+    "right": 15,
+    "top": 0
+  },
+  "ui_enemy_hp_bg.png": {
+    "bottom": 0,
+    "left": 6,
+    "right": 6,
+    "top": 0
+  },
+  "ui_enemy_hp_fill.png": {
+    "bottom": 0,
+    "left": 6,
+    "right": 6,
+    "top": 0
+  },
+  "ui_boss_bar_fill_wall.png": {
+    "bottom": 0,
+    "left": 14,
+    "right": 14,
+    "top": 0
+  },
+  "ui_hero_hp_fill_low.png": {
+    "bottom": 0,
+    "left": 8,
+    "right": 8,
+    "top": 0
+  },
+  "ui_topbar_bg.png": {
+    "bottom": 0,
+    "left": 18,
+    "right": 18,
+    "top": 0
+  },
+  "ui_topbar_fill.png": {
+    "bottom": 0,
+    "left": 12,
+    "right": 12,
+    "top": 0
+  },
+  "ui_side_pill_r_blue.png": {
+    "bottom": 24,
+    "left": 26,
+    "right": 0,
+    "top": 24
   }
 }

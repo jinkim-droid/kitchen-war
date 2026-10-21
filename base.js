@@ -3,16 +3,16 @@
 // 전투는 뒤에서 계속 돌아가고, 시설 효과는 main.js의 공격력·조수·오프라인 계산에 곱해진다.
 
 const STATIONS = [
-  { id: 'oven', name: '오븐', icon: '🔥', unlock: 1, cost: 200, time: 15, desc: '시간마다 골드를 구워요',
-    effect: (lv) => `골드 ${fmt(ovenRate(lv) * 60)}/분 · 최대 2시간치` },
-  { id: 'board', name: '조리대', icon: '🔪', unlock: 1, cost: 500, time: 20, desc: '셰프 공격력이 영원히 올라요',
-    effect: (lv) => `공격력 +${lv * 10}%` },
-  { id: 'school', name: '요리 학교', icon: '📚', unlock: 2, cost: 3000, time: 30, desc: '조수들이 배워서 강해져요',
-    effect: (lv) => `조수 공격력·체력 +${lv * 15}%` },
-  { id: 'fridge', name: '냉장고', icon: '🧊', unlock: 3, cost: 8000, time: 30, desc: '자리 비운 동안 보상이 더 오래 쌓여요',
-    effect: (lv) => `오프라인 보상 +${lv}시간` },
-  { id: 'counter', name: '주문 카운터', icon: '🛎️', unlock: 4, cost: 25000, time: 45, desc: '손님 팁으로 다이아가 조금씩 쌓여요',
-    effect: (lv) => `💎 ${lv}개/시간 · 최대 하루치` },
+  { id: 'oven', name: t('st.oven'), icon: '🔥', unlock: 1, cost: 200, time: 15, desc: t('st.oven.desc'),
+    effect: (lv) => t('st.oven.eff', { n: fmt(ovenRate(lv) * 60) }) },
+  { id: 'board', name: t('st.board'), icon: '🔪', unlock: 1, cost: 500, time: 20, desc: t('st.board.desc'),
+    effect: (lv) => t('st.board.eff', { n: lv * 10 }) },
+  { id: 'school', name: t('st.school'), icon: '📚', unlock: 2, cost: 3000, time: 30, desc: t('st.school.desc'),
+    effect: (lv) => t('st.school.eff', { n: lv * 15 }) },
+  { id: 'fridge', name: t('st.fridge'), icon: '🧊', unlock: 3, cost: 8000, time: 30, desc: t('st.fridge.desc'),
+    effect: (lv) => t('st.fridge.eff', { n: lv }) },
+  { id: 'counter', name: t('st.counter'), icon: '🛎️', unlock: 4, cost: 25000, time: 45, desc: t('st.counter.desc'),
+    effect: (lv) => t('st.counter.eff', { n: lv }) },
 ];
 const KITCHEN_MAX = 6;
 const kitchenLv = () => Math.min(KITCHEN_MAX, 1 + Math.floor((S.bestStage || S.stage) / 10)); // 최고 스테이지 10마다 +1
@@ -49,7 +49,7 @@ function baseTick() {
     S.base.st[b.id] = stLv(b.id) + 1;
     S.base.build = null;
     const st = STATIONS.find((x) => x.id === b.id);
-    banner(`🔨 ${st.icon} ${st.name} Lv ${stLv(st.id)} 완공!<small>${st.effect(stLv(st.id))}</small>`, 2);
+    banner(`${t('base.build_done', { icon: st.icon, name: st.name, lv: stLv(st.id) })}<small>${st.effect(stLv(st.id))}</small>`, 2);
     Sound.play('claim'); buzz(30);
     baseDirty = true;
     renderGrid(); save();
@@ -66,25 +66,27 @@ function stState(st) {
   if (lv >= stLvCap()) return 'max';
   return 'idle';
 }
-const fmtSec = (s) => { s = Math.ceil(s); return s >= 3600 ? `${Math.floor(s / 3600)}시간 ${Math.floor((s % 3600) / 60)}분` : s >= 60 ? `${Math.floor(s / 60)}분 ${s % 60}초` : `${s}초`; };
+const fmtSec = (s) => { s = Math.ceil(s); return s >= 3600 ? t('time.hm', { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60) }) : s >= 60 ? t('time.ms', { m: Math.floor(s / 60), s: s % 60 }) : t('time.s', { s }); };
 
 function renderBase() {
   $('baseGrid').innerHTML = STATIONS.map((st) => {
     const s = stState(st), lv = stLv(st.id);
     const tier = lv >= 10 ? 'gold' : lv >= 5 ? 'silver' : lv >= 1 ? 'bronze' : '';
     let body;
-    if (s === 'locked') body = `<div class="st-lock">${icon('icon_lock', '🔒')}<small>주방 Lv ${st.unlock}에 열려요<br>(STAGE ${(st.unlock - 1) * 10} 도달)</small></div>`;
+    if (s === 'locked') body = `<div class="st-lock">${icon('icon_lock', '🔒')}<small>${t('base.unlock', { lv: st.unlock })}<br>${t('base.unlock_stage', { n: (st.unlock - 1) * 10 })}</small></div>`;
     else body = `
       <div class="st-eff">${lv ? st.effect(lv) : st.desc}</div>
       <div class="st-bar"><i></i><span></span></div>
       <button class="st-act"></button>`;
-    return `<div class="st ${s} ${tier}" data-st="${st.id}">
-      <div class="st-ico">${st.icon}</div>
+    const ico = AVAIL.has('icon_st_' + st.id) ? `<img src="${IMG}icon_st_${st.id}.webp" alt="${st.icon}">` : st.icon;
+    // st-cell: 수확할 게 있을 때 카드 뒤에서 빛(ui_st_ready)이 돈다 — 카드(필터가 걸린 판) 밖에 둬야 카드 뒤에 그려진다
+    return `<div class="st-cell"><div class="st ${s} ${tier}" data-st="${st.id}">
+      <div class="st-ico">${ico}</div>
       <div class="st-name">${st.name}${lv ? ` <span class="st-lv">Lv ${lv}</span>` : ''}</div>
       <div class="st-stars">${'★'.repeat(Math.min(3, Math.floor(lv / 3)))}</div>
       ${body}
       ${st.id === 'oven' || st.id === 'counter' ? '<button class="st-collect"></button>' : ''}
-    </div>`;
+    </div></div>`;
   }).join('');
   baseDirty = false;
 }
@@ -93,11 +95,11 @@ function updateBase() {
   if (baseDirty) renderBase();
   const kl = kitchenLv();
   $('kLv').textContent = `Lv ${kl}`;
-  $('kNext').textContent = kl < KITCHEN_MAX ? `다음 주방 레벨: 최고 STAGE ${kl * 10} 도달 · 시설 레벨 한도 ${stLvCap()}` : `최고 주방 레벨! · 시설 레벨 한도 ${stLvCap()}`;
+  $('kNext').textContent = kl < KITCHEN_MAX ? t('base.next', { n: kl * 10, cap: stLvCap() }) : t('base.max', { cap: stLvCap() });
   const b = S.base.build, now = Date.now();
   $('baseQueue').innerHTML = b
-    ? `🔨 건설 중: ${STATIONS.find((x) => x.id === b.id).name} · ${fmtSec((b.until - now) / 1000)} 남음`
-    : '🔨 건설 슬롯 비어 있음 — 시설을 지어 보세요!';
+    ? t('base.building', { name: STATIONS.find((x) => x.id === b.id).name, time: fmtSec((b.until - now) / 1000) })
+    : t('base.idle');
   $('baseQueue').classList.toggle('busy', !!b);
   document.querySelectorAll('#baseGrid .st').forEach((card) => {
     const st = STATIONS.find((x) => x.id === card.dataset.st), s = stState(st);
@@ -108,15 +110,15 @@ function updateBase() {
         bar.style.display = 'block';
         bar.querySelector('i').style.width = Math.min(100, (1 - left / total) * 100) + '%';
         bar.querySelector('span').textContent = fmtSec(left);
-        btn.innerHTML = `즉시 완료<span class="cost">${GEM} ${skipGems(left)}</span>`;
+        btn.innerHTML = `${t('base.instant')}<span class="cost">${GEM} ${skipGems(left)}</span>`;
         btn.className = 'st-act gem';
         btn.disabled = S.gems < skipGems(left);
       } else {
         bar.style.display = 'none';
-        if (s === 'max') { btn.innerHTML = `최대 레벨<span class="cost">주방 Lv 업 필요</span>`; btn.disabled = true; btn.className = 'st-act'; }
+        if (s === 'max') { btn.innerHTML = `${t('base.maxlv')}<span class="cost">${t('base.need_lv')}</span>`; btn.disabled = true; btn.className = 'st-act'; }
         else {
           const c = stCost(st);
-          btn.innerHTML = `${s === 'empty' ? '짓기' : '업그레이드'}<span class="cost">${COIN} ${fmt(c)} · ⏱ ${fmtSec(stTime(st))}</span>`;
+          btn.innerHTML = `${s === 'empty' ? t('base.build') : t('base.upgrade')}<span class="cost">${COIN} ${fmt(c)} · ⏱ ${fmtSec(stTime(st))}</span>`;
           btn.className = 'st-act';
           btn.disabled = !!b || S.gold < c;
         }
@@ -127,7 +129,8 @@ function updateBase() {
       const v = st.id === 'oven' ? S.base.gold : Math.floor(S.base.gems);
       const show = stLv(st.id) && v >= (st.id === 'oven' ? 1 : 1);
       col.style.display = show ? 'block' : 'none';
-      if (show) col.innerHTML = st.id === 'oven' ? `${COIN} ${fmt(v)}` : `${GEM} ${v}`;
+      if (show) col.innerHTML = st.id === 'oven' ? `${COIN}<span>${fmt(v)}</span>` : `${GEM}<span>${v}</span>`;
+      card.parentNode.classList.toggle('ready', !!show);
     }
   });
   // 알림 점: 수확할 게 있거나, 건설 슬롯이 비었고 지을 수 있는 게 있을 때
@@ -162,7 +165,7 @@ $('baseGrid').addEventListener('click', (e) => {
     S.gold -= c;
     S.base.build = { id: st.id, until: Date.now() + stTime(st) * 1000 };
     Sound.play('buy'); buzz(15);
-    banner(`🔨 ${st.name} ${s === 'empty' ? '짓기' : '업그레이드'} 시작!<small>${fmtSec(stTime(st))} 뒤에 완공돼요</small>`, 1.4);
+    banner(t('base.build_start', { name: st.name, action: s === 'empty' ? t('base.build') : t('base.upgrade'), time: fmtSec(stTime(st)) }), 1.4);
     baseDirty = true;
   }
   updateBase(); updateUI(); save();

@@ -9,22 +9,22 @@ let tutStart = performance.now();
 const TUT = [
   { // 0: 도구함 열기
     target: () => (sheetOpen() ? null : document.querySelector('.sbtn[data-tab="tools"]')),
-    text: '도구함을 열어 보세요!<small>도구가 많을수록 강해져요</small>',
+    text: () => `${t('tut.open_tools')}<small>${t('tut.open_tools_sub')}</small>`,
     done: () => sheetOpen() && document.querySelector('#pane-tools.on'),
   },
   { // 1: 도구 구매
     target: () => (sheetOpen() && document.querySelector('#pane-tools.on') ? $('btnBuy') : document.querySelector('.sbtn[data-tab="tools"]')),
-    text: () => (S.gold >= costBuy() ? '도구를 사 보세요!' : '골드를 모으는 중… 잠깐만요!') + '<small>같은 도구가 두 개 모이면 합칠 수 있어요</small>',
+    text: () => (S.gold >= costBuy() ? t('tut.buy') : t('tut.wait_gold')) + `<small>${t('tut.buy_sub')}</small>`,
     done: () => hasPair() || S.grid.some((L) => L >= 2),
   },
   { // 2: 끌어서 합성
     target: () => (sheetOpen() && document.querySelector('#pane-tools.on') ? 'drag' : document.querySelector('.sbtn[data-tab="tools"]')),
-    text: '같은 도구끼리 끌어서 합쳐요!<small>합치면 공격력이 2.6배!</small>',
+    text: () => `${t('tut.merge')}<small>${t('tut.merge_sub')}</small>`,
     done: () => S.grid.some((L) => L >= 2),
   },
   { // 3: 공격력 카드
     target: () => (sheetOpen() ? $('btnClose') : $('btnAtk')),
-    text: () => (sheetOpen() ? '도구함을 닫고…' : '공격력도 올려 보세요!') + '<small>골드가 생기면 아래 카드를 눌러요</small>',
+    text: () => (sheetOpen() ? t('tut.close_tools') : t('tut.upgrade')) + `<small>${t('tut.upgrade_sub')}</small>`,
     done: () => S.atkLv >= 1,
   },
 ];
@@ -34,7 +34,7 @@ function hasPair() { const lv = S.grid.filter((L) => L); return lv.some((L, i) =
 // 셸 좌표(디자인 px)로 바꾼 요소 가운데
 function centerOf(el) {
   const r = el.getBoundingClientRect(), sr = shell.getBoundingClientRect();
-  return { x: (r.left - sr.left + r.width / 2) / scale, y: (r.top - sr.top + r.height / 2) / scale, h: r.height / scale };
+  return { x: (r.left - sr.left + r.width / 2) / scale, y: (r.top - sr.top + r.height / 2) / scale, w: r.width / scale, h: r.height / scale };
 }
 
 function tutTick() {
@@ -44,7 +44,7 @@ function tutTick() {
   if (step.done()) {
     S.tut++;
     Sound.play('claim');
-    if (S.tut >= TUT_DONE) { banner('준비 끝!<small>이제 셰프 곰과 주방을 지켜요</small>', 1.8); el.className = 'hidden'; save(); return; }
+    if (S.tut >= TUT_DONE) { banner(`${t('tut.done')}<small>${t('tut.done_sub')}</small>`, 1.8); el.className = 'hidden'; save(); return; }
     save();
     return tutTick();
   }
@@ -70,6 +70,9 @@ function tutTick() {
   el.className = 'point';
   $('tutHand').style.left = c.x + 'px';
   $('tutHand').style.top = c.y + c.h * 0.15 + 'px';
+  // 누를 곳을 감싸는 빛 링 (대상 크기에 맞춤)
+  const ring = Math.max(120, Math.min(280, Math.max(c.w, c.h) * 1.3));
+  Object.assign($('tutRing').style, { left: c.x + 'px', top: c.y + 'px', width: ring + 'px', height: ring + 'px' });
   // 말풍선은 대상 위쪽(화면 아래쪽 대상) 또는 아래쪽에
   const above = c.y > 640;
   $('tutBubble').style.left = Math.max(170, Math.min(550, c.x)) + 'px';

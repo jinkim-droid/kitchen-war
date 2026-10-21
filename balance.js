@@ -1,7 +1,7 @@
 // 주방 대전쟁 — 밸런스 숫자 한곳 모음. 게임(main.js)과 시뮬레이터(tools/sim.js)가 같은 값을 쓴다.
 // 숫자를 바꾼 뒤에는 `node tools/sim.js`로 페이싱(스테이지 도달 시간)을 확인한다.
 // 목표 페이싱(계속 플레이): STAGE 10 강한 보스에서 첫 막힘 ~10분 · STAGE 25(환생) ~1시간 · 1회차 한계 30~40 · STAGE 50 8~12시간
-// 2026-10-20 시뮬레이터 결과: 첫 막힘 STAGE 10(7분) · 25 도달 1시간 5분 · 1회차 한계 30 · 50 도달 9시간 23분
+// 2026-10-21 시뮬레이터 결과(영구 강화 방식): 첫 막힘 STAGE 10(5분) · 25 도달 54분 · 1회차 한계 30 · 50 도달 7시간 51분
 const BAL = {
   startGold: 20,                       // 처음 골드
   // 도구: Lv1 공격력, 합성 한 번마다 배율
@@ -27,7 +27,9 @@ const BAL = {
     chick: [6, 1.2, 60], bunny: [40, 1.0, 1500], penguin: [90, 0.5, 20000],
     squirrel: [450, 1.0, 300000], fox: [2200, 0.8, 4000000], panda: [13000, 1.1, 60000000], frog: [75000, 0.6, 1000000000],
   },
-  // 환생: STAGE prestigeMin부터, 별 = floor((최고 스테이지 - starFrom)^starPow / starDiv), 별 1개 = 공격력·골드 +starStep
-  prestigeMin: 25, starFrom: 20, starPow: 1.3, starDiv: 3, starStep: 0.08,
+  // 환생: STAGE prestigeMin부터, 별 = floor((최고 스테이지 - starFrom)^starPow / starDiv)
+  prestigeMin: 25, starFrom: 20, starPow: 1.3, starDiv: 3,
+  // 셰프 별로 사는 영구 강화 (총고식): 레벨당 +step, 비용 = 1 + floor(레벨 ÷ permCostEvery) 별. 공격속도는 max 레벨까지
+  perm: { atk: { step: 0.2 }, spd: { step: 0.03, max: 20 }, gold: { step: 0.2 } }, permCostEvery: 25,
 };
 if (typeof module !== 'undefined') module.exports = BAL;

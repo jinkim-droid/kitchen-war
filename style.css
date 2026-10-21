@@ -1,16 +1,34 @@
-/* 게임 폰트 "Game Font": 주아 (SIL OFL — assets/fonts/OFL-Jua.txt) 한 가지로 숫자·영문·한글을 모두 그린다
-   게임 안에 동봉해 오프라인에서도 쓴다 (사내 기준 ux:fonts-and-text). 게임에 쓰는 글자만 남긴 WOFF2
-   (tools/subset_fonts.py, 원본 TTF는 tools/fonts-src/) — 화면 문구를 바꾸면 다시 돌린다.
-   한 굵기만 있으니 모든 굵기 요청을 이 파일로 받아 가짜 굵게(합성)를 막는다 */
+/* 게임 폰트 "Game Font" — 두 폰트를 한 이름으로 묶는다 (2026-10-21 사용자 결정). 게임 안에 동봉해 오프라인에서도 쓴다 (사내 기준 ux:fonts-and-text)
+   - 한글·나머지: 온글잎 밑미 (ⓒ밑미·보이저엑스 — assets/fonts/Meetme-Font-License.txt). 라이선스가 수정·편집을 막으므로
+     서브셋하지 않고 배포받은 TTF 원본 그대로 쓴다.
+   - 숫자·영문·숫자 기호(x6.25, 2.68K, Stage 27-1, 22%): Rounded Mplus 1c Black (SIL OFL — assets/fonts/OFL-Mplus.txt).
+     unicode-range로 맡는다. 범위가 겹치면 나중에 선언한 면이 먼저 쓰이므로 밑미 뒤에 둔다.
+     범위를 바꾸면 tools/subset_fonts.py 의 MPLUS_CHARS도 같이 바꾸고 다시 돌린다.
+   둘 다 한 굵기만 있으니 모든 굵기 요청을 이 파일로 받아 가짜 굵게(합성)를 막는다 */
 @font-face {
   font-family: "Game Font";
-  src: url("assets/fonts/jua-game.woff2") format("woff2");
+  src: url("assets/fonts/Ongeulip-Meetme.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: block;
+}
+@font-face {
+  font-family: "Game Font";
+  src: url("assets/fonts/mplus-num.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+0025, U+002B-003A, U+0041-005A, U+0061-007A;
+}
+/* 영어 화면용: Mplus로 문장 전체(ASCII + 라틴 글자) — html[lang=en] 에서만 먼저 쓴다 (tools/subset_fonts.py MPLUS_EN_CHARS) */
+@font-face {
+  font-family: "Game Font EN";
+  src: url("assets/fonts/mplus-en.woff2") format("woff2");
   font-weight: 100 900;
   font-display: block;
 }
 /* 총고처럼: 게임 글자는 흰색 + 진한 외곽선. 외곽선을 글자 뒤에 그려(paint-order) 글자가 가늘어지지 않게 한다.
    상속으로 퍼지고, 데미지 숫자·스테이지처럼 자기 외곽선이 있는 곳은 그 값이 우선한다 */
-#shell { -webkit-text-stroke: 4px #2a1a10; paint-order: stroke fill; }
+/* 총고 카드 글자 실측(2026-10-21): 흰 글자 + 진갈색 외곽선(글자 크기의 약 8%) + 아래로 같은 계열 더 진한 그림자(약 8%) */
+#shell { -webkit-text-stroke: 5px #4a2c1c; paint-order: stroke fill; text-shadow: 0 2px 0 #2a1a10; }
 html, body {
   margin: 0; height: 100%; overflow: hidden;
   background: #1b1420;
@@ -22,7 +40,7 @@ html, body {
 }
 /* 논리 해상도 720x1280 셸을 화면에 비율 유지로 맞춘다 (main.js fit) */
 #shell { position: absolute; left: 0; top: 0; width: 720px; height: 1280px; transform-origin: 0 0; background: #2a1f2e; overflow: hidden; }
-#field { position: absolute; left: 0; top: 0; width: 720px; height: 1090px; overflow: hidden; }
+#field { position: absolute; left: 0; top: 0; width: 720px; height: 1280px; overflow: hidden; } /* 카드 뒤까지 바닥이 비친다 (main.js CH) */
 #field canvas { display: block; }
 #fx { position: absolute; inset: 0; pointer-events: none; }
 /* 셰프가 맞으면 번쩍, 체력이 낮으면 화면 테두리가 붉게 깜빡인다 */
@@ -31,13 +49,15 @@ html, body {
 #vignette.flash { opacity: .55; }
 @keyframes danger { 50% { opacity: .65; } }
 .dmg { position: absolute; font-weight: 900; font-size: 36px; color: #fff; transform: translate(-50%, -50%); white-space: nowrap;
-  -webkit-text-stroke: 5px #3a2418; paint-order: stroke fill; text-shadow: 0 3px 0 #3a2418; will-change: transform, opacity; pointer-events: none; }
+  -webkit-text-stroke: 5px #56402a; paint-order: stroke fill; text-shadow: 0 3px 0 #3a2418; will-change: transform, opacity; pointer-events: none; }
+/* 총고식(2026-10-21 실측): 데미지는 흰색·연두 #94fa10 반반 무작위(치명타는 크기만 크게), 골드 획득은 노랑 — 외곽선은 갈색 #56402a */
 .dmg span { display: inline-block; animation: dmgPop .32s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes dmgPop { 0% { transform: scale(.3); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
-.dmg.crit { font-size: 50px; color: #ffe04a; }
-.dmg.crit.boss { color: #ff9a3a; }
+.dmg.crit { font-size: 50px; color: #fff; }
+.dmg.crit.boss { color: #fff; }
 .dmg.small { font-size: 26px; }
 .dmg.gold { color: #ffd34d; font-size: 32px; }
+.dmg.green, .dmg.crit.green { color: #94fa10; }
 .dmg.hurt { color: #ff5a5a; font-size: 38px; }
 
 #hud { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
@@ -63,14 +83,13 @@ html, body {
 #bossTimer.on { display: block; animation: bob 1s ease-in-out infinite; }
 .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 #goldLabel { font-size: 26px; white-space: nowrap; }
-#dpsLabel { font-size: 18px; font-weight: 800; color: #fff; background: #fff3dccc; border-radius: 10px; padding: 1px 8px; }
 #banner { position: absolute; left: 0; right: 0; top: 360px; text-align: center; font-size: 56px; font-weight: 900;
   text-shadow: 0 4px 0 #000a; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #banner.show { opacity: 1; }
 #banner small { display: block; font-size: 26px; font-weight: 700; margin-top: 8px; }
 
 #panel { position: absolute; left: 0; top: 1090px; width: 720px; height: 190px; box-sizing: border-box; padding: 18px 16px 26px;
-  background: linear-gradient(#3a2b40, #2a1f2e); display: flex; gap: 14px; }
+  display: flex; gap: 14px; }
 button { font: inherit; color: #fff; border: 0; border-radius: 18px; cursor: pointer; }
 button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 .up { position: relative; flex: 1; min-width: 0; background: #fff3dc; color: #fff; border: 4px solid #3a2418; border-radius: 22px; box-shadow: 0 6px 0 #3a2418;
@@ -497,3 +516,443 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   border-style: solid; border-color: transparent; border-width: 4px; border-image: url("assets/img/ui_bubble.webp") 72 fill / 24px stretch;
   padding: 14px 22px; color: #fff; filter: drop-shadow(0 4px 0 #3a2418); animation: bob 1.4s ease-in-out infinite; }
 #tutBubble small { display: block; font-size: 20px; margin-top: 4px; }
+
+/* ======================================================================
+   4차 그림 — 화면별 UI 창 (ASSET_LIST 17~23절). 9분할 자르기 값 = ui_slices_1x.json × 3
+   ====================================================================== */
+/* 17. 공통 팝업 틀: 제목 띠가 패널 위 테두리에 걸치고(좌우 3분할), 보상 숫자는 안으로 들어간 내용 상자에 */
+#modal .title.small, .setbox .title {
+  display: block; width: fit-content; min-width: 260px; max-width: 100%; box-sizing: border-box; height: 72px; margin: -82px auto 14px;
+  border-style: solid; border-width: 0 36px; border-image: url("assets/img/ui_popup_title.webp") 0 108 fill / 0 36px stretch;
+  padding: 0 10px; font-size: 40px; line-height: 70px; color: #fff; text-shadow: none; white-space: nowrap; -webkit-text-stroke: 6px #2a1a10;
+}
+#modal .box { padding-top: 54px; }
+.setbox { padding-top: 46px; }
+#modal .reward, #starNow, #rushBest {
+  border-style: solid; border-width: 4px; border-image: url("assets/img/ui_content_box.webp") 63 fill / 21px stretch;
+  padding: 6px 28px; min-width: 60%; box-sizing: border-box;
+}
+#modal .reward { display: block; margin: 16px auto; }
+#modal .illust { display: block; width: 280px; height: auto; margin: -4px auto 0; }
+#modal .tag-best { display: block; width: 180px; height: auto; margin: 4px auto -4px; animation: bob 1s ease-in-out infinite; }
+
+/* 18. 내 주방 */
+#base { background: url("assets/img/bg_base.webp") center / cover no-repeat, #e9dcc4; }
+.base-head b img.ic { height: 1.15em; }
+.st-cell { position: relative; display: flex; }
+.st-cell > .st { flex: 1; z-index: 1; }
+/* 빛 테두리는 가운데가 빈 틀이라 카드 위에 겹친다. 그림 안 테두리(가로 8~92%·세로 10~90%)가 카드 바깥 약 10px에 오게 키운다 */
+.st-cell.ready::before { content: ''; position: absolute; z-index: 2; left: 50%; top: 50%; width: 132%; height: 135%; transform: translate(-50%, -50%);
+  background: url("assets/img/ui_st_ready.webp") center / 100% 100% no-repeat; animation: stGlow 1.4s ease-in-out infinite; pointer-events: none; }
+@keyframes stGlow { 50% { opacity: .55; transform: translate(-50%, -50%) scale(1.04); } }
+.st, .st.locked {
+  border-style: solid; border-color: transparent; border-width: 4px; border-radius: 0; background: none; box-shadow: none;
+  border-image: url("assets/img/ui_st_card.webp") 78 fill / 26px stretch; filter: drop-shadow(0 6px 0 #3a2418);
+}
+.st.locked { border-image-source: url("assets/img/ui_st_card_lock.webp"); filter: drop-shadow(0 6px 0 #3a2418) grayscale(.3); }
+.st::before { display: none; }
+/* 레벨 등급은 카드 둘레 빛 색으로 (그림 판은 테두리 색을 못 바꾼다) */
+.st.silver { box-shadow: none; filter: drop-shadow(0 6px 0 #3a2418) drop-shadow(0 0 6px #b8c4d0); }
+.st.gold { box-shadow: none; filter: drop-shadow(0 6px 0 #3a2418) drop-shadow(0 0 10px #ffd34d); }
+.st-ico img { height: 96px; width: auto; display: block; filter: drop-shadow(0 3px 0 #3a241855); }
+.st-collect { top: -44px; left: auto; right: -10px; transform: none; width: 72px; height: 80px; padding: 0 0 8px; border: 0 !important; border-radius: 0; box-shadow: none; animation: bob 1s ease-in-out infinite;
+  background: url("assets/img/ui_harvest_bubble.webp") center / 100% 100% no-repeat !important; }
+.st-collect img.ic { height: 36px; vertical-align: 0; margin-top: 12px; }
+.st-collect span { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 20px; white-space: nowrap; }
+
+/* 19. 공용 진행 막대 (좌우 3분할, 1x 12) */
+.st-bar, .mission .bar2 {
+  height: 24px; background: none; border-radius: 0; overflow: visible; box-sizing: border-box;
+  border-style: solid; border-width: 0 12px; border-image: url("assets/img/ui_bar_bg.webp") 0 36 fill / 0 12px stretch;
+}
+.st-bar i, .mission .bar2 i {
+  left: -12px; background: none; border-radius: 0; box-sizing: content-box; /* 폭(%) + 양 끝 12px씩 = 100%일 때 바탕과 같은 길이 */
+  border-style: solid; border-width: 0 12px; border-image: url("assets/img/ui_bar_fill_yellow.webp") 0 36 fill / 0 12px stretch;
+}
+.mission .bar2 i { border-image-source: url("assets/img/ui_bar_fill.webp"); }
+.st-bar span { display: block; text-align: center; line-height: 24px; }
+.mission .bar2 { margin-top: 8px; }
+
+/* 20. 첫 플레이 안내: 손가락(손끝 = 그림 위쪽 가운데) + 누를 곳 빛 링 */
+#tutHand { width: 96px; height: 96px; font-size: 0; transform: translate(-50%, 0); }
+#tut.point #tutHand { animation: tutTap 0.9s ease-in-out infinite; }
+@keyframes tutTap { 50% { transform: translate(-50%, -18px) scale(.92); } }
+@keyframes tutDrag {
+  0%, 15% { left: var(--x1); top: var(--y1); transform: translate(-50%, 0) scale(1); }
+  20% { transform: translate(-50%, 0) scale(.85); }
+  75% { left: var(--x2); top: var(--y2); transform: translate(-50%, 0) scale(.85); }
+  85%, 100% { left: var(--x2); top: var(--y2); transform: translate(-50%, 0) scale(1); }
+}
+#tutRing { display: none; position: absolute; transform: translate(-50%, -50%); background: url("assets/img/ui_tut_ring.webp") center / contain no-repeat;
+  animation: tutRing 0.9s ease-in-out infinite; }
+#tut.point #tutRing { display: block; }
+@keyframes tutRing { 50% { transform: translate(-50%, -50%) scale(1.12); opacity: .7; } }
+
+/* 21. 설정 아이콘 */
+.setrow > span { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; }
+.setrow .seticon { grid-row: span 2; width: 48px; height: 48px; }
+
+/* 22. 메뉴 화면 그림 · 보스 러시 중 보라 알약 */
+.prestige .illust { width: 320px; height: auto; margin: -10px 0 -18px; }
+#bossTimer.rush { border-image: url("assets/img/ui_pill_purple.webp") 0 60 fill / 0 20px stretch; }
+
+/* 23. 표시·도장: 받은 미션 "완료!" 도장, 장착 중 스킨 배지 */
+.mission { position: relative; }
+.mission.done::after { content: ''; position: absolute; right: 176px; top: 50%; width: 104px; height: 104px; transform: translateY(-50%) rotate(-12deg);
+  background: url("assets/img/ui_stamp_done.webp") center / contain no-repeat; pointer-events: none; }
+.mission.done .info b { text-decoration: none; }
+.skin { position: relative; }
+.skin.on::after { content: ''; position: absolute; right: 6px; top: 6px; width: 48px; height: 48px; background: url("assets/img/ui_equipped.webp") center / contain no-repeat; }
+
+/* 5차 일부: 화면 위쪽 보스 체력 바 (크기 고정 통판 400×50 = 그림 480×60의 1/1.2). 채움 칸은 그림 x 91~478 */
+#bossBar { display: none; position: relative; width: 400px; height: 50px; margin-top: 6px; background: url("assets/img/ui_boss_hp_bg.webp") center / 100% 100% no-repeat; }
+#bossBar.on { display: block; }
+#bossFill { position: absolute; left: 75.8px; top: 0; width: 322.5px; height: 100%; background: url("assets/img/ui_boss_hp_fill.webp") -75.8px 0 / 400px 50px no-repeat;
+  transition: clip-path .15s; }
+#bossBar.wall #bossFill { filter: hue-rotate(-12deg) saturate(1.5) brightness(.9); }
+
+/* ======================================================================
+   총고식 UI (2026-10-21) — 레퍼런스: 총잡이 고양이 스크린샷 5장
+   그림이 없는 것(리본·빨간 X·조준·조이스틱·발바닥 무늬)은 CSS 임시 — ASSET_LIST 6차
+   ====================================================================== */
+:root {
+  --ink: #5a3a22;        /* 진갈색 외곽선 */
+  --cream: #fbe6b8;      /* 크림 판 */
+  --paw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23e7c48a' opacity='.6'%3E%3Cellipse cx='26' cy='34' rx='10' ry='8'/%3E%3Ccircle cx='14' cy='23' r='4'/%3E%3Ccircle cx='22' cy='16' r='4'/%3E%3Ccircle cx='31' cy='16' r='4'/%3E%3Ccircle cx='39' cy='23' r='4'/%3E%3Cellipse cx='86' cy='94' rx='10' ry='8'/%3E%3Ccircle cx='74' cy='83' r='4'/%3E%3Ccircle cx='82' cy='76' r='4'/%3E%3Ccircle cx='91' cy='76' r='4'/%3E%3Ccircle cx='99' cy='83' r='4'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- 창: 크림 + 발바닥 무늬 + 진갈색 테두리, 폭 화면의 91% ---------- */
+#modal .box, #settings .setbox {
+  position: relative; width: 655px; border: 5px solid var(--ink) !important; border-image: none !important; border-radius: 30px;
+  background: var(--paw) 0 0 / 120px repeat, var(--cream) !important; box-shadow: inset 0 0 0 4px #fff6df !important; filter: drop-shadow(0 7px 0 #3a2418);
+}
+#modal .box.orange { background: #e99a3c !important; border-color: #f6c84a !important; box-shadow: 0 0 0 5px var(--ink) !important; }
+#modal .box.has-peek { margin-top: 170px; }
+/* 위로 머리를 내민 그림 (리본 뒤) */
+#modal .peek { position: absolute; left: 50%; top: -205px; width: 250px; height: 230px; object-fit: contain; object-position: bottom; transform: translateX(-50%); z-index: -1; }
+/* 리본 제목 (청록, 양 끝 접힌 꼬리) */
+#modal .title.small, .setbox .title {
+  position: relative; border-image: none !important; border: 4px solid #23434a; border-radius: 10px; height: 70px; line-height: 64px;
+  background: linear-gradient(#4fd0d8, #23a2b0); margin: -84px auto 18px; padding: 0 46px; min-width: 300px; font-size: 40px;
+  box-shadow: inset 0 -6px 0 #0002;
+}
+#modal .title.small::before, #modal .title.small::after, .setbox .title::before, .setbox .title::after {
+  content: ''; position: absolute; bottom: -16px; width: 46px; height: 50px; z-index: -1; background: #17808c; border: 4px solid #23434a;
+}
+#modal .title.small::before, .setbox .title::before { left: -30px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 34% 50%); }
+#modal .title.small::after, .setbox .title::after { right: -30px; clip-path: polygon(0 0, 100% 0, 66% 50%, 100% 100%, 0 100%); }
+/* 빨간 동그라미 X (패널 오른쪽 위 모서리에 걸침 · 오프라인은 패널 아래 가운데) */
+#modalX, #btnClose {
+  position: absolute; right: -24px; top: -24px; width: 66px; height: 66px; padding: 0; border-radius: 50% !important; z-index: 3; font-size: 0;
+  background: radial-gradient(circle at 50% 35%, #ff8f8f, #e95a5a) !important; border: 4px solid #fff !important; box-shadow: 0 0 0 4px var(--ink), 0 6px 0 4px #3a2418 !important; filter: none !important;
+}
+#modalX::before, #modalX::after, #btnClose::before, #btnClose::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 30px; height: 8px; margin: -4px 0 0 -15px; border-radius: 4px; background: #fff;
+  box-shadow: 0 0 0 2px #b23a3a; transform: rotate(45deg);
+}
+#modalX::after, #btnClose::after { transform: rotate(-45deg); }
+#modalX.below { right: auto; top: auto; left: 50%; bottom: -110px; margin-left: -33px; }
+#modalX.hidden, #modalBtn.hidden { display: none; }
+/* 주 버튼: 노랑 */
+#modalBtn {
+  display: block; width: 330px; margin: 22px auto 0; height: 92px; border-image: none !important; border: 4px solid var(--ink) !important; border-radius: 22px;
+  background: linear-gradient(#ffe066, #f5c22e) !important; box-shadow: inset 0 -7px 0 #d9a21a !important; filter: drop-shadow(0 5px 0 #3a2418); font-size: 34px;
+}
+#modalBtn:disabled { background: #bdb3a2 !important; box-shadow: inset 0 -7px 0 #9a8f80 !important; }
+#modalCancel { display: block; width: 330px; margin: 12px auto 0; }
+
+/* ---------- 오프라인 보상 (주황 판) ---------- */
+.off-time { width: 280px; margin: 0 auto 18px; background: #8a4f1c; border-radius: 999px; padding: 6px 0; font-size: 28px; }
+.off-grid { display: flex; align-items: stretch; justify-content: center; gap: 10px; }
+.off-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.off-col + .off-arrow + .off-col { border-left: 4px solid #b0641e; padding-left: 10px; }
+.off-arrow { align-self: flex-start; font-size: 34px; margin-top: 4px; color: #fff; }
+.off-st { position: relative; font-size: 34px; margin-bottom: 6px; }
+.off-max { position: absolute; right: -40px; top: -22px; font-style: italic; font-size: 22px; color: #ff9ad5; transform: rotate(14deg); -webkit-text-stroke: 4px #6a2050; }
+.off-lv { display: flex; align-items: center; gap: 12px; width: 190px; background: #c46f22; border-radius: 12px; padding: 4px 12px; font-size: 26px; }
+.off-lv img { width: 44px; height: 44px; object-fit: contain; margin-left: -20px; }
+.off-lv.grew { background: #d98a2e; box-shadow: 0 0 0 3px #ffe066; }
+.off-gold { margin-top: 18px; font-size: 28px; }
+.off-note { font-size: 22px !important; margin: 14px 0 0 !important; }
+
+/* ---------- 업그레이드 카드: 진초록 + 골드만큼 차오르는 밝은 초록 게이지 ---------- */
+#panel { padding: 44px 16px 22px; background: none; gap: 16px; } /* 총고처럼 카드 뒤 배경 없이 전장 위에 바로 */
+#panel .up {
+  border-image: none !important; border: 4px solid #1f2d18 !important; border-radius: 16px; background: #3d5634 !important; overflow: visible;
+  filter: drop-shadow(0 5px 0 #1a2414); padding: 30px 8px 12px; /* 위 30: 오른쪽 위 Lv와 큰 숫자가 겹치지 않게 (Mplus 숫자가 밑미보다 넓음) */ justify-content: flex-end; gap: 6px;
+}
+/* 카드 제목·큰 숫자 글자 효과: 총고 카드 실측(2026-10-21) — 외곽선 회갈색 #554236, 그림자 반투명 검정. 참고 이미지 대비 0.64배 */
+.up .name { position: absolute; left: -6px; right: -6px; top: -38px; text-align: center; font-size: 22px; white-space: nowrap; -webkit-text-stroke: 4px #554236; text-shadow: none; }
+.up .gauge { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; }
+.up .gauge i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; clip-path: inset(0 100% 0 0); background: linear-gradient(#86cf62, #5aa640); transition: clip-path .25s; } /* main.js가 clip-path로 오른쪽을 잘라 차오르게 한다 */
+.up.full .gauge i { animation: upGlow 1s ease-in-out infinite; }
+@keyframes upGlow { 50% { filter: brightness(1.18); } }
+.up .uico { position: absolute; left: -14px; top: -20px; height: 50px; width: auto; z-index: 2; filter: drop-shadow(0 3px 0 #0005); }
+#panel .up .lv { position: absolute; top: -22px; right: 8px; background: none; padding: 0; font-size: 19px; z-index: 2; -webkit-text-stroke-width: 5px; text-shadow: 0 2px 0 #2a1a10; }
+#panel .up .val { position: relative; z-index: 1; font-size: 36px; line-height: 1; letter-spacing: .02em; -webkit-text-stroke: 8px #554236; text-shadow: 0 6px 0 #1a100ae6; }
+/* 비용 칸: 총고 실측(2026-10-21) — 갈색 둥근 사각형(#5b3f1e) 왼쪽 끝에 큰 코인 아이콘이 걸쳐 튀어나온다.
+   코인+갈색 칸이 한 세트로 카드 가운데(왼쪽 여백 26px = 코인이 튀어나온 만큼), 숫자는 갈색 칸의 정중앙. 글자는 외곽선만(그림자 없음), 모자라면 빨강 #f77478 */
+#panel .up .cost {
+  position: relative; z-index: 1; border-image: none !important; border: 0 !important; background: #5b3f1e !important; border-radius: 10px;
+  filter: none; color: #fff; font-size: 22px; line-height: 1; height: 34px; display: flex; align-items: center; justify-content: center;
+  align-self: center; width: 58%; min-width: 0; margin-left: 26px; padding: .22em 6px 0; box-sizing: border-box; /* 위 .22em: Mplus 숫자 모양이 글자 칸 위쪽에 붙어 있어(실측 0.11em) 칸 세로 중앙으로 내린다 */
+  -webkit-text-stroke: 6px #5a3020; text-shadow: none;
+}
+#panel .up .cost img.ic { position: absolute; left: -26px; top: 50%; height: 40px; transform: translateY(-50%); filter: drop-shadow(0 2px 0 #0005); }
+#panel .up.poor .cost { color: #f77478; }
+
+/* ---------- 스테이지 아래 절전모드 알약 ---------- */
+#btnSaver { pointer-events: auto; margin-top: 4px; padding: 2px 18px; font-size: 20px; border-radius: 999px; background: #7d746a; border: 3px solid #3a332c; box-shadow: 0 3px 0 #3a332c; }
+#btnSaver.on { background: #6cc070; border-color: #2d5a2f; box-shadow: 0 3px 0 #2d5a2f; }
+
+/* ---------- 기능 버튼: 화면 끝에 붙은 알약 (왼쪽 6개 · 오른쪽 아래 도전) + 오른쪽 위 미션 동그라미 ---------- */
+#btnSettings { background: none !important; border: 0; box-shadow: none; transform: none; padding: 0; }
+#btnSettings::before { display: none; }
+#btnSettings img { filter: drop-shadow(0 3px 0 #3a241888); }
+.side { gap: 10px; bottom: 208px; } /* 전장(#field)이 카드 뒤까지 1280으로 늘어나서 카드 높이 190 + 18 */
+.side.left { left: 0; } .side.right { right: 0; }
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) {
+  width: 104px; height: 72px; transform: none; background: #f6c27a !important; border: 4px solid #4a2e1a; border-left: 0;
+  border-radius: 0 24px 24px 0; box-shadow: 0 5px 0 #4a2e1a, inset 0 -7px 0 #0000001c;
+}
+.side.right .sbtn { border: 4px solid #4a2e1a; border-right: 0; border-radius: 24px 0 0 24px; } /* 오른쪽 끝에 붙은 알약은 왼쪽만 둥글게 */
+.side.right .sbtn[data-tab="rush"] { height: 86px; background: #f0874a !important; }
+.side .sbtn[data-tab="shop"] { background: #6cc3ea !important; }
+.side .sbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #4a2e1a; }
+.sbtn::before { display: none; }
+.side .sbtn .ico { top: 0; }
+.side .sbtn .ico img { height: 50px; }
+.side .sbtn > span:not(.ico) { bottom: -2px; font-size: 22px; -webkit-text-stroke: 5px #2a1a10; }
+.side.left .sbtn .dot { right: -10px; } .side.right .sbtn .dot { right: auto; left: -10px; }
+#btnMission { position: absolute; right: 10px; top: 200px; width: 72px; height: 72px; border-radius: 50%; z-index: 2; padding: 0; transform: none;
+  background: radial-gradient(circle at 50% 35%, #c58cf0, #8a4fc0) !important; border: 4px solid #3a2050; box-shadow: 0 4px 0 #3a2050; }
+#btnMission .ico { top: 8px; } #btnMission .ico img { height: 46px; } /* 아이콘은 동그라미 안에서 조금 아래로 (2026-10-21) */
+#btnMission > span:not(.ico) { bottom: -4px; font-size: 22px; } /* 글자 크기는 옆 메뉴(22px)와 같게, 조금 위로 */
+
+/* ---------- 조이스틱 ---------- */
+#joy { display: none; position: absolute; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; border: 5px solid #ffffffd9;
+  background: #ffffff26; box-shadow: 0 0 0 3px #3a241855; pointer-events: none; z-index: 3; box-sizing: border-box; }
+#joy.on { display: block; }
+#joy i { position: absolute; left: 50%; top: 50%; width: 66px; height: 66px; border-radius: 50%; background: #fff; box-shadow: 0 4px 0 #0003; transform: translate(-50%, -50%); }
+
+/* ---------- 메뉴 판: 크림 + 발바닥, 빨간 X ---------- */
+#sheet .card { border-image: none !important; border: 5px solid var(--ink); border-bottom: 0; border-radius: 30px 30px 0 0; padding-top: 26px;
+  background: var(--paw) 0 0 / 120px repeat, var(--cream); filter: drop-shadow(0 -6px 10px #0006); }
+#btnClose { right: 14px; top: -30px; }
+.card-head { padding-right: 70px; }
+.tab, .tab.on, .tab:not(.on) { opacity: 1; transform: none; border: 3px solid #8a6a40; background: #e2bd84 !important; box-shadow: 0 3px 0 #8a6a40; }
+.tab.on { background: var(--fc, #f0874a) !important; border-color: var(--ink); box-shadow: 0 4px 0 var(--ink); }
+
+/* ---------- 스킨: 효과 합계 + 팁 + 4열 격자 ---------- */
+.skin-sum { display: flex; gap: 12px; justify-content: center; }
+.skin-sum > div { flex: 1; text-align: center; }
+.skin-sum small { display: block; font-size: 18px; margin-bottom: 2px; }
+.skin-sum span { display: flex; align-items: center; justify-content: space-between; background: #fff3dc; border: 3px solid var(--ink); border-radius: 10px; padding: 2px 10px 2px 4px; font-size: 22px; }
+.skin-sum img { height: 34px; }
+.skin-tip { text-align: center; font-size: 19px; }
+#skinList { grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px; background: #a8743e; border: 4px solid var(--ink); border-radius: 16px; flex: 1; min-height: 0; }
+#skinList .skin {
+  border-image: none !important; border: 4px solid var(--ink) !important; background: #8a6436 !important; border-radius: 12px; filter: none;
+  padding: 6px; aspect-ratio: 1 / 1.08; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+}
+#skinList .skin.on { background: #ffe7a0 !important; border-color: #c99a2a !important; }
+#skinList .skin .thumb { width: 92%; height: 92%; object-fit: contain; }
+#skinList .skin .mini { transform: scale(.85); }
+#skinList .skin.locked .thumb, #skinList .skin.locked .mini { filter: brightness(.42); }
+.skin .lock { display: none; position: absolute; left: 50%; top: 52%; width: 44px; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 0 #0008); }
+.skin.locked .lock { display: block; }
+#modal .skin-big { display: block; width: 210px; height: 210px; object-fit: contain; margin: 0 auto; }
+.skin-eff { display: inline-block; background: #fff3dc; border: 3px solid var(--ink); border-radius: 999px; padding: 4px 22px; font-size: 26px; margin-top: 8px; }
+.skin-price { font-size: 28px; margin-top: 12px; }
+
+/* ---------- 환생: 보상 줄(보라) + 별 잔액 + 영구 강화 3줄 ---------- */
+#pane-prestige { gap: 0; }
+#pane-prestige .peek { display: block; height: 130px; width: auto; margin: -6px auto -14px; position: relative; z-index: 1; filter: drop-shadow(0 4px 0 #0003); }
+.pr-box { flex: 1; display: flex; flex-direction: column; gap: 14px; background: #a8743e; border: 4px solid var(--ink); border-radius: 18px; padding: 16px; overflow-y: auto; }
+.pr-gain { display: flex; align-items: center; gap: 14px; background: linear-gradient(#dcb0f2, #b97fd9); border: 4px solid #6a3a8a; border-radius: 18px; padding: 12px 14px; }
+.pr-ico { width: 64px; height: 64px; }
+.pr-gain .info { flex: 1; display: flex; flex-direction: column; }
+.pr-gain .info span { font-size: 20px; } .pr-gain .info b { font-size: 38px; line-height: 1.1; } .pr-gain .info small { font-size: 16px; }
+#btnPrestige { min-width: 170px; height: 80px; font-size: 26px; background: #f7d9f3; border: 4px solid #6a3a8a; border-radius: 16px; box-shadow: 0 4px 0 #6a3a8a; color: #fff; }
+#btnPrestige:disabled { filter: grayscale(.6) brightness(.85); }
+.pr-sep { height: 4px; background: var(--ink); border-radius: 2px; }
+.pr-wallet { align-self: flex-end; display: flex; align-items: center; gap: 10px; background: #fff3dc; border: 3px solid var(--ink); border-radius: 999px; padding: 2px 22px 2px 4px; font-size: 26px; }
+.pr-wallet img { height: 40px; }
+#permList { display: flex; flex-direction: column; gap: 12px; }
+.perm { display: flex; align-items: center; gap: 14px; background: #fff1d6; border: 4px solid var(--ink); border-radius: 18px; padding: 10px 12px; }
+.perm-ico { position: relative; width: 70px; text-align: center; }
+.perm-ico img { height: 58px; }
+.perm-lv { position: absolute; left: 0; right: 0; bottom: -8px; font-style: normal; font-size: 17px; }
+.perm .info { flex: 1; display: flex; flex-direction: column; } .perm .info span { font-size: 22px; } .perm .info b { font-size: 32px; }
+.perm-btn { width: 190px; height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 22px;
+  background: linear-gradient(#a65bbd, #7e3c96); border: 4px solid #4a2058; border-radius: 16px; box-shadow: 0 4px 0 #4a2058; }
+.perm-cost { font-style: normal; background: #4a2058; border-radius: 999px; padding: 1px 16px; font-size: 20px; }
+.perm-btn:disabled .perm-cost { color: #ff7a7a; }
+.perm-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #4a2058; }
+
+/* ---------- 도전: 보스 러시 + 챕터 도전 ---------- */
+.chal-list { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.rush-row .big img { width: 92px; height: auto; }
+.chal-head { font-size: 26px; margin-top: 6px; } .chal-head small { font-size: 17px; }
+#chalList { display: flex; flex-direction: column; gap: 10px; }
+.row.chal .big img { height: 64px; }
+.row.chal.locked .big img { filter: brightness(.45); }
+.chal-title { font-size: 44px; margin-top: -10px; }
+.chal-band { margin: 14px -45px; padding: 14px 30px; background: #ecdcba; border-top: 4px solid var(--ink); border-bottom: 4px solid var(--ink);
+  color: #5a3a22; -webkit-text-stroke: 0; font-size: 26px; line-height: 1.35; word-break: keep-all; }
+.chal-reward { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 60px 0; background: #f3d79c; border-radius: 16px; padding: 10px; }
+.chal-reward small { font-size: 22px; } .chal-reward span img.ic { height: 58px; vertical-align: 0; } .chal-reward b { font-size: 28px; margin-top: -10px; }
+
+.perm-btn:disabled { filter: none; opacity: .8; }
+
+/* ======================================================================
+   5·6차 그림 적용 (2026-10-21, kitchen-war-wave5-6-39-assets) — 위의 CSS 임시 모양을 그림으로 바꾼다
+   9분할 값 = assets/img/ui_slices_1x.json (CSS 자르기 값은 그 ×3, 테두리 폭은 1x 그대로). 그림자는 그림에 없으니 drop-shadow로
+   ====================================================================== */
+:root { --paw: url("assets/img/bg_paw_tile.webp"); } /* 발바닥 무늬 타일 (불투명 크림 바탕 포함) */
+
+/* 창 판: 발바닥 무늬를 깔고 그 위에 크림 판 틀(가운데 비움)을 겹친다. 주황 판(오프라인 보상)은 틀을 꽉 채워 쓴다 */
+#modal .box, #settings .setbox { border-color: transparent !important; box-shadow: none !important; background-clip: padding-box !important; }
+#modal .box::before, #settings .setbox::before {
+  content: ''; position: absolute; inset: -5px; z-index: -1; pointer-events: none;
+  border: 34px solid transparent; border-image: url("assets/img/ui_panel_paw.webp") 102 / 34px stretch;
+}
+#modal .box.orange { background: none !important; box-shadow: none !important; }
+#modal .box.orange::before { border-image: url("assets/img/ui_panel_orange.webp") 102 fill / 34px stretch; }
+
+/* 리본 제목 (가운데만 가로로 늘어남, 양 끝 꼬리 70) */
+#modal .title.small, .setbox .title {
+  border: 0 solid transparent !important; border-width: 0 70px !important; border-radius: 0; background: none; box-shadow: none;
+  border-image: url("assets/img/ui_ribbon_title.webp") 0 210 fill / 0 70px stretch !important;
+  height: 80px; line-height: 80px; padding: 0 4px; min-width: 300px; width: fit-content; box-sizing: border-box;
+}
+#modal .title.small::before, #modal .title.small::after, .setbox .title::before, .setbox .title::after { display: none; }
+
+/* 빨간 동그라미 X */
+#modalX, #btnClose { background: url("assets/img/ui_close_round.webp") center / contain no-repeat !important; border: 0 !important; box-shadow: none !important;
+  filter: drop-shadow(0 4px 0 #3a2418) !important; }
+#modalX::before, #modalX::after, #btnClose::before, #btnClose::after { display: none; }
+
+/* 노랑 주 버튼 (비활성은 기존 회색 버튼 그림) */
+#modalBtn { border: 4px solid transparent !important; background: none !important; box-shadow: none !important;
+  border-image: url("assets/img/ui_btn_yellow.webp") 90 fill / 30px stretch !important; }
+#modalBtn:disabled { border-image: url("assets/img/ui_btn_gray.webp") 66 fill / 22px stretch !important; background: none !important; box-shadow: none !important; }
+
+/* 옆 알약 버튼: 왼쪽 = 오른쪽만 둥근 크림(상점은 파랑), 오른쪽 = 왼쪽만 둥근 크림·파랑(왼쪽 그림을 뒤집은 ui_side_pill_r_cream·_r_blue) · 도전은 진주황
+   크기가 고정(104×72, 도전 104×86)이고 그림 비율과 같아서 9분할 대신 통판으로 깐다 — 9분할은 화면 축소 시 조각 이음매가 격자처럼 보였다 */
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) {
+  border-color: transparent !important; border-image: none !important; box-shadow: none; filter: drop-shadow(0 5px 0 #4a2e1a);
+  background: url("assets/img/ui_side_pill_l.webp") center / 100% 100% no-repeat border-box !important;
+}
+.side.left .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_l_blue.webp") !important; }
+.side.right .sbtn { background-image: url("assets/img/ui_side_pill_r_cream.webp") !important; }
+.side.right .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_r_blue.webp") !important; }
+.side.right .sbtn[data-tab="rush"] { background: url("assets/img/ui_side_pill_r.webp") center / 100% 100% no-repeat border-box !important; } /* 위쪽 옛 규칙(주황 단색)보다 우선하도록 전체 지정 */
+.side .sbtn:active { box-shadow: none; filter: drop-shadow(0 2px 0 #4a2e1a); }
+/* 화면 끝에 붙는 쪽 테두리(그림에 3px)는 화면 밖으로 밀어 안 보이게 */
+.side.left { left: -4px; } .side.right { right: -4px; }
+
+/* 미션 동그라미 · 절전모드 알약 */
+#btnMission { background: url("assets/img/ui_round_purple.webp") center / 100% 100% no-repeat !important; border: 0; box-shadow: none; filter: drop-shadow(0 4px 0 #3a2050); }
+#btnSaver { border: 0 solid transparent; border-width: 0 18px; padding: 0 4px; height: 36px; line-height: 36px; background: none; box-shadow: none;
+  border-image: url("assets/img/ui_pill_gray.webp") 0 54 fill / 0 18px stretch; filter: drop-shadow(0 3px 0 #3a332c); }
+#btnSaver.on { background: none; box-shadow: none; border-image: url("assets/img/ui_pill_green.webp") 0 48 fill / 0 18px stretch; filter: drop-shadow(0 3px 0 #2d5a2f); }
+
+/* 조이스틱 */
+#joy { border: 0; background: url("assets/img/ui_joy_ring.webp") center / 100% 100% no-repeat; }
+#joy i { border-radius: 0; background: url("assets/img/ui_joy_knob.webp") center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 0 #0003); }
+
+/* 업그레이드 카드 판·게이지 (가격 칸은 총고식 갈색 칸 유지 — 2026-10-21 사용자 결정, ui_up_cost 안 씀) */
+/* 9분할 그림(ui_up_card·ui_up_gauge)은 화면 축소 때 조각 이음매가 선으로 보여서, 그림의 색·테두리를 재서 CSS로 똑같이 그린다 (2026-10-21)
+   카드: 바깥 진녹 4 → 어두운 선 1.3 → 밝은 선 1.3 → 몸통 #379072, 모서리 13 · 게이지: 진녹 3 → 연두 2 → 몸통 #b0e992, 위 9px에 하이라이트 줄 */
+#panel .up { border: 4px solid #184e43 !important; border-radius: 13px; border-image: none !important;
+  background: #379072 !important; box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #80c3a2, 0 5px 0 #1a2414 !important;
+  filter: none !important; } /* 카드 그림자는 몸통에만(box-shadow) — filter로 걸면 카드 밖 제목·Lv 글자에도 그림자가 찍혔다 */
+#panel .up .gauge { border-radius: 9px; }
+#panel .up .gauge i { border-radius: 9px; box-shadow: inset 0 0 0 3px #3d935d, inset 0 0 0 5px #8edc7f;
+  background: linear-gradient(#b0e992 9px, #d8f7bd 9px 11px, #b0e992 11px calc(100% - 5px), #92dc81 calc(100% - 5px)); }
+
+/* 환생 보상 줄 · 영구 강화 버튼 */
+.pr-gain { border-color: transparent; background: none; border-image: url("assets/img/ui_row_purple.webp") 66 fill / 22px stretch; }
+.perm-btn { border-color: transparent; background: none; box-shadow: none; filter: drop-shadow(0 4px 0 #4a2058); border-image: url("assets/img/ui_btn_purple.webp") 66 fill / 22px stretch; }
+.perm-btn:active:not(:disabled) { box-shadow: none; filter: drop-shadow(0 1px 0 #4a2058); }
+
+/* 스킨 칸 */
+#skinList .skin { border-color: transparent !important; background: none !important; border-image: url("assets/img/ui_skin_slot.webp") 54 fill / 18px stretch !important; }
+#skinList .skin.on { border-color: transparent !important; background: none !important; border-image-source: url("assets/img/ui_skin_slot_on.webp") !important; }
+
+/* 도전 창 설명 띠 (위·아래 진갈색 선만 고정, 나머지는 늘어남) */
+.chal-band { background: none; border: 0 solid transparent; border-width: 5px 0; border-image: url("assets/img/ui_chal_band.webp") 15 0 fill / 5px 0 stretch; }
+
+/* ---------- 5차: 위쪽 표시 ---------- */
+/* 챕터 진행 바: 바탕·채움 3분할, 스테이지마다 눈금 9개 (10%~90%) */
+#topBar { height: 32px; background: none; }
+#topBar::before { content: ''; position: absolute; inset: 0; border: 0 solid transparent; border-width: 0 18px; border-image: url("assets/img/ui_topbar_bg.webp") 0 54 fill / 0 18px stretch; }
+#topFill { left: 4px; top: 4px; bottom: 4px; max-width: calc(100% - 8px); background: none; box-sizing: border-box; border: 0 solid transparent; border-width: 0 12px;
+  border-image: url("assets/img/ui_topbar_fill.webp") 0 36 fill / 0 12px stretch; }
+#topBar::after { content: ''; position: absolute; left: 4px; right: 4px; top: 4px; bottom: 4px; pointer-events: none;
+  background: url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat,
+    url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat,
+    url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat;
+  background-size: 6px 100%; background-position: 10% 0, 20% 0, 30% 0, 40% 0, 50% 0, 60% 0, 70% 0, 80% 0, 90% 0; }
+#topFill { z-index: 1; } #topPct { z-index: 2; line-height: 32px; } /* 눈금(::after)은 채움 아래 — 채워진 곳은 노랑만 보이게 */
+
+/* 스테이지 명판(보스 스테이지는 보스 명판) + 아래 매달린 챕터 꼬리표 */
+#stageLabel { border: 0 solid transparent; border-width: 0 40px; height: 64px; line-height: 66px; padding: 0 2px; box-sizing: border-box; text-shadow: 0 3px 0 #3a2418;
+  border-image: url("assets/img/ui_stage_plate.webp") 0 120 fill / 0 40px stretch; filter: drop-shadow(0 4px 0 #0004); }
+#stageLabel.boss { border-image-source: url("assets/img/ui_stage_plate_boss.webp"); }
+#chapterLabel { margin-top: -6px !important; height: 36px; line-height: 40px; padding: 0 2px !important; box-sizing: border-box; font-size: 18px;
+  border-width: 0 24px !important; border-image: url("assets/img/ui_chapter_tag.webp") 0 72 fill / 0 24px stretch !important; }
+
+/* 코인·다이아: 왼쪽 동그란 자리에 아이콘(자리는 바 몸통색으로 칠함), 다이아 오른쪽에 + (상점). DPS 표시는 뺐다(2026-10-21) */
+#goldLabel, #gemLabel { display: flex; align-items: center; height: 48px; min-width: 150px; box-sizing: border-box; padding: 0 6px 0 4px !important; position: relative;
+  border-width: 0 24px 0 48px !important; border-image: url("assets/img/ui_currency_bar.webp") 0 72 0 144 fill / 0 24px 0 48px stretch !important; }
+#goldLabel img.ic, #gemLabel img.ic { position: absolute; left: -44px; top: 50%; height: 40px; transform: translateY(-50%); }
+#gemLabel { padding-right: 26px !important; }
+#gemLabel .plus { position: absolute; right: -22px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); pointer-events: auto; cursor: pointer;
+  background: url("assets/img/ui_btn_plus.webp") center / contain no-repeat; filter: drop-shadow(0 2px 0 #0005); }
+
+/* 보스 체력: 강한 보스는 불꽃 무늬 채움 (기존 채움 칸 = 그림 높이 60 중 4~55 → 위 3.3px, 높이 42.5px. 끝 둥근 부분은 높이 비율대로 21px) */
+#bossBar.wall #bossFill { background: none; filter: none; }
+#bossBar.wall #bossFill::before { content: ''; position: absolute; left: 0; right: 0; top: 3.3px; height: 42.5px; box-sizing: border-box;
+  border: 0 solid transparent; border-width: 0 21px; border-image: url("assets/img/ui_boss_bar_fill_wall.webp") 0 42 fill / 0 21px stretch; }
+
+/* ---------- 위쪽 가운데 정리 (2026-10-21 사용자 결정): 챕터 꼬리표 뺌, 일반 보스 시간은 체력 바 안으로 ---------- */
+#chapterLabel { display: none !important; } /* 챕터 이름은 챕터가 바뀔 때 뜨는 큰 안내판으로 */
+#bossTimer:not(.rush) { display: none !important; } /* 보스 러시·도전(.rush)일 때만 알약 */
+#bossTime { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 1; font-size: 24px; line-height: 1; white-space: nowrap;
+  -webkit-text-stroke: 5px #56402a; text-shadow: 0 2px 0 #3a2418; }
+
+/* 카드 제목·Lv: 외곽선 굵게, 그림자 작게 (2026-10-21) */
+#panel .up .name { -webkit-text-stroke-width: 6px; text-shadow: 0 1.5px 0 #2a1a10; }
+#panel .up .lv { -webkit-text-stroke: 6px #554236; text-shadow: 0 1.5px 0 #2a1a10; }
+#panel .up:active:not(:disabled) { box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #80c3a2, 0 2px 0 #1a2414 !important; filter: none !important; }
+#panel .up .lv { top: -16px; font-size: 22px; } /* Lv 조금 크게, 조금 아래로 (2026-10-21) */
+
+/* ---------- 절전모드 화면 (2026-10-21, 총고 실측: 바탕 #6b5331 + 아주 흐린 발바닥 무늬, 가운데 작은 캐릭터 + "전투중..") ---------- */
+#saverScreen { display: none; position: absolute; inset: 0; pointer-events: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-bottom: 60px;
+  background: #6b5331 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='%235f4829' opacity='.5'%3E%3Cellipse cx='34' cy='46' rx='14' ry='11'/%3E%3Ccircle cx='18' cy='31' r='5.5'/%3E%3Ccircle cx='29' cy='22' r='5.5'/%3E%3Ccircle cx='41' cy='22' r='5.5'/%3E%3Ccircle cx='52' cy='31' r='5.5'/%3E%3Cellipse cx='114' cy='126' rx='14' ry='11'/%3E%3Ccircle cx='98' cy='111' r='5.5'/%3E%3Ccircle cx='109' cy='102' r='5.5'/%3E%3Ccircle cx='121' cy='102' r='5.5'/%3E%3Ccircle cx='132' cy='111' r='5.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 160px repeat; }
+#saverScreen.on { display: flex; }
+#saverScreen p { margin: 0; font-size: 26px; color: #faeee8; -webkit-text-stroke: 5px #3a2a18; }
+#saverScreen img { height: 110px; width: auto; animation: saverBob 1.6s ease-in-out infinite; }
+#saverScreen i { width: 90px; height: 18px; margin-top: -14px; border-radius: 50%; background: #0000002e; }
+@keyframes saverBob { 50% { transform: translateY(-6px); } }
+
+/* ---------- 다국어: 한국어 글자가 그려진 그림은 한국어 화면에서만 (2026-10-21). 다른 언어는 같은 자리에 글자로 ---------- */
+html:not([lang="ko"]) .mission.done::after { content: var(--t-done); background: #fde8e8d9; border: 5px solid #d9534f; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #d9534f; font-size: 24px; -webkit-text-stroke: 0; text-shadow: none; }
+html:not([lang="ko"]) .skin.on::after { content: var(--t-equipped); width: auto; height: auto; padding: 2px 8px; border-radius: 999px; background: #6cc070;
+  border: 3px solid #2d5a2f; font-size: 15px; line-height: 1.2; -webkit-text-stroke: 3px #2d5a2f; }
+#modal .logo-text { font-size: 68px; line-height: 1.1; color: #ffd34d; -webkit-text-stroke: 8px #8a3a12; text-shadow: 0 5px 0 #5a2408; margin: -6px 0 10px; }
+/* 영어는 숫자·영문 글꼴(Rounded Mplus)로 문장 전체를 — 한글이 섞이면 그 글자만 밑미 */
+html[lang="en"] body { font-family: "Game Font EN", "Game Font", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+/* 설정 창 언어 선택 (자동 · 한국어 · English) */
+.langsel { display: flex; gap: 6px; }
+.langsel button { min-width: 0; padding: 6px 12px; font-size: 20px; border-radius: 12px; background: #e2bd84; border: 3px solid #8a6a40; box-shadow: 0 3px 0 #8a6a40; }
+.langsel button.on { background: #f0874a; border-color: var(--ink); box-shadow: 0 3px 0 var(--ink); }
+/* 영어 화면: 단어가 길어 넘치는 곳만 글자를 줄인다 (2026-10-21 점검) */
+html[lang="en"] .side .sbtn > span:not(.ico), html[lang="en"] #btnMission > span:not(.ico) { font-size: 16px; -webkit-text-stroke-width: 4px; }
+html[lang="en"] #panel .up .name { font-size: 17px; }
+html[lang="en"] .tab span { font-size: 15px; -webkit-text-stroke-width: 4px; letter-spacing: -0.02em; }
+html[lang="en"] .gun .glv { font-size: 17px; line-height: 1.15; }
+html[lang="en"] #modalBtn { font-size: 28px; white-space: nowrap; }

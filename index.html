@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>주방 대전쟁 프로토타입</title>
+<title>Kitchen War Prototype</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,11 +11,13 @@
   <div id="field">
     <div id="vignette"></div>
     <div id="fx"></div>
+    <!-- 절전모드 화면 (총고식): 전장을 가리고 가운데 작은 셰프만. 위쪽 표시·메뉴·카드는 이 위에 그대로 -->
+    <div id="saverScreen"><p data-i18n="hud.saver_screen">셰프 곰 전투중..</p><img id="saverChef" alt=""><i></i></div>
     <div id="hud">
       <!-- 맨 위: 스테이지 전체 진행 바 -->
       <div id="topBar"><i id="topFill"></i><span id="topPct">0%</span></div>
       <div class="hud-row">
-        <button id="btnSettings" aria-label="설정"><img src="assets/img/icon_settings.webp" alt="⚙️"></button>
+        <button id="btnSettings" aria-label="설정" data-i18n-aria="aria.settings"><img src="assets/img/icon_settings.webp" alt="⚙️"></button>
         <!-- 웨이브 트랙: 점 = 웨이브, 마지막 = 보스, 셰프 얼굴이 진행도를 따라 이동 -->
         <div id="track">
           <div class="line"><i id="trackFill"></i></div>
@@ -25,67 +27,73 @@
         <div class="hud-right">
           <div id="goldLabel" class="pill"><img class="ic" src="assets/img/icon_coin.webp" alt=""> 0</div>
           <div id="gemLabel" class="pill gem"><img class="ic" src="assets/img/icon_gem.webp" alt=""> 0</div>
-          <div id="dpsLabel">DPS 0</div>
           <div id="boostPill" class="pill"></div>
         </div>
       </div>
       <div id="stageLabel">Stage 1-1</div>
-      <div id="chapterLabel"></div>
+      <div id="chapterLabel"></div><!-- 스테이지 명판 아래 매달린 꼬리표 -->
+      <button id="btnSaver" data-i18n="hud.saver">절전모드</button>
       <div id="bossTimer" class="pill"></div>
+      <!-- 보스 체력 (보스가 나와 있을 때만) -->
+      <div id="bossBar"><i id="bossFill"></i><b id="bossTime"></b></div><!-- 남은 시간은 체력 바 오른쪽 끝 -->
     </div>
     <div id="banner"></div>
     <div id="chapterSign"></div>
     <!-- 🏠 내 주방 (base.js): 전투 화면 위에 열리고, 전투는 뒤에서 계속 진행된다 -->
     <div id="base" class="hidden">
       <div class="base-head">
-        <b>🏠 내 주방 <span id="kLv"></span></b>
+        <b><img class="ic" src="assets/img/icon_base.webp" alt="🏠"> <span data-i18n="base.title">내 주방</span> <span id="kLv"></span></b>
         <small id="kNext"></small>
       </div>
       <div id="baseQueue"></div>
       <div id="baseGrid"></div>
       <img id="baseBear" alt="">
-      <button id="btnBaseBack">⚔️ 전투로 돌아가기</button>
+      <button id="btnBaseBack" data-i18n="base.back">⚔️ 전투로 돌아가기</button>
     </div>
+    <!-- 양쪽 끝에 붙은 알약 버튼(2026-10-21 사용자 요청으로 양쪽에 나눔): 왼쪽 = 셰프 키우기(스킨·동료·도구함), 오른쪽 = 주방·상점·환생 + 맨 아래 도전. 오른쪽 위 미션 동그라미 -->
     <div class="side left">
-      <button class="sbtn" data-tab="base"><span class="ico">🏠</span><span>주방</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="tools"><span class="ico"><img src="assets/img/icon_menu.webp" alt=""></span><span>도구함</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="mates"><span class="ico"><img src="assets/img/icon_tab_mates.webp" alt=""></span><span>동료</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="skins"><span class="ico"><img src="assets/img/icon_tab_skins.webp" alt=""></span><span>스킨</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="skins"><span class="ico"><img src="assets/img/icon_tab_skins.webp" alt=""></span><span data-i18n="menu.skins">스킨</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="mates"><span class="ico"><img src="assets/img/icon_tab_mates.webp" alt=""></span><span data-i18n="menu.mates">동료</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="tools"><span class="ico"><img src="assets/img/icon_menu.webp" alt=""></span><span data-i18n="menu.toolbox">도구함</span><i class="dot"></i></button>
     </div>
+    <button class="sbtn round" id="btnMission" data-tab="missions"><span class="ico"><img src="assets/img/icon_mission.webp" alt=""></span><span data-i18n="menu.missions">미션</span><i class="dot"></i></button>
     <div class="side right">
-      <button class="sbtn" data-tab="missions"><span class="ico"><img src="assets/img/icon_mission.webp" alt=""></span><span>미션</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="rush"><span class="ico"><img src="assets/img/icon_rush.webp" alt=""></span><span>도전</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="shop"><span class="ico"><img src="assets/img/icon_shop.webp" alt=""></span><span>상점</span><i class="dot"></i></button>
-      <button class="sbtn" data-tab="prestige"><span class="ico"><img src="assets/img/icon_prestige.webp" alt=""></span><span>환생</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="base"><span class="ico"><img src="assets/img/icon_base.webp" alt="🏠"></span><span data-i18n="menu.kitchen">주방</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="shop"><span class="ico"><img src="assets/img/icon_shop.webp" alt=""></span><span data-i18n="menu.shop">상점</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="prestige"><span class="ico"><img src="assets/img/icon_prestige.webp" alt=""></span><span data-i18n="menu.prestige">환생</span><i class="dot"></i></button>
+      <button class="sbtn" data-tab="rush"><span class="ico"><img src="assets/img/icon_rush.webp" alt=""></span><span data-i18n="menu.challenge">도전</span><i class="dot"></i></button>
     </div>
+    <!-- 가상 조이스틱: 빈 전장을 누르고 끌면 그 자리에 생긴다 -->
+    <div id="joy"><i></i></div>
   </div>
   <div id="panel">
-    <button id="btnAtk" class="up"><span class="head"><img src="assets/img/icon_atk.webp" alt=""><b>공격력</b><span class="lv"></span></span><span class="val"></span><span class="cost"></span></button>
-    <button id="btnSpd" class="up"><span class="head"><img src="assets/img/icon_spd.webp" alt=""><b>공격 속도</b><span class="lv"></span></span><span class="val"></span><span class="cost"></span></button>
-    <button id="btnGold" class="up"><span class="head"><img src="assets/img/icon_gold_up.webp" alt=""><b>골드 획득량</b><span class="lv"></span></span><span class="val"></span><span class="cost"></span></button>
+    <!-- 업그레이드 카드 (총고식): 이름은 카드 위, 아이콘은 왼쪽 위 모서리, 골드가 모일수록 바탕 게이지가 차오른다 -->
+    <button id="btnAtk" class="up"><b class="name" data-i18n="stat.atk">공격력</b><span class="gauge"><i></i></span><img class="uico" src="assets/img/icon_atk.webp" alt=""><span class="lv"></span><span class="val"></span><span class="cost"></span></button>
+    <button id="btnSpd" class="up"><b class="name" data-i18n="stat.spd">공격속도</b><span class="gauge"><i></i></span><img class="uico" src="assets/img/icon_spd.webp" alt=""><span class="lv"></span><span class="val"></span><span class="cost"></span></button>
+    <button id="btnGold" class="up"><b class="name" data-i18n="stat.gold">골드 획득량</b><span class="gauge"><i></i></span><img class="uico" src="assets/img/icon_gold_up.webp" alt=""><span class="lv"></span><span class="val"></span><span class="cost"></span></button>
   </div>
   <div id="sheet" class="closed">
     <div class="dim"></div>
     <div class="card">
       <div class="card-head">
         <div class="tabs">
-          <button class="tab on" data-tab="tools"><img src="assets/img/icon_tab_tools.webp" alt=""><span>도구</span></button>
-          <button class="tab" data-tab="mates"><img src="assets/img/icon_tab_mates.webp" alt=""><span>동료</span></button>
-          <button class="tab" data-tab="skins"><img src="assets/img/icon_tab_skins.webp" alt=""><span>스킨</span></button>
-          <button class="tab" data-tab="missions"><img src="assets/img/icon_mission.webp" alt=""><span>미션</span></button>
-          <button class="tab" data-tab="rush"><img src="assets/img/icon_rush.webp" alt=""><span>도전</span></button>
-          <button class="tab" data-tab="shop"><img src="assets/img/icon_shop.webp" alt=""><span>상점</span></button>
-          <button class="tab" data-tab="prestige"><img src="assets/img/icon_prestige.webp" alt=""><span>환생</span></button>
+          <button class="tab on" data-tab="tools"><img src="assets/img/icon_tab_tools.webp" alt=""><span data-i18n="menu.tools">도구</span></button>
+          <button class="tab" data-tab="mates"><img src="assets/img/icon_tab_mates.webp" alt=""><span data-i18n="menu.mates">동료</span></button>
+          <button class="tab" data-tab="skins"><img src="assets/img/icon_tab_skins.webp" alt=""><span data-i18n="menu.skins">스킨</span></button>
+          <button class="tab" data-tab="missions"><img src="assets/img/icon_mission.webp" alt=""><span data-i18n="menu.missions">미션</span></button>
+          <button class="tab" data-tab="rush"><img src="assets/img/icon_rush.webp" alt=""><span data-i18n="menu.challenge">도전</span></button>
+          <button class="tab" data-tab="shop"><img src="assets/img/icon_shop.webp" alt=""><span data-i18n="menu.shop">상점</span></button>
+          <button class="tab" data-tab="prestige"><img src="assets/img/icon_prestige.webp" alt=""><span data-i18n="menu.prestige">환생</span></button>
         </div>
         <button id="btnClose">✕</button>
       </div>
       <div class="pane on" id="pane-tools">
-        <div class="hint">같은 도구끼리 끌어다 놓으면 합성돼요</div>
+        <div class="hint" data-i18n="tools.hint">같은 도구끼리 끌어다 놓으면 합성돼요</div>
         <div id="grid"></div>
-        <button id="btnBuy"><b>도구 구매</b><span class="cost"></span></button>
+        <button id="btnBuy"><b data-i18n="tools.buy">도구 구매</b><span class="cost"></span></button>
       </div>
       <div class="pane" id="pane-mates">
-        <div class="hint">동료는 셰프를 따라다니며 함께 싸워요. 공격력 업그레이드와 스킨 효과도 적용돼요</div>
+        <div class="hint" data-i18n="mates.hint">동료는 셰프를 따라다니며 함께 싸워요. 공격력 업그레이드와 스킨 효과도 적용돼요</div>
         <div id="mateList"></div>
       </div>
       <div class="pane" id="pane-missions">
@@ -93,61 +101,81 @@
         <div id="missionList"></div>
         <div class="row bonus" id="missionBonus">
           <span class="big"><img src="assets/img/icon_star.webp" alt="⭐"></span>
-          <div class="info"><b>오늘의 미션 모두 완료</b><span class="desc">미션 3개를 다 받으면 셰프 별 1개</span></div>
+          <div class="info"><b data-i18n="mission.bonus">오늘의 미션 모두 완료</b><span class="desc" data-i18n="mission.bonus_desc">미션 3개를 다 받으면 셰프 별 1개</span></div>
           <button class="act" id="btnBonus"></button>
         </div>
       </div>
       <div class="pane" id="pane-rush">
-        <div class="prestige">
-          <div class="stars">⚔️ 보스 러시</div>
-          <p class="hint">60초 동안 갈수록 강해지는 보스가 계속 나와요.<br>잡을 때마다 💎 다이아가 늘어나고(3 → 5 → 7 …) 시간이 3초 늘어나요.<br>셰프가 쓰러지거나 시간이 다 되면 끝나요.</p>
-          <div class="gain" id="rushTries"></div>
-          <div class="desc" id="rushBest"></div>
-          <button class="act wide" id="btnRush">도전 시작</button>
+        <div class="chal-list">
+          <div class="row rush-row">
+            <span class="big"><img src="assets/img/illust_rush.webp" alt=""></span>
+            <div class="info"><b data-i18n="rush.name">보스 러시</b><span class="desc" data-i18n="rush.desc">60초 동안 강해지는 보스를 계속 잡아요 · 잡을수록 💎 3 → 5 → 7 …</span><span class="stat" id="rushTries"></span><span class="desc" id="rushBest"></span></div>
+            <button class="act" id="btnRush">도전 시작</button>
+          </div>
+          <div class="row rush-row horde-row">
+            <span class="big"><img id="hordeImg" src="assets/img/enemy_tomato.webp" alt=""></span>
+            <div class="info"><b data-i18n="horde.name">대군 모드</b><span class="desc" data-i18n="horde.desc">60초 동안 끝없이 몰려오는 적을 잡아요 · 잡은 만큼 골드</span><span class="stat" id="hordeTries"></span><span class="desc" id="hordeBest"></span></div>
+            <button class="act" id="btnHorde">도전 시작</button>
+          </div>
+          <div class="chal-head"><span data-i18n="chal.head">스테이지 도전</span> <small data-i18n="chal.head_sub">챕터마다 한 번 · 1분 안에 모두 처치</small></div>
+          <div id="chalList"></div>
         </div>
       </div>
       <div class="pane" id="pane-shop">
-        <div class="hint">💎 다이아는 미션·보스 러시·강한 보스 첫 처치로 모아요 · 보유 <b id="shopGems"></b></div>
+        <div class="hint" id="shopHint"></div>
         <div id="shopList"></div>
       </div>
       <div class="pane" id="pane-prestige">
-        <div class="prestige">
-          <div class="stars" id="starNow"></div>
-          <div class="desc" id="starBonus"></div>
-          <p class="hint">환생하면 스테이지·골드·업그레이드·도구가 처음으로 돌아가요.<br>대신 <b>셰프 별</b>을 받아 영원히 강해져요. 스킨과 동료 해금은 그대로 남아요(동료는 Lv 1부터).</p>
-          <div class="gain" id="starGain"></div>
-          <button class="act wide" id="btnPrestige"></button>
+        <img class="peek" src="assets/img/illust_prestige.webp" alt="">
+        <div class="pr-box">
+          <div class="pr-gain">
+            <img class="pr-ico" src="assets/img/icon_star.webp" alt="⭐">
+            <div class="info"><span data-i18n="prestige.gain">받을 수 있는 셰프 별</span><b id="starGain"></b><small id="starBonus"></small></div>
+            <button id="btnPrestige" data-i18n="prestige.btn">환생하기</button>
+          </div>
+          <div class="pr-sep"></div>
+          <div class="pr-wallet"><img src="assets/img/icon_star.webp" alt="⭐"><b id="starNow"></b></div>
+          <div id="permList"></div>
         </div>
       </div>
       <div class="pane" id="pane-skins">
-        <div class="hint" id="skinBonus"></div>
+        <div class="skin-sum">
+          <div><small data-i18n="stat.atk">공격력</small><span><img src="assets/img/icon_atk.webp" alt=""><b id="sumAtk"></b></span></div>
+          <div><small data-i18n="stat.spd">공격속도</small><span><img src="assets/img/icon_spd.webp" alt=""><b id="sumSpd"></b></span></div>
+          <div><small data-i18n="stat.gold">골드 획득량</small><span><img src="assets/img/icon_gold_up.webp" alt=""><b id="sumGold"></b></span></div>
+        </div>
+        <div class="skin-tip"><span data-i18n="skins.tip">Tip. 스킨을 장착하지 않아도 효과가 적용돼요</span> <span id="skinCount"></span></div>
         <div id="skinList"></div>
       </div>
     </div>
   </div>
   <div id="settings" class="hidden">
     <div class="box setbox">
-      <div class="title small">⚙️ 설정</div>
-      <div class="setgroup">소리</div>
-      <div class="setrow"><span>🔔 효과음</span><button class="switch" data-key="sfx" aria-label="효과음"></button></div>
-      <div class="setrow"><span>🎵 배경음악</span><button class="switch" data-key="music" aria-label="배경음악"></button></div>
-      <div class="setrow"><span>📳 진동</span><button class="switch" data-key="vibrate" aria-label="진동"></button></div>
-      <div class="setgroup">화면</div>
-      <div class="setrow"><span>💥 데미지 숫자 표시</span><button class="switch" data-key="dmgNum" aria-label="데미지 숫자"></button></div>
-      <div class="setrow"><span>🫨 화면 흔들림</span><button class="switch" data-key="shake" aria-label="화면 흔들림"></button></div>
-      <div class="setrow"><span>🔋 절전 모드<small>30fps · 낮은 해상도로 배터리 절약</small></span><button class="switch" data-key="saver" aria-label="절전 모드"></button></div>
-      <div class="setgroup">데이터</div>
-      <button id="btnReset">게임 초기화</button>
+      <div class="title small" data-i18n="settings.title">설정</div>
+      <!-- 언어: 자동(기기 언어) · 한국어 · English — 버튼 이름은 각 언어 그대로 -->
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_settings.webp" alt=""><span data-i18n="settings.language">언어</span></span><div class="langsel"><button data-lang="auto" data-i18n="settings.lang_auto">자동</button><button data-lang="ko">한국어</button><button data-lang="en">English</button></div></div>
+      <div class="setgroup" data-i18n="settings.sound">소리</div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_sfx.webp" alt=""><span data-i18n="settings.sfx">효과음</span></span><button class="switch" data-key="sfx" aria-label="효과음" data-i18n-aria="settings.sfx"></button></div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_music.webp" alt=""><span data-i18n="settings.music">배경음악</span></span><button class="switch" data-key="music" aria-label="배경음악" data-i18n-aria="settings.music"></button></div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_vibrate.webp" alt=""><span data-i18n="settings.vibrate">진동</span></span><button class="switch" data-key="vibrate" aria-label="진동" data-i18n-aria="settings.vibrate"></button></div>
+      <div class="setgroup" data-i18n="settings.screen">화면</div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_dmgnum.webp" alt=""><span data-i18n="settings.dmgnum">데미지 숫자 표시</span></span><button class="switch" data-key="dmgNum" aria-label="데미지 숫자" data-i18n-aria="settings.dmgnum"></button></div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_shake.webp" alt=""><span data-i18n="settings.shake">화면 흔들림</span></span><button class="switch" data-key="shake" aria-label="화면 흔들림" data-i18n-aria="settings.shake"></button></div>
+      <div class="setrow"><span><img class="seticon" src="assets/img/icon_set_saver.webp" alt=""><span data-i18n="settings.saver">절전 모드</span><small data-i18n="settings.saver_desc">30fps · 낮은 해상도로 배터리 절약</small></span><button class="switch" data-key="saver" aria-label="절전 모드" data-i18n-aria="settings.saver"></button></div>
+      <div class="setgroup" data-i18n="settings.data">데이터</div>
+      <button id="btnReset" data-i18n="settings.reset">게임 초기화</button>
       <p class="sub" id="verLabel"></p>
-      <button id="btnSetClose">닫기</button>
+      <button id="btnSetClose" data-i18n="settings.close">닫기</button>
     </div>
   </div>
   <!-- 첫 플레이 안내 (tutorial.js): 클릭은 아래로 통과한다 -->
-  <div id="tut" class="hidden"><div id="tutHand">👆</div><div id="tutBubble"><span id="tutText"></span></div></div>
-  <div id="modal" class="hidden"><div class="box"><div id="modalBody"></div><button id="modalBtn"></button><button id="modalCancel" class="hidden">취소</button></div></div>
+  <div id="tut" class="hidden"><div id="tutRing"></div><img id="tutHand" src="assets/img/ui_tut_hand.webp" alt="👆"><div id="tutBubble"><span id="tutText"></span></div></div>
+  <div id="modal" class="hidden"><div class="box"><button id="modalX" aria-label="닫기" data-i18n-aria="aria.close"></button><div id="modalBody"></div><button id="modalBtn"></button><button id="modalCancel" class="hidden" data-i18n="common.cancel">취소</button></div></div>
 </div>
 <script src="lib/pixi.min.js"></script><!-- PixiJS 8.19.0 (MIT), 인터넷 없이 켜지게 게임 폴더에 둔다 -->
 <script src="balance.js"></script>
+<script src="strings.js"></script><!-- 언어별 문구 (localization/strings.csv → tools/build_strings.py) -->
+<script src="i18n.js"></script>
 <script src="sound.js"></script>
 <script src="main.js"></script>
 <script src="base.js"></script>
