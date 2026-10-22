@@ -1190,6 +1190,12 @@ function playMutedVideo(v) {
     return raw.call(v);
   } catch (e) { plog(`우회 실패 ${e}`); return v.play(); }
 }
+// 영상이 끝나면 받아 둔 영상·소리(약 12MB)를 바로 풀어 준다 — 폰 웹뷰 메모리 부족으로 화면이 다시 시작되는 것 방지 (2026-10-22)
+function freePrologue() {
+  const v = $('prologue').querySelector('video'), au = $('prologueAudio');
+  for (const el of [v, au]) { const u = el.src; if (!u) continue; el.removeAttribute('src'); el.load(); if (u.startsWith('blob:')) URL.revokeObjectURL(u); }
+  prologueReady = null;
+}
 function loadPrologue() {
   if (prologueReady) return prologueReady;
   const v = $('prologue').querySelector('video'), au = $('prologueAudio');
@@ -1211,10 +1217,11 @@ function playPrologue(done) {
   const au = $('prologueAudio'), useAudio = !!(au && au.src);
   let sfxI = useAudio ? PROLOGUE_SFX.length : 0;
   Sound.duckMusic(true);
-  if (useAudio) { au.currentTime = 0; au.volume = 1; au.muted = !(S.settings.sfx || S.settings.music); const ap = au.play(); if (ap && ap.catch) ap.catch(() => {}); }
-  const finish = () => { v.pause(); if (useAudio) au.pause(); wrap.classList.add('hidden'); paused = false; Sound.duckMusic(false); v.onended = null; $('btnSkipVideo').onclick = null; done && done(); };
+  if (useAudio) { au.currentTime = 0; au.volume = 1; au.muted = !(S.settings.sfx || S.settings.music); const ap = au.play(); if (ap && ap.catch) ap.catch((e) => plog(`소리 막힘 ${e && e.name}`)); }
+  const finish = () => { v.pause(); if (useAudio) au.pause(); setTimeout(freePrologue, 600); wrap.classList.add('hidden'); paused = false; Sound.duckMusic(false); v.onended = null; $('btnSkipVideo').onclick = null; done && done(); };
   wrap.classList.remove('hidden'); wrap.classList.remove('reveal');
   const sub = $('prologueSub');
+  let auRetryAt = 0;
   // 자막·투명 전환은 매 프레임 확인 (timeupdate는 0.25초 간격이라 자막이 늦게 뜸)
   const tick = () => {
     if (wrap.classList.contains('hidden')) return;
@@ -1222,6 +1229,12 @@ function playPrologue(done) {
     const line = PROLOGUE_SUBS.find(([a, b]) => v.currentTime >= a && v.currentTime < b);
     setText(sub, line ? t(line[2]) : ''); sub.classList.toggle('on', !!line);
     if (useAudio && !au.paused && Math.abs(au.currentTime - v.currentTime) > 0.25) au.currentTime = v.currentTime; // 영상과 소리 맞춤
+    // 첫 실행: 누르는 순간엔 다른 앱 음악 때문에 PlayForge가 소리를 막았다가, 게임이 소리를 넘겨받으면 풀린다 → 풀리면 그 자리부터 소리 재생 (2026-10-22 실기)
+    if (useAudio && au.paused && !au.ended && !v.paused && !v.ended && performance.now() > auRetryAt) {
+      auRetryAt = performance.now() + 500;
+      const lc = window.__playforgeAudioLifecycle;
+      if (!lc || !lc.reasons || !lc.reasons().length) { au.currentTime = v.currentTime; const rp = au.play(); if (rp && rp.catch) rp.catch(() => {}); plog(`소리 다시 시도 ${v.currentTime.toFixed(1)}s`); }
+    }
     while (sfxI < PROLOGUE_SFX.length && v.currentTime >= PROLOGUE_SFX[sfxI][0]) Sound.play(PROLOGUE_SFX[sfxI++][1]);
     requestAnimationFrame(tick);
   };
@@ -2737,7 +2750,9 @@ function update(dt) {
       <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); }, null, { x: false });
   }
 
-  const cover = $('bootCover'); if (cover) cover.remove(); // 준비 끝 — 첫 실행이면 같은 그림의 '눌러서 시작' 화면이 이미 위에 떠 있음
+  const cover = $('bootCover'); if (cover) cover.remove();
+  // 진단(치트 빌드): 같은 실행 중에 화면(웹뷰)이 다시 시작됐으면 알려 줌 — PlayForge는 웹뷰가 죽으면 새로 만들고 sessionStorage는 남는다
+  try { if (sessionStorage.getItem('kw-booted') && typeof CHEAT_ON !== 'undefined' && CHEAT_ON) setTimeout(() => banner('화면 다시 시작됨 (웹뷰 재시작)', 3), 1500); sessionStorage.setItem('kw-booted', '1'); } catch (e) {} // 준비 끝 — 첫 실행이면 같은 그림의 '눌러서 시작' 화면이 이미 위에 떠 있음
 
   let uiT = 0, saveT = 0;
   app.ticker.add((tk) => {
