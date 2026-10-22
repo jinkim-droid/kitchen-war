@@ -1150,10 +1150,28 @@ function tapToStart(go) {
   // 첫 화면 로고: 한국어 로고가 오면 'ui_title_logo'(없으면 영어 로고) (2026-10-22 사용자)
   el.querySelector('img').src = `${IMG}${LANG === 'ko' && AVAIL.has('ui_title_logo') ? 'ui_title_logo' : 'ui_title_logo_en'}.webp`;
   el.classList.remove('hidden'); paused = true;
-  el.onclick = () => { el.classList.add('hidden'); el.onclick = null; Sound.unlock(); go(); };
+  const msg = el.querySelector('p');
+  msg.textContent = t('video.loading'); el.classList.add('loading'); el.onclick = null;
+  loadPrologue().then(() => { // 다 받으면 눌러서 시작 (누르는 순간 재생해야 폰이 소리를 허락)
+    msg.textContent = t('video.tap'); el.classList.remove('loading');
+    el.onclick = () => { el.classList.add('hidden'); el.onclick = null; Sound.unlock(); go(); };
+  });
 }
 // 효과음 [초, 소리] — 장면 바뀌는 순간 (sound.js pr*)
 const PROLOGUE_SFX = [[0.3, 'prDay'], [2.5, 'prNight'], [4, 'prSmoke'], [6, 'prKing'], [9.5, 'prMess'], [11.8, 'prShock'], [13.5, 'prPan'], [17.5, 'prCharge'], [19.8, 'prBubbles']];
+// 영상·소리는 통째로 받아 둔 뒤(blob) 재생 — 폰 웹뷰는 파일을 끊어 읽기(range)를 못 해서 바로 재생하면 실패했음 (2026-10-22 실기)
+let prologueReady = null;
+function loadPrologue() {
+  if (prologueReady) return prologueReady;
+  const v = $('prologue').querySelector('video'), au = $('prologueAudio');
+  const blobUrl = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url); return r.blob(); }).then((b) => URL.createObjectURL(b));
+  const vSrc = v.canPlayType('video/webm; codecs="vp9"') ? 'assets/video/prologue.webm' : 'assets/video/prologue.mp4';
+  prologueReady = Promise.all([
+    blobUrl(vSrc).catch(() => blobUrl('assets/video/prologue.mp4')).then((u) => { v.src = u; v.load(); }),
+    blobUrl('assets/video/prologue.mp3').then((u) => { au.src = u; au.load(); }).catch(() => {}),
+  ]).catch(() => {});
+  return prologueReady;
+}
 function playPrologue(done) {
   const wrap = $('prologue'), v = wrap.querySelector('video');
   paused = true;
@@ -1177,7 +1195,8 @@ function playPrologue(done) {
   };
   requestAnimationFrame(tick);
   v.currentTime = 0; v.onended = finish; $('btnSkipVideo').onclick = finish;
-  const p = v.play(); if (p && p.catch) p.catch(finish); // 재생이 막히면 바로 다음으로
+  v.muted = true;
+  const p = v.play(); if (p && p.catch) p.catch((e) => { console.warn('오프닝 영상 재생 실패', e); finish(); }); // 그래도 막히면 다음으로
 }
 // 모달 — 타이틀·오프라인 보상·확인 창. 떠 있는 동안 게임을 멈춘다
 // opt: { variant: 'orange', peek: 그림 주소(패널 위로 머리를 내민다), x: false(X 없음) | 'below'(패널 아래 가운데), xClose: X는 그냥 닫기 }

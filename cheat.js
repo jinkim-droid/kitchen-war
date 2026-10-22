@@ -74,7 +74,7 @@ if (CHEAT_ON) {
     // 처음 시작 미리보기: 지금 저장을 따로 보관하고 새 게임으로 다시 켠다 → '원래 저장 되돌리기'로 복구 (2026-10-22)
     if (c === 'fresh') { save(); localStorage.setItem(BACKUP_KEY, localStorage.getItem(SAVE_KEY) || ''); localStorage.removeItem(SAVE_KEY); window.__noSave = true; location.reload(); return; }
     if (c === 'restore') { const b = localStorage.getItem(BACKUP_KEY); window.__noSave = true; if (b) localStorage.setItem(SAVE_KEY, b); localStorage.removeItem(BACKUP_KEY); location.reload(); return; }
-    if (c === 'video') { panel.classList.add('hidden'); playPrologue(); return; }
+    if (c === 'video') { panel.classList.add('hidden'); loadPrologue().then(() => playPrologue()); return; }
     if (c === 'offline') { panel.classList.add('hidden'); paused = false; offerOffline(3600); return; }
     save(); updateUI(); render();
   };

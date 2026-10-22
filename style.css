@@ -1800,3 +1800,4 @@ html:not([lang="en"]) #modal .reward { font-family: "Game Font", -apple-system, 
 @keyframes tapBlink { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 #tapStart p { font-size: 50px !important; padding: 16px 48px; -webkit-text-stroke-width: 8px; }
 @keyframes tapBlink { 0%, 100% { opacity: 1; } 50% { opacity: .65; } }
+#tapStart.loading p { animation: none !important; opacity: .8; }

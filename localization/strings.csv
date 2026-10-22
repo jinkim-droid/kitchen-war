@@ -7,6 +7,7 @@ intro.line2,Chef Bear will defend the kitchen.,셰프 곰이 주방을 지킨다
 intro.start,To the Kitchen!,주방 지키러 가기,첫 실행 창 버튼
 video.skip,Skip,건너뛰기,오프닝 영상
 video.tap,Tap to start,화면을 눌러 시작,첫 실행 (소리 허용용)
+video.loading,Loading…,불러오는 중…,첫 실행 영상 받는 중
 video.sub1,"Another peaceful day in Chef Bear's kitchen.",오늘도 평화로운 셰프 곰의 주방.,오프닝 자막
 video.sub2,"But that night…",그런데 그날 밤…,오프닝 자막
 video.sub3,"A strange smoke seeped out of the fridge!",냉장고에서 수상한 연기가 새어 나왔어요!,오프닝 자막

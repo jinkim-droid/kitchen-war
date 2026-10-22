@@ -148,6 +148,7 @@ python3 -m http.server 8123 --bind 127.0.0.1
 - [x] 치트 '동료 초기화'(2026-10-21): 동료 전부 고용 전으로 + 화면 동료 지움
 - [x] 대군 모드 더 많이(2026-10-21 사용자): 동시 최대 36→60, 한 번에 4→6마리, 0.5→0.4초마다(`HORDE_*`). 적은 다섯 챕터에서 마구 섞여 나옴(`spawnEnemy`의 `chal.horde`). 폰에서 버벅이는지 확인 필요
 - [x] 폰 카메라 구멍·제스처 막대 여백(2026-10-21 실기): `SAFE_TOP` 44(위쪽 표시 `#hud`·미션·치트 버튼·말풍선 최저 높이·조준 범위·데미지 숫자 최저 높이를 내림), `SAFE_BOTTOM` 24(아래 카드·옆 메뉴·메뉴 판 아래 여백을 올림, `PANEL_H` 190→214라 전장 FH도 24 줄어듦). CSS 변수 `--safe-top`·`--safe-bottom`. 기기마다 다르면 이 두 값만 바꾸면 됨
+- [x] 오프닝 영상 실기 버그(2026-10-22): 빌드 4에서 '눌렀는데 바로 게임'(재생 실패) → 영상·소리를 `fetch`로 통째로 받아 blob URL로 재생(`loadPrologue`, 웹뷰가 끊어 읽기 못 함 추정). 첫 화면은 다 받기 전 '불러오는 중…'(`video.loading`), 받은 뒤 '화면을 눌러 시작'. webm 못 틀면 mp4. **빌드 5에서 실기 확인 필요**
 - [x] 커밋 `608c57d`(2026-10-22, 푸시 안 함) + PlayForge 테스트 빌드 4: buildId `a728c03d`, debug APK 38.1MB(오프닝 영상 webm·mp4 약 16MB 포함), 앱 아이콘 들어감, 치트 켜짐, `builds/KitchenWar-debug-608c57d.apk`, SHA-256 `1e214519…3ebff`
 - [x] PlayForge 테스트 빌드 3 (2026-10-22): buildId `23ff3b99`, debug APK 20.2MB, 앱 아이콘 `app_icon.png` 들어감(`-F icon=@app_icon.png`, 경고 없음), 커밋 전 작업본, 치트 켜짐, `builds/KitchenWar-debug-1022.apk`, SHA-256 `b0071a89…2cb2e4`
 - [x] PlayForge 테스트 빌드 2 (2026-10-21): buildId `4baa4c44`, debug APK 19.6MB, 커밋 전 작업본(대왕 공격 5종·메뉴 다듬기·체력 게이지 등), 치트 켜짐, `builds/KitchenWar-debug-kings.apk`, SHA-256 `043dc982…615898`. ZIP에 `cheat.js`도 넣어야 함(index.html이 부름)
