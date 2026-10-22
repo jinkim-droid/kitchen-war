@@ -12,7 +12,7 @@ const STATIONS = [
   { id: 'fridge', name: t('st.fridge'), icon: '🧊', unlock: 3, cost: 8000, time: 30, desc: t('st.fridge.desc'),
     effect: (lv) => t('st.fridge.eff', { n: lv }) },
   { id: 'counter', name: t('st.counter'), icon: '🛎️', unlock: 4, cost: 25000, time: 45, desc: t('st.counter.desc'),
-    effect: (lv) => t('st.counter.eff', { n: lv }) },
+    effect: (lv) => t('st.counter.eff', { n: lv, gem: GEM }) },
 ];
 const KITCHEN_MAX = 6;
 const kitchenLv = () => Math.min(KITCHEN_MAX, 1 + Math.floor((S.bestStage || S.stage) / 10)); // 최고 스테이지 10마다 +1
@@ -20,8 +20,9 @@ const stLvCap = () => kitchenLv() * 3;                       // 시설 레벨 �
 const stLv = (id) => (S.base.st[id] || 0);
 // 비용은 지금 스테이지 수입에 맞춰 커진다 (STAGE 1 기준값 × 그 스테이지 적 골드 배율) — 늘 '조금 모아야 하는' 값이 되게
 const stCost = (st, lv = stLv(st.id)) => Math.ceil(st.cost * (enemyGold(S.stage) / enemyGold(1)) * Math.pow(2.2, lv));
-const stTime = (st, lv = stLv(st.id)) => Math.round(st.time * Math.pow(1.6, lv)); // 초
-const skipGems = (sec) => Math.max(1, Math.ceil(sec / 60));  // 남은 1분마다 💎 1
+const ST_TIME_MUL = 12; // 2026-10-22 사용자: 건설 시간 12배 (처음 3~9분, Lv 9 → 10은 3~10시간)
+const stTime = (st, lv = stLv(st.id)) => Math.round(st.time * ST_TIME_MUL * Math.pow(1.6, lv)); // 초
+const skipGems = (sec) => Math.max(1, Math.ceil(sec / 600)); // 남은 10분마다 다이아 1 (시간 늘린 만큼 줄임)
 
 // 효과 (main.js 계산에 곱해진다)
 const baseAtkMul = () => 1 + 0.1 * (S.base ? stLv('board') : 0);
@@ -49,8 +50,10 @@ function baseTick() {
     S.base.st[b.id] = stLv(b.id) + 1;
     S.base.build = null;
     const st = STATIONS.find((x) => x.id === b.id);
-    banner(`${t('base.build_done', { icon: st.icon, name: st.name, lv: stLv(st.id) })}<small>${st.effect(stLv(st.id))}</small>`, 2);
-    Sound.play('claim'); buzz(30);
+    const nl = stLv(st.id), lookUp = nl === 3 || nl === 6; // 외형 단계가 오르는 레벨
+    banner(`${lookUp ? t('base.look_up', { name: st.name }) : t('base.build_done', { icon: st.icon, name: st.name, lv: nl })}<small>${st.effect(nl)}</small>`, lookUp ? 2.6 : 2);
+    Sound.play(lookUp ? 'prestige' : 'claim'); buzz(lookUp ? 60 : 30);
+    lookFlash = { id: st.id, big: lookUp }; // 다음 그리기 때 그 카드 연출 — 외형 단계 오름은 크게, 나머지 업그레이드는 작게 (2026-10-22 사용자)
     baseDirty = true;
     renderGrid(); save();
   }
@@ -68,6 +71,7 @@ function stState(st) {
 }
 const fmtSec = (s) => { s = Math.ceil(s); return s >= 3600 ? t('time.hm', { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60) }) : s >= 60 ? t('time.ms', { m: Math.floor(s / 60), s: s % 60 }) : t('time.s', { s }); };
 
+let lookFlash = null; // 외형 단계가 막 오른 시설 (카드 반짝 연출, 2026-10-22)
 function renderBase() {
   $('baseGrid').innerHTML = STATIONS.map((st) => {
     const s = stState(st), lv = stLv(st.id);
@@ -78,17 +82,25 @@ function renderBase() {
       <div class="st-eff">${lv ? st.effect(lv) : st.desc}</div>
       <div class="st-bar"><i></i><span></span></div>
       <button class="st-act"></button>`;
-    const ico = AVAIL.has('icon_st_' + st.id) ? `<img src="${IMG}icon_st_${st.id}.webp" alt="${st.icon}">` : st.icon;
+    // 시설 외형 3단계 (12차, 2026-10-22): Lv 1~2 기본 · 3~5 '_2' · 6+ '_3' — 그림이 없으면 아래 단계
+    const look = lv >= 6 ? 3 : lv >= 3 ? 2 : 1;
+    const tierKey = [3, 2, 1].filter((n) => n <= look).map((n) => 'icon_st_' + st.id + (n > 1 ? '_' + n : '')).find((k) => AVAIL.has(k));
+    const ico = tierKey ? `<img src="${IMG}${tierKey}.webp" alt="${st.icon}">` : st.icon;
     // st-cell: 수확할 게 있을 때 카드 뒤에서 빛(ui_st_ready)이 돈다 — 카드(필터가 걸린 판) 밖에 둬야 카드 뒤에 그려진다
     return `<div class="st-cell"><div class="st ${s} ${tier}" data-st="${st.id}">
       <div class="st-ico">${ico}</div>
       <div class="st-name">${st.name}${lv ? ` <span class="st-lv">Lv ${lv}</span>` : ''}</div>
-      <div class="st-stars">${'★'.repeat(Math.min(3, Math.floor(lv / 3)))}</div>
+      <div class="st-stars">${STAR.repeat(Math.min(3, Math.floor(lv / 3)))}</div>
       ${body}
       ${st.id === 'oven' || st.id === 'counter' ? '<button class="st-collect"></button>' : ''}
     </div></div>`;
   }).join('');
   baseDirty = false;
+  if (lookFlash) {
+    const card = document.querySelector(`#baseGrid .st[data-st="${lookFlash.id}"]`), cls = lookFlash.big ? 'look-up' : 'lv-up';
+    if (card) { card.classList.remove(cls); void card.offsetWidth; card.classList.add(cls); setTimeout(() => card.classList.remove(cls), 1800); }
+    lookFlash = null;
+  }
 }
 
 function updateBase() {
@@ -118,7 +130,7 @@ function updateBase() {
         if (s === 'max') { btn.innerHTML = `${t('base.maxlv')}<span class="cost">${t('base.need_lv')}</span>`; btn.disabled = true; btn.className = 'st-act'; }
         else {
           const c = stCost(st);
-          btn.innerHTML = `${s === 'empty' ? t('base.build') : t('base.upgrade')}<span class="cost">${COIN} ${fmt(c)} · ⏱ ${fmtSec(stTime(st))}</span>`;
+          btn.innerHTML = `${s === 'empty' ? t('base.build') : t('base.upgrade')}<span class="cost">${COIN} ${fmt(c)}<br>${TIMER} ${fmtSec(stTime(st))}</span>`;
           btn.className = 'st-act';
           btn.disabled = !!b || S.gold < c;
         }
@@ -128,7 +140,7 @@ function updateBase() {
     if (col) {
       const v = st.id === 'oven' ? S.base.gold : Math.floor(S.base.gems);
       const show = stLv(st.id) && v >= (st.id === 'oven' ? 1 : 1);
-      col.style.display = show ? 'block' : 'none';
+      col.style.display = show ? 'flex' : 'none';
       if (show) col.innerHTML = st.id === 'oven' ? `${COIN}<span>${fmt(v)}</span>` : `${GEM}<span>${v}</span>`;
       card.parentNode.classList.toggle('ready', !!show);
     }

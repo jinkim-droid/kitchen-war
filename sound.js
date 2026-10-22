@@ -76,15 +76,30 @@ const Sound = (() => {
     merge: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, { type: 'triangle', vol: 0.13, delay: i * 0.06 })),
     hurt: () => { if (!throttled('hurt', 150)) { tone(200, 0.16, { type: 'sawtooth', vol: 0.09, slide: -110 }); noise(0.08, { vol: 0.08, freq: 600, type: 'lowpass' }); } },
     stun: () => tone(900, 0.35, { type: 'sine', vol: 0.1, slide: -600 }),
+    // 보스 경고: 사이렌처럼 높낮이 두 음을 세 번 (WARN_T 1.8초 안에)
+    warn: () => { for (let i = 0; i < 3; i++) { tone(880, 0.22, { type: 'square', vol: 0.07, delay: i * 0.55 }); tone(660, 0.22, { type: 'square', vol: 0.07, delay: i * 0.55 + 0.25 }); } },
     boss: () => { tone(110, 0.5, { type: 'sawtooth', vol: 0.12 }); tone(82, 0.6, { type: 'sawtooth', vol: 0.12, delay: 0.25 }); },
     wall: () => { [98, 98, 73].forEach((f, i) => tone(f, 0.35, { type: 'sawtooth', vol: 0.15, delay: i * 0.22 })); noise(0.4, { vol: 0.12, freq: 300, type: 'lowpass', delay: 0.44 }); },
     bossHit: () => { if (!throttled('bossHit', 90)) noise(0.05, { vol: 0.07, freq: 900, type: 'lowpass' }); },
     clear: () => { [523, 659, 784].forEach((f, i) => tone(f, 0.14, { type: 'square', vol: 0.08, delay: i * 0.09 })); [523, 659, 784, 1047].forEach((f) => tone(f, 0.5, { type: 'triangle', vol: 0.07, delay: 0.3 })); },
     retreat: () => [440, 330, 220].forEach((f, i) => tone(f, 0.18, { type: 'triangle', vol: 0.12, delay: i * 0.13 })),
     claim: () => [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.15, { type: 'triangle', vol: 0.12, delay: i * 0.07 })),
+    // ---------- 오프닝 영상 효과음 (2026-10-22) — 장면에 맞춰 main.js PROLOGUE_SFX가 부른다 ----------
+    prDay: () => [72, 76, 79, 84, 79, 76, 79, 84].forEach((n, i) => tone(midiF(n), 0.22, { type: 'triangle', vol: 0.1, delay: i * 0.22 })),
+    prNight: () => { [67, 63, 60, 55].forEach((n, i) => tone(midiF(n), 0.45, { type: 'sine', vol: 0.11, delay: i * 0.32 })); tone(midiF(43), 1.6, { type: 'sine', vol: 0.08 }); },
+    prSmoke: () => { noise(1.6, { vol: 0.12, freq: 500, type: 'lowpass' }); tone(220, 1.4, { type: 'sine', vol: 0.06, slide: 180 }); tone(330, 1.2, { type: 'sine', vol: 0.04, slide: -120, delay: 0.3 }); },
+    prKing: () => { [62, 62, 55].forEach((n, i) => tone(midiF(n - 24), 0.5, { type: 'sawtooth', vol: 0.16, delay: i * 0.3 })); noise(0.6, { vol: 0.18, freq: 250, type: 'lowpass', delay: 0.6 }); tone(midiF(74), 0.8, { type: 'square', vol: 0.05, slide: -300, delay: 1.0 }); },
+    prMess: () => { for (let i = 0; i < 6; i++) noise(0.09, { vol: 0.12, freq: 1500 + Math.random() * 3000, delay: i * 0.13 + Math.random() * 0.05 }); tone(523, 0.12, { type: 'triangle', vol: 0.08, delay: 0.9 }); tone(392, 0.25, { type: 'triangle', vol: 0.08, delay: 1.05 }); },
+    prShock: () => { tone(500, 0.35, { type: 'square', vol: 0.09, slide: 900 }); tone(1400, 0.12, { type: 'triangle', vol: 0.1, delay: 0.38 }); tone(1400, 0.12, { type: 'triangle', vol: 0.1, delay: 0.55 }); },
+    prPan: () => { [1760, 2349, 3136].forEach((f, i) => tone(f, 0.9, { type: 'triangle', vol: 0.08 - i * 0.02 })); noise(0.05, { vol: 0.2, freq: 4000 }); [60, 64, 67, 72].forEach((n, i) => tone(midiF(n), 0.18, { type: 'square', vol: 0.07, delay: 0.5 + i * 0.12 })); tone(midiF(72), 0.6, { type: 'square', vol: 0.07, delay: 1.0 }); },
+    prCharge: () => { noise(0.8, { vol: 0.1, freq: 900, type: 'bandpass' }); tone(200, 0.8, { type: 'sawtooth', vol: 0.06, slide: 500 }); },
+    prBubbles: () => { for (let i = 0; i < 14; i++) tone(600 + Math.random() * 900, 0.08, { type: 'sine', vol: 0.09, slide: 500, delay: i * 0.08 + Math.random() * 0.04 }); },
     prestige: () => { [262, 330, 392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.12, delay: i * 0.08 })); },
   };
 
+  const midiF = (n) => 440 * Math.pow(2, (n - 69) / 12);
+  // 오프닝 영상 동안 배경음악을 잠깐 끈다
+  function duckMusic(on) { if (musicBus) musicBus.gain.setTargetAtTime(on || !musicOn ? 0 : 0.35, ctx.currentTime, 0.15); }
   function play(name) {
     if (!ctx || !sfxOn || ctx.state !== 'running') return;
     const f = SFX[name];
@@ -127,5 +142,5 @@ const Sound = (() => {
   function pause() { if (ctx && ctx.state === 'running') ctx.suspend(); }
   function resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); }
 
-  return { unlock, play, setSfx, setMusic, pause, resume, get state() { return ctx ? ctx.state : 'locked'; } };
+  return { unlock, play, setSfx, setMusic, pause, resume, duckMusic, get state() { return ctx ? ctx.state : 'locked'; } };
 })();

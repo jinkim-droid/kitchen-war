@@ -10,6 +10,8 @@
 // - 웨이브: 적 n마리를 (등장 시간)과 (n × 체력 ÷ DPS) 중 긴 쪽 + 걸어오는 시간에 잡는다.
 // - 보스를 제한시간 안에 못 잡으면 후퇴(스테이지 -1) → 다시 도전하며 골드를 모은다. 적 한 마리를 못 버틸 만큼 약하면 셰프가 쓰러진다.
 // - 최고 기록이 STALL_MIN분 동안 안 오르고 환생할 수 있으면 환생한다.
+// 2026-10-21 반영(main.js와 같은 값): 보스 경고 WARN_T초(스테이지마다) · 공격 범위(적이 화면 안쪽에 들어온 뒤에야 맞음 → 근사: 일반 적 AIM_DELAY초·보스 BOSS_AIM_DELAY초 진입 지연)
+//   · 보스 제한시간은 보스가 공격 범위에 들어온 뒤부터 줄어듦(그래서 진입 지연은 제한시간에 안 들어감) · 2바퀴(STAGE 51~) 일반 적 8%는 체력·골드 4배(평균 1.24배로 근사)
 // 넣지 않은 것: 스킨·주방 시설·미션·다이아 상점·오프라인 보상·보스 러시 (실제 게임은 이 결과보다 조금 빠르다)
 const BAL = Object.assign({}, require('../balance.js'), JSON.parse(process.argv[3] || '{}'));
 
@@ -18,10 +20,19 @@ const EFF = 0.75;          // 실제 DPS 효율 (화면 밖 적·투사체 비�
 const WALK = 3;            // 웨이브마다 적이 걸어 들어오는 시간(초)
 const STALL_MIN = 20;      // 이만큼 기록이 안 오르면 환생 (분)
 const SLOTS = 12;
+const WARN_T = 1.8;        // main.js WARN_T: 마지막 웨이브 시작 시 경고 연출 시간
+const AIM_DELAY = 2.0;     // 근사: 적이 걸어서 공격 범위(AIM_ZONE)에 들어올 때까지 못 맞는 시간 (추측: 속도 50~70px/s로 ~120px)
+const BOSS_AIM_DELAY = 4.0; // 근사: 보스는 느려서(34px/s) 더 늦게 들어옴
+const STRONG_CHANCE = 0.08, STRONG = { hp: 4, gold: 4 }; // main.js 값
+const lapOf = (st) => Math.floor((st - 1) / 50);          // CHAPTERS 5개 × 10스테이지
+const strongHpMul = (st) => (lapOf(st) >= 1 ? 1 + STRONG_CHANCE * (STRONG.hp - 1) : 1);
+const strongGoldMul = (st) => (lapOf(st) >= 1 ? 1 + STRONG_CHANCE * (STRONG.gold - 1) : 1);
 const CASUAL = process.env.PLAYER === 'casual';
 
-const enemyHp = (st) => BAL.hpBase * Math.pow(BAL.hpG, st - 1) * (BAL.earlyEase[st - 1] || 1);
-const enemyGold = (st) => Math.ceil(BAL.goldBase * Math.pow(BAL.goldG, st - 1));
+const enemyHpBase = (st) => BAL.hpBase * Math.pow(BAL.hpG, st - 1) * (BAL.earlyEase[st - 1] || 1);
+const enemyHp = (st) => enemyHpBase(st) * strongHpMul(st);
+const enemyGoldBase = (st) => Math.ceil(BAL.goldBase * Math.pow(BAL.goldG, st - 1));
+const enemyGold = (st) => enemyGoldBase(st) * strongGoldMul(st);
 const waveCount = (st) => Math.min(BAL.waveMax, BAL.waveMin + Math.floor((st - 1) / 10));
 const starsFor = (st) => (st < BAL.prestigeMin ? 0 : Math.floor(Math.pow(st - BAL.starFrom, BAL.starPow) / BAL.starDiv));
 const gunDmg = (L) => BAL.toolBase * Math.pow(BAL.toolMerge, L - 1);
@@ -45,11 +56,13 @@ function spendStars(perm, stars) {
 const atkMul = (r) => (1 + BAL.atkStep * r.atkLv) * permMul(r, 'atk');
 const spdMul = (r) => Math.min(BAL.spdMax, 1 + BAL.spdStep * r.spdLv) * permMul(r, 'spd');
 const goldMul = (r) => (1 + BAL.goldStep * r.goldLv) * permMul(r, 'gold');
-const toolDps = (r) => r.tools.reduce((a, L) => a + gunDmg(L), 0) * atkMul(r) / (BAL.fireBase / spdMul(r));
+const buffAvg = (r) => { const p = (BAL.mateRole || {}).penguin; return p && r.mates.penguin ? 1 + (p.spd - 1) * p.dur / p.every : 1; }; // 펭귄 지원 평균 효과
+const toolDps = (r) => buffAvg(r) * [...r.tools].sort((a, b) => b - a).slice(0, 3).reduce((a, L) => a + gunDmg(L), 0) /* 장착 3개만 (2026-10-22) */ * atkMul(r) / (BAL.fireBase / spdMul(r));
 const mateDps = (r, id, lv = r.mates[id] || 0) => {
   if (!lv) return 0;
   const [d, iv] = BAL.mates[id];
-  return d * Math.pow(BAL.mateG, lv - 1) * atkMul(r) / iv;
+  const role = (BAL.mateRole || {})[id];
+  return d * Math.pow(BAL.mateG, lv - 1) * atkMul(r) / iv * (role ? role.dmg : 1) * buffAvg(r); // 역할 동료는 약하게, 펭귄 버프는 평균으로
 };
 const dps = (r) => toolDps(r) + MATE_IDS.reduce((a, id) => a + mateDps(r, id), 0);
 
@@ -99,7 +112,7 @@ function runWave(n, hp, D, st, heroHp) {
   let t = 0, killed = 0;
   while (killed < n) {
     t += 0.1;
-    const spawned = Math.min(n, Math.floor(t / BAL.spawnGap) + 1);
+    const spawned = Math.min(n, Math.max(0, Math.floor((t - AIM_DELAY) / BAL.spawnGap) + 1));  // 공격 범위에 들어온 적만 맞는다
     const arrived = Math.min(n, Math.max(0, Math.floor((t - WALK) / BAL.spawnGap) + 1));
     killed = Math.min(spawned, killed + (D / hp) * 0.1);      // 화면에 나온 적만 잡을 수 있다
     const touching = Math.max(0, arrived - killed);
@@ -113,7 +126,7 @@ function runWave(n, hp, D, st, heroHp) {
 // 한 스테이지를 돈다 → { ok, time }
 function runStage(r) {
   const st = r.stage, hp = enemyHp(st), wall = st % BAL.wallEvery === 0;
-  let time = 0, heroHp = BAL.heroHp;
+  let time = WARN_T, heroHp = BAL.heroHp;   // 보스 경고 연출 시간은 스테이지마다 더해진다
   for (let i = 0; i < waveCount(st); i++) {
     const n = BAL.waveSize0 + i * BAL.waveSizeStep;
     const w = runWave(n, hp, dps(r) * EFF, st, heroHp);
@@ -126,8 +139,9 @@ function runStage(r) {
     spend(r);
   }
   const bossHp = hp * BAL.bossHp * (wall ? BAL.wallHp : 1), limit = wall ? BAL.wallTime : BAL.bossTime;
-  const kill = bossHp / (dps(r) * EFF) + 2;
-  if (kill > limit) return { ok: false, time: time + limit };
+  const fight = bossHp / (dps(r) * EFF);                    // 제한시간은 보스가 범위에 들어온 뒤부터 줄어든다
+  const kill = fight + BOSS_AIM_DELAY;
+  if (fight > limit) return { ok: false, time: time + limit + BOSS_AIM_DELAY };
   r.gold += enemyGold(st) * BAL.bossGold * (wall ? BAL.wallGold : 1) * goldMul(r);
   spend(r);
   return { ok: true, time: time + kill };

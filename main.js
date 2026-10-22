@@ -1,13 +1,21 @@
 // 주방 대전쟁 — 방치형 키우기 프로토타입 (도형만, 에셋 없음)
 // 코어 루프: 셰프 곰이 조리도구를 자동으로 던짐 → 썩은 채소 처치 → 골드 → 도구 구매·합성·업그레이드 → 다음 스테이지
 
+// 화면 높이 H: 폭 720 기준으로 기기 비율에 맞춰 세로를 늘린다 (9:16 = 1280 ~ 최대 1700). 요즘 폰(9:19.5 등)에서 위아래 검은 띠 없이 — 늘어난 만큼 전장이 더 보인다 (2026-10-21 실기 검수)
+// 9:16보다 넓은 화면(태블릿)은 1280 그대로 좌우에 여백. 켤 때 한 번 정한다 (폰은 세로 고정)
 // FH = 업그레이드 카드 위로 보이는 전장(카메라·조준 기준), CH = 캔버스 높이. 카드 뒤에도 바닥이 비치도록 캔버스는 화면 끝까지 그린다
-const W = 720, H = 1280, FW = 720, FH = 1090, CH = 1280;
+// 폰 위쪽 카메라 구멍·아래쪽 제스처 막대를 피하는 여백 (2026-10-21 실기: 위쪽 진행 바가 카메라 구멍에 가림) — 위쪽 표시는 SAFE_TOP만큼 내리고, 아래 카드·옆 메뉴는 SAFE_BOTTOM만큼 올린다
+const SAFE_TOP = 44, SAFE_BOTTOM = 24;
+const PANEL_H = 190 + SAFE_BOTTOM; // 카드 칸 190 + 아래 여백
+const W = 720, H = Math.round(Math.min(1700, Math.max(1280, 720 * innerHeight / Math.max(1, innerWidth)))), FW = 720, FH = H - PANEL_H, CH = H;
+document.documentElement.style.setProperty('--shell-h', H + 'px'); // style.css 셸·전장·카드 위치
+document.documentElement.style.setProperty('--safe-top', SAFE_TOP + 'px');
+document.documentElement.style.setProperty('--safe-bottom', SAFE_BOTTOM + 'px');
 // 셰프 이동 범위 — 채소가 조리대(위)에서 내려오므로 주방 바닥 아래쪽을 돌아다닌다
 const COUNTER_Y = 300;
 // 주방(월드)은 화면보다 넓고, 카메라가 셰프를 따라간다
-// 월드 아래쪽 CH - FH(190)는 카드 뒤에 깔리는 바닥 — 셰프는 거기로 가지 않는다
-const WW = 1100, WH = 1500 + (CH - FH);
+// 월드 아래쪽 CH - FH(190)는 카드 뒤에 깔리는 바닥 — 셰프는 거기로 가지 않는다. 카메라가 위아래로 움직이는 폭(WH - CH = 410)은 화면 높이와 상관없이 같게
+const WW = 1100, WH = CH + 410;
 const ROAM = { x0: 80, x1: WW - 80, y0: 560, y1: WH - (CH - FH) - 110 };
 const cam = { x: 0, y: 0 };
 const HERO_SPEED = 120;
@@ -66,7 +74,8 @@ const MATES = [
 ];
 const MATE_SPOTS = [{ x: -115, y: 25 }, { x: 115, y: 25 }, { x: 0, y: 110 }, { x: -205, y: 85 }, { x: 205, y: 85 }, { x: -115, y: 160 }, { x: 115, y: 160 }];
 const mateLv = (m) => S.mates[m.id] || 0;
-const mateDmg = (m, lv = mateLv(m)) => m.dmg * Math.pow(BAL.mateG, lv - 1) * atkMul() * baseMateMul(); // 🏠 요리 학교
+const mateRole = (m) => (BAL.mateRole || {})[m.id];
+const mateDmg = (m, lv = mateLv(m)) => m.dmg * Math.pow(BAL.mateG, lv - 1) * atkMul() * baseMateMul() * (mateRole(m)?.dmg ?? 1); // 🏠 요리 학교 · 역할 동료는 약하게
 const mateCost = (m) => Math.ceil(m.cost * Math.pow(BAL.mateCostG, mateLv(m)));
 // 일일 미션 — 매일 3개, 자정에 바뀐다. 5~10분 플레이로 끝낼 수 있는 양
 const MISSIONS = [
@@ -100,7 +109,9 @@ const permCost = (k) => 1 + Math.floor(permLv(k) / BAL.permCostEvery);
 const permMax = (k) => !!BAL.perm[k].max && permLv(k) >= BAL.perm[k].max;
 const atkMul = () => (1 + BAL.atkStep * S.atkLv) * (1 + skinEff('atk')) * permMul('atk') * baseAtkMul(); // baseAtkMul: 🏠 조리대 (base.js)
 const spdMul = () => Math.min(BAL.spdMax, 1 + BAL.spdStep * S.spdLv);                   // 업그레이드 카드 값 (상한 BAL.spdMax)
-const fireInterval = () => BAL.fireBase / (spdMul() * (1 + skinEff('spd')) * permMul('spd'));
+let mateBuffT = 0; // 펭귄 지원: 남은 공격 속도 버프 시간
+const buffSpd = () => (mateBuffT > 0 ? BAL.mateRole.penguin.spd : 1);
+const fireInterval = () => BAL.fireBase / (spdMul() * (1 + skinEff('spd')) * permMul('spd') * buffSpd());
 const costAtk = () => Math.ceil(BAL.atkCost * Math.pow(BAL.atkCostG, S.atkLv));
 const costSpd = () => Math.ceil(BAL.spdCost * Math.pow(BAL.spdCostG, S.spdLv));
 const goldMul = () => 1 + BAL.goldStep * S.goldLv;                          // 골드 획득량 (업그레이드 카드 값)
@@ -109,7 +120,7 @@ const costGold = () => Math.ceil(BAL.goldCost * Math.pow(BAL.goldCostG, S.goldLv
 const costBuy = () => Math.ceil(BAL.buyCost * Math.pow(BAL.buyCostG, S.buys));
 const enemyHp = (st) => Math.ceil(BAL.hpBase * Math.pow(BAL.hpG, st - 1) * (BAL.earlyEase[st - 1] || 1));
 const enemyAtk = (st) => BAL.atkBase + st * BAL.atkPerStage; // 채소 한 대 공격력 (보스는 3배)
-const mateMaxHp = (m, lv = mateLv(m)) => 50 * (1 + 0.35 * (lv - 1)) * baseMateMul();
+const mateMaxHp = (m, lv = mateLv(m)) => 50 * (1 + 0.35 * (lv - 1)) * baseMateMul() * (mateRole(m)?.hp ?? 1); // 방어 동료는 체력 몇 배
 const enemyGold = (st) => Math.ceil(BAL.goldBase * Math.pow(BAL.goldG, st - 1));
 const PALETTE = ['#9aa5b1', '#6cc070', '#4aa3df', '#a66cff', '#ff8c42', '#ff4d6d', '#ffd34d', '#3ee6c4'];
 const gunColor = (L) => PALETTE[(L - 1) % PALETTE.length];
@@ -144,6 +155,7 @@ function load() {
   return null;
 }
 function save() {
+  if (window.__noSave) return; // 치트 '처음 시작 미리보기'·'되돌리기' 중 다시 켜기 직전엔 저장 안 함
   if (window.__resetting) return; // 초기화 중에는 저장하지 않는다
   S.lastSeen = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 무시 */ }
@@ -163,7 +175,7 @@ const gunTimers = Array(MAX_SLOTS).fill(0);
 // ---------- 화면 맞춤 ----------
 const shell = document.getElementById('shell');
 let scale = 1, app;
-function backbufferRes() { return Math.min(S.settings.saver ? 1.25 : 3, Math.max(1, (window.devicePixelRatio || 1) * scale)); }
+function backbufferRes() { return Math.min(S.settings.saver ? 1.25 : 2, Math.max(1, (window.devicePixelRatio || 1) * scale)); } // 최대 2배 (발열, 2026-10-21: 폰 화면 실제 픽셀과 거의 같음)
 function fit() {
   scale = Math.min(innerWidth / W, innerHeight / H);
   shell.style.transform = `translate(${(innerWidth - W * scale) / 2}px, ${(innerHeight - H * scale) / 2}px) scale(${scale})`;
@@ -185,6 +197,9 @@ const toolImg = (L) => `${IMG}${toolKey(L)}.webp`;
 const COIN = `<img class="ic" src="${IMG}icon_coin.webp" alt="">`;
 const GEM = `<img class="ic" src="${IMG}icon_gem.webp" alt="💎">`;
 const STAR = `<img class="ic" src="${IMG}icon_star.webp" alt="⭐">`;
+const TIMER = `<img class="ic" src="${IMG}icon_timer.webp" alt="">`; // 초시계 그림 (8차, 2026-10-22)
+// 숫자 뒤 조사 '로/으로' (숫자 끝 읽는 소리: 0·3·6 → 으로, 나머지 → 로)
+const roKo = (n) => ([0, 3, 6].includes(n % 10) ? '으로' : '로');
 const icon = (key, alt = '') => `<img class="ic" src="${IMG}${key}.webp" alt="${alt}">`;
 const SKIN_ART = { brown: 'hero_chef', pirate: 'hero_pirate', patissier: 'hero_patissier', santa: 'hero_santa', king: 'hero_king',
   ninja: 'hero_ninja', hanbok: 'hero_hanbok', wizard: 'hero_wizard', sushi: 'hero_sushi', pizza: 'hero_pizza', barista: 'hero_barista', space: 'hero_space' };
@@ -195,10 +210,13 @@ const ART_KEYS = ['bg_floor_tile', 'bg_wall', 'prop_shelf', 'prop_window', 'prop
 const ART = {};
 const AVAIL = new Set(); // manifest에 있는 그림 이름 (HTML에서만 쓰는 UI·아이콘은 여기서 있는지만 확인)
 // 한국어 글자가 그려진 그림(꼬리표·도장·로고 등)은 한국어 화면에서만 쓰고, 다른 언어에서는 글자로 대신한다
+// 영어 화면은 같은 이름 + '_en' 그림(7차, 2026-10-21)을 쓰고, 없으면 글자로 대신한다
 const KO_TEXT_ART = new Set(['ui_tag_best', 'ui_tag_new', 'ui_stamp_done', 'ui_equipped', 'ui_logo']);
-const hasTextArt = (k) => AVAIL.has(k) && (LANG === 'ko' || !KO_TEXT_ART.has(k) && !k.startsWith('ui_chapter_'));
+const isTextArt = (k) => KO_TEXT_ART.has(k) || k.startsWith('ui_chapter_');
+const textArt = (k) => (LANG !== 'ko' && isTextArt(k) ? k + '_' + LANG : k); // 언어에 맞는 그림 이름
+const hasTextArt = (k) => AVAIL.has(textArt(k));
 // 전장(PixiJS)에 그리는 그림만 텍스처로 올린다 — UI·아이콘은 HTML <img>가 필요할 때 받는다
-const PIXI_ART = /^(bg_|prop_|enemy_|boss_|mate_|proj_|fx_|hero_|tool_|icon_coin$|ui_hero_hp_|ui_hp_heart$|ui_enemy_hp_|ui_boss_crown$|ui_aim$)/;
+const PIXI_ART = /^(bg_|prop_|enemy_|boss_|king_|anim_|mate_|proj_|fx_|hero_|tool_|icon_coin$|icon_boss$|ui_aim$)/;
 // assets/img/manifest.json (tools/convert_assets.py 가 만든다)에 있는 그림만 불러온다 — 없는 그림은 임시 그림으로
 async function loadArt() {
   let keys = ART_KEYS;
@@ -208,6 +226,31 @@ async function loadArt() {
     try { ART[k] = await PIXI.Assets.load(IMG + k + '.webp'); } catch (e) { console.warn('이미지 없음 — 코드 그림 사용:', k); }
   }));
 }
+// 캐릭터·무기 그림에 진갈색 외곽선을 한 번만 입힌다 (2026-10-22 사용자: 화면 기준 2px). 켤 때 한 번 구워 두므로 플레이 중 부담은 없다
+// 두께는 그림 픽셀로 바꿔 넣는다: 화면 2px × (그림 높이 ÷ 화면 속 키). 그림 크기는 그대로(바깥 여백 안에 그린다)
+const OUTLINE = { px: 2, color: 0x2a1a10 };
+const OUTLINE_H = [['hero_', 168], ['mate_', 96], ['enemy_', 87], ['boss_', 202], ['king_', 350], ['tool_', 60], ['proj_', 34]];
+function outlineArt() {
+  const c = OUTLINE.color, r = ((c >> 16) & 255) / 255, g = ((c >> 8) & 255) / 255, b = (c & 255) / 255;
+  const sil = new PIXI.ColorMatrixFilter();
+  sil.matrix = [0, 0, 0, r, 0, 0, 0, 0, g, 0, 0, 0, 0, b, 0, 0, 0, 0, 1, 0]; // 모양만 따서 외곽선 색으로
+  for (const k of Object.keys(ART)) {
+    const tex = ART[k];
+    let frameH = tex.height, showH;
+    if (k.startsWith('anim_king_')) { // 공격 시트: 프레임 하나(정사각형)가 화면에서 약 530px (KING_H × 0.91 ÷ 캐릭터 비율 0.6)
+      const n = +((k.match(/_(\d+)f$/) || [])[1] || 1), cols = Math.round(Math.sqrt(n * tex.width / tex.height));
+      frameH = tex.width / Math.max(1, cols); showH = KING_H * 0.91 / 0.6;
+    } else { const hit = OUTLINE_H.find(([p]) => k.startsWith(p)); if (!hit) continue; showH = hit[1]; }
+    const t = Math.max(1, OUTLINE.px * frameH / showH);
+    const box = new PIXI.Container(), ring = new PIXI.Container();
+    const dirs = t > 4 ? 16 : 8;
+    for (let i = 0; i < dirs; i++) { const a = (i / dirs) * Math.PI * 2, sp = new PIXI.Sprite(tex); sp.position.set(Math.cos(a) * t, Math.sin(a) * t); ring.addChild(sp); }
+    ring.filters = [sil];
+    box.addChild(ring, new PIXI.Sprite(tex));
+    ART[k] = app.renderer.generateTexture({ target: box, frame: new PIXI.Rectangle(0, 0, tex.width, tex.height), resolution: 1 });
+    box.destroy({ children: true });
+  }
+}
 // 그림 한 장: 지정 높이로 맞추고 기준점(기본: 발밑 가운데)을 둔다
 function artSprite(key, h, ay = 1) {
   const sp = new PIXI.Sprite(ART[key]);
@@ -215,47 +258,26 @@ function artSprite(key, h, ay = 1) {
   sp.scale.set(h / sp.texture.height);
   return sp;
 }
-// 셰프·동료 발밑 체력 막대 (가운데 기준, 위쪽 y). 손그림 ui_hero_hp_*(300×42, 3x 판)를 좌우 3분할로 늘린다 (사내 기준 ux:nine-slice)
-// 자르기 값은 텍스처 px(1x 7 × 3 = 21). 35% 아래는 빨강 채움 ui_hero_hp_fill_low(330×48, 자르기 24) — 그림이 없으면 코드 빨강
-// 왼쪽 끝에 작은 하트(ui_hp_heart)
-const HP_TEX_W = 300, HP_TEX_H = 42, HP_SLICE = 21, HP_LOW_W = 330, HP_LOW_H = 48, HP_LOW_SLICE = 24;
-function makeHpBar(w, y) {
+// 셰프·동료 머리 위 체력 막대 (가운데 기준, 위쪽 y). 2026-10-21부터 손그림(ui_hero_hp_*) 대신 코드 게이지(drawGauge) — 두껍게 해도 끝이 안 뭉개지게
+function makeHpBar(w, y, h = 22) {
   const c = new PIXI.Container();
-  const h = w * HP_TEX_H / HP_TEX_W;
-  const low = new PIXI.Graphics();
+  const g = new PIXI.Graphics();
   c.y = y;
-  if (ART.ui_hero_hp_bg && ART.ui_hero_hp_fill) {
-    const opt = { leftWidth: HP_SLICE, rightWidth: HP_SLICE, topHeight: 0, bottomHeight: 0 };
-    const bg = new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_bg, ...opt });
-    const fill = new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_fill, ...opt });
-    for (const sp of [bg, fill]) { sp.scale.set(w / HP_TEX_W); sp.x = -w / 2; }
-    const lowSp = ART.ui_hero_hp_fill_low
-      ? new PIXI.NineSliceSprite({ texture: ART.ui_hero_hp_fill_low, leftWidth: HP_LOW_SLICE, rightWidth: HP_LOW_SLICE, topHeight: 0, bottomHeight: 0 }) : null;
-    if (lowSp) { lowSp.scale.set(h / HP_LOW_H); lowSp.x = -w / 2; }
-    c.addChild(bg, fill, lowSp || low);
-    if (ART.ui_hp_heart) { const hs = artSprite('ui_hp_heart', h * 1.7, 0.5); hs.position.set(-w / 2, h / 2); c.addChild(hs); }
-    c.set = (r) => {
-      r = Math.max(0, Math.min(1, r));
-      fill.visible = r > 0.35;
-      fill.width = HP_TEX_W * r;
-      if (lowSp) {
-        lowSp.visible = r > 0 && r <= 0.35;
-        lowSp.width = Math.max(HP_LOW_SLICE * 2, (w * r) / lowSp.scale.x);
-        return;
-      }
-      low.clear();
-      if (r > 0 && r <= 0.35) low.roundRect(-w / 2 + h * 0.15, h * 0.2, (w - h * 0.3) * r, h * 0.6, h * 0.3).fill(0xff5a5a);
-    };
-  } else {
-    c.addChild(low);
-    c.set = (r) => {
-      r = Math.max(0, Math.min(1, r));
-      low.clear().roundRect(-w / 2, 0, w, h, h / 2).fill({ color: 0x000000, alpha: 0.4 });
-      low.roundRect(-w / 2, 0, w * r, h, h / 2).fill(r > 0.35 ? 0x7ee07e : 0xff5a5a);
-    };
-  }
+  c.addChild(g);
+  c.set = (r) => drawGauge(g, -w / 2, 0, w, h, Math.max(0, Math.min(1, r)), r > 0.35 ? 0x7fd14f : 0xe8483a, 3);
   c.set(1);
   return c;
+}
+// 체력 게이지 공통 (2026-10-21 사용자: 더 두껍게, 보스 바와 같은 모양) — 진갈색 테두리 + 어두운 바탕 + 채움 + 위쪽 밝은 띠
+function drawGauge(g, x, y, w, h, r, color, line) {
+  const iw = w - line * 2, ih = h - line * 2, fw = iw * r;
+  g.clear().roundRect(x, y, w, h, h / 2).fill(0x4b3021);
+  g.roundRect(x + line, y + line, iw, ih, ih / 2).fill(0x6e4a34);
+  if (fw > 0) {
+    g.roundRect(x + line, y + line, Math.max(fw, ih), ih, ih / 2).fill(color);
+    const hi = Math.max(2, Math.round(ih * 0.25));
+    g.roundRect(x + line + ih * 0.3, y + line + ih * 0.15, Math.max(fw - ih * 0.6, 0), hi, hi / 2).fill({ color: 0xffffff, alpha: 0.35 });
+  }
 }
 
 // ---------- 챕터: 10스테이지마다 장소·적·보스가 바뀐다 ----------
@@ -276,10 +298,22 @@ const CHAPTERS = [
 const ARENA = { id: 'arena', name: t('place.arena'), icon: '🔥', tint: 0xb06060 };
 const chapterIdx = (st) => Math.floor((st - 1) / 10) % CHAPTERS.length;
 const chapterOf = (st) => CHAPTERS[chapterIdx(st)];
+// 바퀴: 챕터 5개(50스테이지)를 한 번 돌면 1바퀴. 2바퀴(51~)부터 '한밤의 주방' — 배경이 밤 색, 다른 챕터 적이 섞이고 가끔 강한 적 (2026-10-21)
+const lapOf = (st) => Math.floor((st - 1) / (10 * CHAPTERS.length));
+// 강한 적 빛 색: 그림의 알파(모양)만 남기고 밝은 빨강(#ff3a26)으로 칠하는 색 행렬 (한 번 만들어 같이 쓴다)
+let STRONG_RED_F = null;
+const strongRed = () => {
+  // 색 = 그림의 불투명도 × 빨강 (구운 그림의 투명한 곳이 빨갛게 네모로 번지지 않게), 진하기 1.8배 (2026-10-21)
+  if (!STRONG_RED_F) { STRONG_RED_F = new PIXI.ColorMatrixFilter(); STRONG_RED_F.matrix = [0, 0, 0, 1, 0, 0, 0, 0, 0.23, 0, 0, 0, 0, 0.15, 0, 0, 0, 0, 1.8, 0]; }
+  return STRONG_RED_F;
+};
+const NIGHT_TINT = 0x7a82b4, LAP_MIX = 0.35, STRONG_CHANCE = 0.08, STRONG = { r: 1.3, hp: 4, gold: 4 }; // 강한 적은 빨간 빛으로 구분 (spawnEnemy glow)
 // 10스테이지마다 나오는 강한 보스의 화면 이름: 챕터마다 '대왕 양파'(King Onion)… (2026-10-21 사용자 결정, 한국어 보스 이름은 모두 받침 없음 → 조사 '가')
 const wallBossName = (st) => t('king.' + chapterOf(st).id);
 // 적 그림: 그 챕터 그림이 있으면 그것, 없으면 주방 적을 장소 색으로 칠해 대신
-function enemyArt(ch, boss, i) {
+// 대왕 보스(10스테이지마다)는 전용 그림 king_<챕터>가 있으면 그것 (IMAGE_TODO, 2026-10-21), 없으면 일반 보스 그림
+function enemyArt(ch, boss, i, wall = false) {
+  if (boss && wall && ART['king_' + ch.id]) return { key: 'king_' + ch.id, tint: 0xffffff, kind: 'onion' };
   const own = boss ? 'boss_' + ch.boss : 'enemy_' + ch.enemies[i];
   if (ART[own]) return { key: own, tint: 0xffffff, kind: boss ? 'onion' : CHAPTERS[0].enemies[i] };
   return { key: boss ? 'boss_onion' : 'enemy_' + CHAPTERS[0].enemies[i], tint: ch.tint, kind: boss ? 'onion' : CHAPTERS[0].enemies[i] };
@@ -580,7 +614,7 @@ function makeHero() {
   tool.position.set(34, 30);
   c.addChild(tool);
 
-  const hp = makeHpBar(100, 78);
+  const hp = makeHpBar(100, -118); // 코드 그림 셰프도 머리 위
   c.addChild(hp);
   const h = { c, body, g, eyes, footL, footR, gun: tool, hp };
   drawHero(h, skinById(S.skin));
@@ -601,7 +635,7 @@ function makeSpriteHero() {
   const dummy = () => { const g = new PIXI.Graphics(); g.visible = false; return g; };
   const footL = dummy(), footR = dummy(), eyes = dummy(), tool = dummy();
   c.addChild(shadow, body, footL, footR, tool);
-  const hp = makeHpBar(100, 78);
+  const hp = makeHpBar(100, 72 - HERO_H - 26); // 체력 막대는 적처럼 머리 위 (2026-10-21 통일, 두께 22)
   c.addChild(hp);
   return { c, body, g: sprite, sprite, eyes, footL, footR, gun: tool, hp };
 }
@@ -737,10 +771,9 @@ function popText(x, y, text, cls) {
   const el = document.createElement('div');
   el.className = 'dmg ' + (cls || '');
   const span = document.createElement('span');
-  span.textContent = text;
+  if (/</.test(text)) span.innerHTML = text; else span.textContent = text; // 다이아 그림 등 코드가 만든 HTML만 들어온다
   el.appendChild(span);
-  el.style.left = x - cam.x + 'px';
-  el.style.top = y - cam.y + 'px';
+  el.style.transform = `translate(${x - cam.x}px, ${y - cam.y}px) translate(-50%, -50%)`; // left/top 대신 transform (다시 배치 계산 없이 이동 — 발열)
   fxEl.appendChild(el);
   const big = /crit|big/.test(cls || '');
   fxList.push({ el, x, y, life: big ? 1.0 : 0.85, vy: big ? -95 : -80, vx: (Math.random() - 0.5) * 50 });
@@ -750,7 +783,7 @@ function popText(x, y, text, cls) {
 const fxSprites = [];
 let fxLayer = null;
 function spawnFx(key, x, y, size, life) {
-  if (!ART[key] || !fxLayer || fxSprites.length > 40) return;
+  if (!ART[key] || !fxLayer || fxSprites.length > 60) return; // 타격 불꽃이 매번 나와서 40 → 60
   const sp = artSprite(key, size, 0.5);
   sp.position.set(x, y);
   sp.rotation = (Math.random() - 0.5) * 0.6;
@@ -788,9 +821,11 @@ function makeGemTexture() {
   return app.renderer.generateTexture({ target: g, resolution: 3 });
 }
 function gemBurst(sx, sy, n) { coinBurst(sx, sy, n, 'gem'); }
+// 화면에 동시에 떠 있는 코인 상한 (연출용 — 많아도 스프라이트라 가볍다)
+const COIN_MAX = 240;
 function coinBurst(sx, sy, n, kind = 'gold') {
   if (!coinTex) return;
-  for (let i = 0; i < n && coins.length < 140; i++) {
+  for (let i = 0; i < n && coins.length < COIN_MAX; i++) {
     const sp = new PIXI.Sprite(kind === 'gem' ? gemTex : coinTex);
     sp.anchor.set(0.5);
     const bs = 24 / sp.texture.height; // 그림 크기와 상관없이 24px 기준
@@ -837,7 +872,24 @@ function banner(html, t = 1.4) {
   bannerT = t;
 }
 
+// 장착 도구 (2026-10-22 사용자): 도구함에서 레벨 높은 3개만 공격에 쓴다(자동). 아래 칸에는 그대로 두고 '장착' 표시만
+const EQUIP_N = 3;
+function equippedIdx() {
+  return S.grid.map((L, i) => [L, i]).filter(([L]) => L).sort((a, b) => b[0] - a[0] || a[1] - b[1]).slice(0, EQUIP_N).map(([, i]) => i);
+}
+function renderEquip() {
+  const eq = equippedIdx();
+  $('equip').innerHTML = Array.from({ length: EQUIP_N }, (_, k) => {
+    const i = eq[k], L = i === undefined ? 0 : S.grid[i];
+    if (!L) return `<div class="eq-card empty"></div>`;
+    return `<div class="eq-card" style="--c:${gunColor(L)}"><b class="eq-name">Lv ${L} ${toolName(L)}</b><img class="eq-img" src="${toolImg(L)}" alt="">
+      <span class="eq-row"><img class="ic" src="${IMG}icon_atk.webp" alt=""><i>${fmt(gunDmg(L) * atkMul())}</i></span>
+      <span class="eq-row"><img class="ic" src="${IMG}icon_timer.webp" alt=""><i>${fireInterval().toFixed(2)}${t('mates.iv', { iv: '' }).trim()}</i></span></div>`;
+  }).join('');
+}
 function renderGrid(popIdx = -1) {
+  renderEquip();
+  const eq = new Set(equippedIdx());
   gridEl.innerHTML = '';
   gridEl.style.gridTemplateRows = `repeat(${S.grid.length / 4}, 1fr)`;
   S.grid.forEach((L, i) => {
@@ -846,10 +898,11 @@ function renderGrid(popIdx = -1) {
     s.dataset.i = i;
     if (L) {
       const g = document.createElement('div');
-      g.className = 'gun' + (i === popIdx ? ' pop' : '');
+      g.className = 'gun' + (i === popIdx ? ' pop' : '') + (eq.has(i) ? ' eq' : '');
       if (i === popIdx) { const fx = document.createElement('img'); fx.className = 'mergefx'; fx.src = IMG + 'fx_merge.webp'; s.appendChild(fx); }
       g.style.background = gunColor(L);
-      g.innerHTML = `<span class="ico"><img src="${toolImg(L)}" alt="${toolIcon(L)}"></span><span class="glv">Lv ${L} ${toolName(L)}</span><span class="gdmg">⚔ ${fmt(gunDmg(L) * atkMul())}</span>`;
+      // 칸에는 그림 + 'Lv N'만 (2026-10-22 사용자 시안). 이름·공격력은 위 장착 카드에서
+      g.innerHTML = `<span class="ico"><img src="${toolImg(L)}" alt="${toolIcon(L)}"></span><span class="glv">Lv ${L}</span>${eq.has(i) ? `<i class="eq-tag">${t('tools.equipped')}</i>` : ''}`;
       s.appendChild(g);
     }
     gridEl.appendChild(s);
@@ -857,7 +910,7 @@ function renderGrid(popIdx = -1) {
 }
 
 function dps() {
-  const tools = S.grid.reduce((a, L) => a + (L ? gunDmg(L) : 0), 0) * atkMul() / fireInterval();
+  const tools = equippedIdx().reduce((a, i) => a + gunDmg(S.grid[i]), 0) * atkMul() / fireInterval(); // 장착 3개만
   return MATES.reduce((a, m) => a + (mateLv(m) ? mateDmg(m) / m.iv : 0), tools);
 }
 
@@ -866,7 +919,7 @@ function buildMenus() {
   $('mateList').innerHTML = MATES.map((m) => `
     <div class="row" data-mate="${m.id}">
       <span class="big"><img src="${IMG}mate_${m.id}.webp" alt="${m.icon}"></span>
-      <div class="info"><b>${m.name}</b><span class="desc">${m.desc}</span><span class="stat"></span></div>
+      <div class="info"><b>${m.name}<small class="lvtag"></small></b><span class="desc">${m.desc}</span><span class="stat"></span></div>
       <button class="act"></button>
     </div>`).join('');
   // 스킨 (총고식 4열 격자): 칸에는 그림만, 잠긴 건 어둡게 + 자물쇠, 장착 중은 노랑 칸 + 체크. 누르면 구매·장착 창
@@ -874,12 +927,14 @@ function buildMenus() {
     const hex = (n) => '#' + n.toString(16).padStart(6, '0');
     return `
     <button class="skin" data-skin="${k.id}" aria-label="${k.name}">
-      ${skinThumb[k.id] ? `<img class="thumb" src="${skinThumb[k.id]}" alt="">` : `<div class="mini hat-${k.hat} ${k.eyepatch ? 'eyepatch' : ''} ${k.beard ? 'beard' : ''}" style="--fur:${hex(BEAR.fur)};--face:${hex(BEAR.face)};--muz:${hex(BEAR.muzzle)};--hat:${hex(k.hatColor || 0xffffff)};--outfit:${hex(k.coat || k.apron)};--neck:${hex(k.neckColor || k.coat || 0)}">
+      ${AVAIL.has(SKIN_ART[k.id]) ? `<img class="thumb" data-art="${SKIN_ART[k.id]}" src="${IMG}${SKIN_ART[k.id]}.webp" alt="">` : skinThumb[k.id] ? `<img class="thumb" src="${skinThumb[k.id]}" alt="">` : `<div class="mini hat-${k.hat} ${k.eyepatch ? 'eyepatch' : ''} ${k.beard ? 'beard' : ''}" style="--fur:${hex(BEAR.fur)};--face:${hex(BEAR.face)};--muz:${hex(BEAR.muzzle)};--hat:${hex(k.hatColor || 0xffffff)};--outfit:${hex(k.coat || k.apron)};--neck:${hex(k.neckColor || k.coat || 0)}">
         <i class="body"></i><i class="ear l"></i><i class="ear r"></i><i class="head"></i><i class="eye l"></i><i class="eye r"></i><i class="muz"></i><i class="beard"></i><i class="nose"></i><i class="hat"></i><i class="pom"></i>
       </div>`}
       <img class="lock" src="${IMG}icon_lock.webp" alt="">
+      <span class="skin-tag"></span><i class="dot"></i>
     </button>`;
   }).join('');
+  document.querySelectorAll('#skinList .thumb[data-art]').forEach(alignThumb);
   $('mateList').onclick = (e) => {
     const row = e.target.closest('.act') && e.target.closest('.row');
     if (!row) return;
@@ -896,13 +951,33 @@ function buildMenus() {
   };
 }
 // 스킨 하나 창: 그림·이름·효과 + 구매(골드·다이아·러시 기록) / 장착 / 장착 중
+const rankSkin = (k) => (S.skin === k.id ? 0 : S.skins.includes(k.id) ? 1 : 2);
+// 스킨 칸 곰 위치 맞추기: 그림마다 발 맨 아래 높이가 조금씩 달라서, 맨 아래를 재서 칸의 같은 높이에 둔다(가로는 고정)
+const footCache = {};
+function alignThumb(img) {
+  const k = img.dataset.art;
+  const apply = (f) => { img.style.transform = `translate(${-f.cx * 100}%, ${f.gap * 100}%)`; };
+  if (footCache[k]) return apply(footCache[k]);
+  const run = () => {
+    const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0);
+    const d = x.getImageData(0, 0, W, H).data;
+    let bottom = 0; for (let y = H - 1; y >= 0 && !bottom; y--) for (let X = 0; X < W; X += 2) if (d[(y * W + X) * 4 + 3] > 60) { bottom = y; break; }
+    let sx = 0, n = 0; for (let y = Math.floor(bottom - H * 0.15); y <= bottom; y += 2) for (let X = 0; X < W; X += 2) if (d[(y * W + X) * 4 + 3] > 60) { sx += X; n++; }
+    // 가로는 모든 스킨 그림이 같은 캔버스·같은 자리에 곰이 있어 고정값(기본 셰프 발 가운데 0.55)으로 — 발 무게중심으로 맞추면 망토·주머니 같은 옷 때문에 오히려 치우쳤다
+    footCache[k] = { cx: 0.55, gap: (H - 1 - bottom) / H };
+    apply(footCache[k]);
+  };
+  if (img.complete && img.naturalWidth) run(); else img.addEventListener('load', run, { once: true });
+}
 function skinCanGet(k) { return k.req ? (S.rushBest || 0) >= k.req : k.gem ? S.gems >= k.gem : S.gold >= k.cost; }
 function openSkin(k) {
   const own = S.skins.includes(k.id), on = S.skin === k.id, can = skinCanGet(k);
   const price = k.req ? t('skin.req_rush', { n: k.req, best: S.rushBest || 0 }) : k.gem ? `${GEM} ${k.gem}` : `${COIN} ${fmt(k.cost)}`;
   const btn = on ? t('skin.equipped') : own ? t('skin.equip') : k.req ? (can ? t('skin.claim') : t('skin.locked')) : can ? t('skin.buy') : t('skin.poor');
   showModal(`<div class="title small">${k.name}</div>
-    <img class="skin-big" src="${skinThumb[k.id] || IMG + 'hero_chef.webp'}" alt="">
+    <img class="skin-big" src="${AVAIL.has(SKIN_ART[k.id]) ? IMG + SKIN_ART[k.id] + '.webp' : skinThumb[k.id] || IMG + 'hero_chef.webp'}" alt=""><!-- 원본 그림(작은 썸네일 150px 대신) -->
     <div class="skin-eff">${skinEffText(k)}</div>
     ${own ? `<p class="sub">${t('skin.owned_note')}</p>` : `<div class="skin-price">${price}</div>`}`,
     btn, () => {
@@ -923,60 +998,77 @@ function updateMenus() {
   let mateReady = false, skinReady = false;
   document.querySelectorAll('#mateList .row').forEach((row) => {
     const m = MATES.find((x) => x.id === row.dataset.mate), lv = mateLv(m), c = mateCost(m);
-    row.querySelector('.stat').textContent = lv
-      ? t('mates.stat_owned', { lv, dmg: fmt(mateDmg(m)), iv: m.iv, hp: fmt(mateMaxHp(m)), next: fmt(mateDmg(m, lv + 1)) })
-      : t('mates.stat_new', { dmg: fmt(mateDmg(m, 1)), iv: m.iv, hp: fmt(mateMaxHp(m, 1)) });
+    // 능력치는 알약 3개(공격력·공격 간격·체력), 다음 레벨에서 오르는 공격력은 공격력 알약 안 초록 글씨 (2026-10-21 사용자)
+    const L1 = lv || 1, gain = mateDmg(m, L1 + (lv ? 1 : 0)) - (lv ? mateDmg(m) : 0);
+    setHTML(row.querySelector('.stat'), `<i class="pill">${icon('icon_atk', '⚔')} ${fmt(mateDmg(m, L1))}${lv ? `<b class="gain">+${fmt(gain)}</b>` : ''}</i><i class="pill">${icon('icon_timer')} ${t('mates.iv', { iv: m.iv })}</i><i class="pill">${icon('icon_heart')} ${fmt(mateMaxHp(m, L1))}</i>`);
+    setText(row.querySelector('.lvtag'), lv ? `Lv ${lv}` : '');
+    // 역할 동료는 이름 옆에 색 알약 (2026-10-22 사용자)
+    const rl = mateRole(m);
+    if (rl && !row.querySelector('.role')) row.querySelector('.info > b').insertAdjacentHTML('beforeend', `<i class="role ${rl.role}">${t('role.' + rl.role)}</i>`);
     const b = row.querySelector('.act');
-    b.innerHTML = `${lv ? t('mates.upgrade') : t('mates.hire')}<span class="cost">${COIN} ${fmt(c)}</span>`;
+    setHTML(b, `${lv ? t('mates.upgrade_to', { lvl: `Lv ${lv + 1}` + (LANG === 'ko' ? roKo(lv + 1) : '') }) : t('mates.hire')}<span class="cost">${COIN} ${fmt(c)}</span>`); // 'Lv 9로 강화', 오르는 공격력은 공격력 알약 안 초록 글씨 (2026-10-21 사용자 A안)
     b.disabled = S.gold < c;
     row.classList.toggle('locked', !lv);
     if (S.gold >= c) mateReady = true; // 고용·강화 둘 다 살 수 있으면 동료 메뉴에 빨간 점 (2026-10-21)
   });
+  // 순서: 장착 중 → 가진 것 → 잠긴 것 (각각은 SKINS 순서). 바뀔 때만 다시 줄 세운다 (2026-10-21)
+  const order = [...SKINS].sort((a, b) => rankSkin(a) - rankSkin(b) || SKINS.indexOf(a) - SKINS.indexOf(b)).map((k) => k.id).join();
+  if ($('skinList').dataset.order !== order) {
+    $('skinList').dataset.order = order;
+    order.split(',').forEach((id) => $('skinList').appendChild($('skinList').querySelector(`[data-skin="${id}"]`)));
+  }
   document.querySelectorAll('#skinList .skin').forEach((card) => {
     const k = skinById(card.dataset.skin), own = S.skins.includes(k.id);
     card.classList.toggle('on', S.skin === k.id);
     card.classList.toggle('locked', !own);
+    // 잠긴 스킨: 아래에 가격표, 지금 살 수 있으면 밝게 + 초록 가격표 + 빨간 점 (2026-10-21)
+    const can = !own && skinCanGet(k);
+    card.classList.toggle('can', can);
+    setHTML(card.querySelector('.skin-tag'), own ? '' : k.req ? `${icon('icon_rush')} ${k.req}` : k.gem ? `${GEM} ${fmt(k.gem)}` : `${COIN} ${fmt(k.cost)}`);
     if (!own && !k.gem && skinCanGet(k)) skinReady = true;
   });
   const pct = (t) => `+${Math.round(skinEff(t) * 100)}%`;
-  $('sumAtk').textContent = pct('atk'); $('sumSpd').textContent = pct('spd'); $('sumGold').textContent = pct('gold');
-  $('skinCount').textContent = t('skins.count', { n: S.skins.length, total: SKINS.length });
+  setText($('sumAtk'), pct('atk')); setText($('sumSpd'), pct('spd')); setText($('sumGold'), pct('gold'));
   return { mateReady, skinReady, missionReady: updateMissions(), prestigeReady: updatePrestige() };
 }
 
+// 화면 글자·그림 쓰기: 값이 바뀔 때만 쓴다 (0.15초마다 다시 쓰면 매번 다시 그려 발열 — 2026-10-21 최적화)
+function setHTML(el, h) { if (el._h !== h) { el._h = h; el.innerHTML = h; } }
+function setText(el, v) { v = String(v); if (el._t !== v) { el._t = v; el.textContent = v; } }
 function updateUI() {
   const bossOn = wave.bossSpawned && enemies.some((e) => e.boss);
   const wall = isWallStage(S.stage);
   if (chal) {
-    $('stageLabel').textContent = chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 });
-    $('chapterLabel').textContent = CHAPTERS[chal.ci].name;
+    setText($('stageLabel'), chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 }));
+    setText($('chapterLabel'), CHAPTERS[chal.ci].name);
     $('bossTimer').classList.add('on', 'rush');
-    if (chal.horde) $('bossTimer').innerHTML = t('horde.pill', { sec: Math.ceil(chal.t), n: chal.kills, coin: COIN, gold: fmt(chal.gold) });
-    else $('bossTimer').textContent = t('chal.pill', { sec: Math.ceil(chal.t), n: chal.kills, total: CHAL_N });
+    if (chal.horde) setHTML($('bossTimer'), t('horde.pill', { sec: TIMER + ' ' + Math.ceil(chal.t), n: chal.kills, coin: COIN, gold: fmt(chal.gold) }));
+    else setHTML($('bossTimer'), t('chal.pill', { sec: TIMER + ' ' + Math.ceil(chal.t), n: chal.kills, total: CHAL_N }));
   } else if (rush) {
-    $('stageLabel').textContent = t('rush.label');
-    $('chapterLabel').textContent = '🔥 ' + t('place.arena');
+    setText($('stageLabel'), t('rush.label'));
+    setText($('chapterLabel'), t('place.arena'));
     $('bossTimer').classList.add('on', 'rush');
-    $('bossTimer').innerHTML = t('rush.pill', { sec: Math.ceil(rush.t), n: rush.kills, gem: GEM, gems: rush.gems });
+    setHTML($('bossTimer'), t('rush.pill', { sec: TIMER + ' ' + Math.ceil(rush.t), n: rush.kills, gem: GEM, gems: rush.gems }));
   } else {
     $('bossTimer').classList.remove('rush');
-    $('stageLabel').textContent = `${wall ? '🔥 ' : ''}Stage ${S.stage}-${wave.idx + 1}`;
+    setText($('stageLabel'), `Stage ${S.stage}-${wave.idx + 1}`);
     const ch = chapterOf(S.stage);
-    $('chapterLabel').innerHTML = `${AVAIL.has('icon_chapter_' + ch.id) ? icon('icon_chapter_' + ch.id, ch.icon) : ch.icon} ${ch.name}`;
+    setHTML($('chapterLabel'), `${AVAIL.has('icon_chapter_' + ch.id) ? icon('icon_chapter_' + ch.id) : ''} ${ch.name}`);
     $('bossTimer').classList.toggle('on', bossOn);
-    if (bossOn) $('bossTimer').textContent = (wall ? t('hud.king_timer', { boss: wallBossName(S.stage), sec: Math.ceil(bossT) }) : t('hud.boss_timer', { sec: Math.ceil(bossT) }));
+    if (bossOn) setText($('bossTimer'), (wall ? t('hud.king_timer', { boss: wallBossName(S.stage), sec: Math.ceil(bossT) }) : t('hud.boss_timer', { sec: Math.ceil(bossT) })));
   }
   // 일반 보스전의 남은 시간은 보스 체력 바 안에 (빨간 알약은 보스 러시·도전 때만 보인다 — 2026-10-21 위쪽 표시 정리)
-  $('bossTime').textContent = !rush && !chal && bossOn ? `⏱ ${Math.ceil(bossT)}` : '';
+  setHTML($('bossTime'), !rush && !chal && bossOn ? `${TIMER}<span>${Math.ceil(bossT)}</span>` : ''); // 초시계 그림 + 숫자
   // 스테이지 명판: 보스가 나왔거나 강한 보스 스테이지·보스 러시면 보스 명판(ui_stage_plate_boss)
+  $('stageLabel').style.visibility = rush || (chal && chal.horde) ? 'hidden' : ''; // 보스 러시·대군 모드는 위 알약에 이미 나와서 이름 글자 숨김 (2026-10-22 사용자)
   $('stageLabel').classList.toggle('boss', !!(rush || wall || bossOn) && !chal);
-  $('gemLabel').innerHTML = GEM + ' ' + fmt(S.gems) + (AVAIL.has('ui_btn_plus') ? '<i class="plus"></i>' : ''); // + = 상점 열기
+  setHTML($('gemLabel'), GEM + ' ' + fmt(S.gems)); // + 버튼은 결제로 오해할 수 있어 뺐다 (2026-10-21 사용자 결정)
   const boostLeft = (S.boostUntil - Date.now()) / 1000;
   $('boostPill').classList.toggle('on', boostLeft > 0);
-  if (boostLeft > 0) $('boostPill').textContent = t('hud.boost', { time: `${Math.floor(boostLeft / 60)}:${String(Math.floor(boostLeft % 60)).padStart(2, '0')}` });
+  if (boostLeft > 0) setText($('boostPill'), t('hud.boost', { time: `${Math.floor(boostLeft / 60)}:${String(Math.floor(boostLeft % 60)).padStart(2, '0')}` }));
   const mr = $('gemLabel').getBoundingClientRect(), fr0 = $('field').getBoundingClientRect();
   gemTarget = { x: (mr.left - fr0.left + 26 * scale) / scale, y: (mr.top - fr0.top + mr.height / 2) / scale };
-  $('goldLabel').innerHTML = COIN + ' ' + fmt(S.gold);
+  setHTML($('goldLabel'), COIN + ' ' + fmt(S.gold));
   const gr = $('goldLabel').getBoundingClientRect(), fr = $('field').getBoundingClientRect();
   goldTarget = { x: (gr.left - fr.left + 26 * scale) / scale, y: (gr.top - fr.top + gr.height / 2) / scale };
   // 스테이지 전체 진행도: 끝난 웨이브 + 현재 웨이브 진행 (마지막 웨이브는 보스 체력을 깎은 만큼)
@@ -984,31 +1076,37 @@ function updateUI() {
   const cur = isFinalWave() ? (boss ? 1 - Math.max(0, boss.hp) / boss.max : 0) : Math.min(1, wave.kills / waveSize(wave.idx));
   const pct = Math.min(1, (wave.idx + cur) / wave.total);
   // 보스 러시 중에는 맨 위 바가 남은 시간을 보여주고 웨이브 트랙은 숨긴다
-  const timed = rush || chal;
-  const topV = rush ? Math.min(1, rush.t / RUSH_TIME) : chal ? chal.t / CHAL_TIME : pct;
+  // 평소엔 챕터 진행(대왕까지 10스테이지 중 몇 번째, 2026-10-22 사용자) — 아래 점 진행(웨이브)과 역할을 나눈다
+  const timed = rush || chal, chN = (S.stage - 1) % 10 + 1;
+  const topV = rush ? Math.min(1, rush.t / RUSH_TIME) : chal ? chal.t / CHAL_TIME : (chN - 1 + pct) / 10;
   $('topFill').style.width = topV * 100 + '%';
-  $('topPct').textContent = timed ? t('hud.seconds', { n: Math.ceil(timed.t) }) : Math.floor(pct * 100) + '%';
+  setText($('topPct'), timed ? t('hud.seconds', { n: Math.ceil(timed.t) }) : t('hud.chapter_prog', { name: chapterOf(S.stage).name, n: chN, total: 10 }));
   $('track').style.visibility = timed ? 'hidden' : '';
-  // 트랙: 22px 여백 안쪽에 웨이브 점을 고르게, 마지막 점은 보스
+  // 트랙 (총고식, 2026-10-21): 첫 점 = 줄 맨 왼쪽(웨이브 1), 마지막 점 = 보스. 셰프는 지금 웨이브 점에서 다음 점으로 나아간다
   const W = $('track').clientWidth - 44, at = (f) => 22 + f * W;
-  $('trackFill').style.width = pct * 100 + '%';
+  const trackP = Math.min(1, (wave.idx + (isFinalWave() ? 0 : cur)) / Math.max(1, wave.total - 1));
+  $('trackFill').style.width = trackP * 100 + '%';
   const key = `${S.stage}:${wave.idx}:${wave.total}`;
   if ($('trackNodes').dataset.key !== key) {
     $('trackNodes').dataset.key = key;
     $('trackNodes').innerHTML = Array.from({ length: wave.total }, (_, i) => {
       const last = i === wave.total - 1;
-      return `<i class="${i < wave.idx ? 'done' : ''} ${last ? 'boss' + (wall ? ' wall' : '') : ''}" style="left:${at((i + 1) / wave.total)}px">${last ? `<img src="${IMG}icon_boss.webp" alt="">` : ''}</i>`;
+      return `<i class="${i <= wave.idx ? 'done' : ''} ${last ? 'boss' + (wall ? ' wall' : '') : ''}" style="left:${at(i / Math.max(1, wave.total - 1))}px">${last ? `<img src="${IMG}icon_boss.webp" alt="">` : ''}</i>`;
     }).join('');
   }
-  $('trackHero').style.left = at(pct) + 'px';
+  $('trackHero').style.left = at(trackP) + 'px';
   const thumb = skinThumb[S.skin];
-  if (thumb && $('trackHeroImg').dataset.skin !== S.skin) { $('trackHeroImg').src = thumb; $('trackHeroImg').dataset.skin = S.skin; }
+  // 진행 줄 셰프: 테두리 없는 머리 그림(ui_hero_head, 7차)이 있으면 그것, 없으면 스킨 썸네일을 동그라미에
+  const headArt = AVAIL.has('ui_hero_head');
+  $('trackHero').classList.toggle('head', headArt);
+  if (headArt && $('trackHeroImg').dataset.skin !== 'head') { $('trackHeroImg').src = `${IMG}ui_hero_head.webp`; $('trackHeroImg').dataset.skin = 'head'; }
+  else if (!headArt && thumb && $('trackHeroImg').dataset.skin !== S.skin) { $('trackHeroImg').src = thumb; $('trackHeroImg').dataset.skin = S.skin; }
   const buy = $('btnBuy');
   // 업그레이드 카드: 바탕 게이지 = 모은 골드 ÷ 가격 (가득 차면 살 수 있음). 저장하지 않고 매번 계산한다 (ux:ui-state)
   const card = (el, lv, val, cost, max) => {
-    el.querySelector('.lv').textContent = `Lv.${lv}`;
-    el.querySelector('.val').textContent = val;
-    el.querySelector('.cost').innerHTML = max ? 'MAX' : COIN + ' ' + fmt(cost);
+    setText(el.querySelector('.lv'), `Lv.${lv}`);
+    setText(el.querySelector('.val'), val);
+    setHTML(el.querySelector('.cost'), max ? 'MAX' : COIN + ' ' + fmt(cost));
     const f = max ? 1 : Math.min(1, S.gold / cost);
     // 게이지는 카드 폭 전체로 그리고 오른쪽을 잘라 줄인다 (3분할 그림 ui_up_gauge의 둥근 끝이 겹치지 않게)
     el.querySelector('.gauge i').style.clipPath = `inset(0 ${((1 - f) * 100).toFixed(1)}% 0 0 round 0 12px 12px 0)`;
@@ -1020,11 +1118,12 @@ function updateUI() {
   card($('btnSpd'), S.spdLv, `x${spdMul().toFixed(2)}`, costSpd(), spdMul() >= BAL.spdMax);
   card($('btnGold'), S.goldLv, `x${goldMul().toFixed(2)}`, costGold(), false);
   $('btnSaver').classList.toggle('on', !!S.settings.saver);
+  $('btnSaver').style.display = rush || chal ? 'none' : ''; // 보스 러시·대군·스테이지 도전 중에는 절전모드 버튼을 뺀다 (2026-10-22 사용자)
   // 절전모드: 가려진 전장은 그리지 않는다(전투 계산은 그대로), 가운데 셰프는 지금 스킨으로
   if (world) world.visible = !S.settings.saver;
   if (S.settings.saver && $('saverChef').dataset.skin !== S.skin) { $('saverChef').dataset.skin = S.skin; $('saverChef').src = skinThumb[S.skin] || `${IMG}hero_chef.webp`; }
   const full = !S.grid.includes(0);
-  buy.querySelector('.cost').innerHTML = full ? t('tools.full') : COIN + ' ' + fmt(costBuy());
+  setHTML(buy.querySelector('.cost'), full ? t('tools.full') : COIN + ' ' + fmt(costBuy()));
   buy.disabled = full || S.gold < costBuy();
   // 배지: 도구를 살 수 있거나 합성할 쌍이 있을 때, 새 동료를 고용하거나 새 스킨을 살 수 있을 때
   const lv = S.grid.filter((L) => L);
@@ -1042,6 +1141,44 @@ function showTab(name) {
 }
 document.querySelector('.tabs').onclick = (e) => { const t = e.target.closest('.tab'); if (t) showTab(t.dataset.tab); };
 
+// 오프닝 영상 (2026-10-22): 처음 시작할 때 한 번 — 22초, 소리 없음(음소거 자동 재생이 웹뷰에서도 됨). 건너뛰기 가능, 끝나면 done()
+// 자막 [시작초, 끝초, 문구 키] — 장면에 맞춰 잡음 (2026-10-22)
+const PROLOGUE_SUBS = [[0.3, 2.5, 'video.sub1'], [2.5, 4, 'video.sub2'], [4, 6, 'video.sub3'], [6, 9.5, 'video.sub4'], [9.5, 11.8, 'video.sub5'], [11.8, 13.5, 'video.sub6'], [13.5, 16.5, 'video.sub7']]; // 2번부터 장면 바뀌는 순간에 맞춰 크게 당김 (2026-10-22 사용자) · 마지막 '주방 대전쟁, 시작!'은 뺌
+// 첫 실행: 화면을 한 번 눌러야 휴대폰이 소리를 허락한다 → '화면을 눌러 시작' 후 영상
+function tapToStart(go) {
+  const el = $('tapStart');
+  // 첫 화면 로고: 한국어 로고가 오면 'ui_title_logo'(없으면 영어 로고) (2026-10-22 사용자)
+  el.querySelector('img').src = `${IMG}${LANG === 'ko' && AVAIL.has('ui_title_logo') ? 'ui_title_logo' : 'ui_title_logo_en'}.webp`;
+  el.classList.remove('hidden'); paused = true;
+  el.onclick = () => { el.classList.add('hidden'); el.onclick = null; Sound.unlock(); go(); };
+}
+// 효과음 [초, 소리] — 장면 바뀌는 순간 (sound.js pr*)
+const PROLOGUE_SFX = [[0.3, 'prDay'], [2.5, 'prNight'], [4, 'prSmoke'], [6, 'prKing'], [9.5, 'prMess'], [11.8, 'prShock'], [13.5, 'prPan'], [17.5, 'prCharge'], [19.8, 'prBubbles']];
+function playPrologue(done) {
+  const wrap = $('prologue'), v = wrap.querySelector('video');
+  paused = true;
+  // 사운드: 받은 음원(prologue.mp3, 22초)을 영상과 함께 재생 — 있으면 코드 합성 효과음(PROLOGUE_SFX)은 안 씀 (2026-10-22)
+  const au = $('prologueAudio'), useAudio = !!(au && au.src);
+  let sfxI = useAudio ? PROLOGUE_SFX.length : 0;
+  Sound.duckMusic(true);
+  if (useAudio) { au.currentTime = 0; au.volume = 1; au.muted = !(S.settings.sfx || S.settings.music); const ap = au.play(); if (ap && ap.catch) ap.catch(() => {}); }
+  const finish = () => { v.pause(); if (useAudio) au.pause(); wrap.classList.add('hidden'); paused = false; Sound.duckMusic(false); v.onended = null; $('btnSkipVideo').onclick = null; done && done(); };
+  wrap.classList.remove('hidden'); wrap.classList.remove('reveal');
+  const sub = $('prologueSub');
+  // 자막·투명 전환은 매 프레임 확인 (timeupdate는 0.25초 간격이라 자막이 늦게 뜸)
+  const tick = () => {
+    if (wrap.classList.contains('hidden')) return;
+    wrap.classList.toggle('reveal', v.currentTime >= 19.8); // 20초부터 거품이 올라가며 투명 → 뒤의 게임이 드러남
+    const line = PROLOGUE_SUBS.find(([a, b]) => v.currentTime >= a && v.currentTime < b);
+    setText(sub, line ? t(line[2]) : ''); sub.classList.toggle('on', !!line);
+    if (useAudio && !au.paused && Math.abs(au.currentTime - v.currentTime) > 0.25) au.currentTime = v.currentTime; // 영상과 소리 맞춤
+    while (sfxI < PROLOGUE_SFX.length && v.currentTime >= PROLOGUE_SFX[sfxI][0]) Sound.play(PROLOGUE_SFX[sfxI++][1]);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  v.currentTime = 0; v.onended = finish; $('btnSkipVideo').onclick = finish;
+  const p = v.play(); if (p && p.catch) p.catch(finish); // 재생이 막히면 바로 다음으로
+}
 // 모달 — 타이틀·오프라인 보상·확인 창. 떠 있는 동안 게임을 멈춘다
 // opt: { variant: 'orange', peek: 그림 주소(패널 위로 머리를 내민다), x: false(X 없음) | 'below'(패널 아래 가운데), xClose: X는 그냥 닫기 }
 // X는 취소가 있으면 취소, 없으면 확인과 같다(보상 받기). btn이 없으면 확인 버튼을 숨긴다
@@ -1117,7 +1254,7 @@ function offerOffline(away) {
     <div class="off-time">${fmtTime(sec)}</div>
     <div class="off-grid">
       <div class="off-col"><b class="off-st">Stage ${plan.before.stage}</b>${lvRow('icon_atk', 'atkLv')}${lvRow('icon_spd', 'spdLv')}${lvRow('icon_gold_up', 'goldLv')}</div>
-      <div class="off-arrow">▶</div>
+      <div class="off-arrow">→</div>
       <div class="off-col"><b class="off-st">Stage ${plan.after.stage}${plan.max ? '<i class="off-max">Max!</i>' : ''}</b>${lvRowA('icon_atk', 'atkLv')}${lvRowA('icon_spd', 'spdLv')}${lvRowA('icon_gold_up', 'goldLv')}</div>
     </div>
     ${plan.gold > 0 ? `<div class="off-gold">${t('offline.gold_left', { coin: COIN, n: fmt(plan.gold) })}</div>` : ''}
@@ -1224,10 +1361,10 @@ function updateMissions() {
   document.querySelectorAll('#missionList .mission').forEach((row) => {
     const id = row.dataset.mid, m = MISSIONS.find((x) => x.id === id);
     const p = Math.min(m.n, Math.floor(S.daily.prog[id] || 0)), done = p >= m.n, got = !!S.daily.claimed[id];
-    row.querySelector('.stat').textContent = id === 'time' ? t('mission.minutes', { n: Math.floor(p / 60), total: m.n / 60 }) : `${p} / ${m.n}`;
+    setText(row.querySelector('.stat'), id === 'time' ? t('mission.minutes', { n: Math.floor(p / 60), total: m.n / 60 }) : `${p} / ${m.n}`);
     row.querySelector('.bar2 i').style.width = (p / m.n) * 100 + '%';
     const b = row.querySelector('.act');
-    b.innerHTML = got ? t('mission.claimed') : done ? `${t('mission.claim')}<span class="cost">${COIN} ${fmt(missionGold())} · ${GEM} 5</span>` : t('mission.progress');
+    setHTML(b, got ? t('mission.claimed') : done ? `${t('mission.claim')}<span class="cost">${COIN} ${fmt(missionGold())} · ${GEM} 5</span>` : t('mission.progress'));
     b.disabled = got || !done;
     b.classList.toggle('claimed', got);
     row.classList.toggle('done', got);
@@ -1235,14 +1372,14 @@ function updateMissions() {
   });
   const all = S.daily.ids.every((id) => S.daily.claimed[id]);
   const bb = $('btnBonus');
-  bb.innerHTML = S.daily.bonus ? t('mission.claimed') : `${t('mission.claim')}<span class="cost">${STAR} 1 · ${GEM} 20</span>`;
+  setHTML(bb, S.daily.bonus ? t('mission.claimed') : `${t('mission.claim')}<span class="cost">${STAR} 1 · ${GEM} 20</span>`);
   bb.disabled = S.daily.bonus || !all;
   bb.classList.toggle('claimed', S.daily.bonus);
   if (all && !S.daily.bonus) ready = true;
   // 자정까지 남은 시간
   const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const left = Math.max(0, (mid - now) / 1000);
-  $('missionHint').textContent = t('mission.hint', { h: Math.floor(left / 3600), m: Math.floor((left % 3600) / 60) });
+  setText($('missionHint'), t('mission.hint', { h: Math.floor(left / 3600), m: Math.floor((left % 3600) / 60) }));
   return ready;
 }
 
@@ -1269,7 +1406,8 @@ function updatePrestige() {
   $('starNow').textContent = fmt(S.stars);
   const b = $('btnPrestige');
   $('starGain').textContent = fmt(gain);
-  $('starBonus').textContent = S.stage < PRESTIGE_MIN ? t('prestige.need', { min: PRESTIGE_MIN, now: S.stage }) : S.prestiges ? t('prestige.count', { n: S.prestiges }) : '';
+  $('starBonus').textContent = S.stage < PRESTIGE_MIN ? t('prestige.need', { min: PRESTIGE_MIN, now: S.stage }) : '';
+  $('prCount').textContent = t('prestige.count', { n: S.prestiges || 0 }); // 곰 오른쪽, 0회도 표시 (2026-10-22 사용자)
   b.disabled = S.stage < PRESTIGE_MIN || gain < 1;
   let permReady = false;
   document.querySelectorAll('#permList .perm').forEach((row) => {
@@ -1301,7 +1439,7 @@ $('btnPrestige').onclick = () => {
       closeSheet(); renderGrid(); updateUI(); save();
       banner(`${t('prestige.done', { n: gain })}<small>${t('common.star_use')}</small>`, 2.6);
       Sound.play('prestige'); shake(14); buzz(60);
-    }, t('common.cancel'), { peek: `${IMG}illust_prestige.webp` });
+    }, t('common.cancel'), { peek: `${IMG}illust_prestige_angel.webp` });
 };
 
 // ---------- ⚙️ 설정 ----------
@@ -1309,7 +1447,7 @@ const GAME_VERSION = 'v0.1';
 function applySettings() {
   const st = S.settings;
   Sound.setSfx(st.sfx); Sound.setMusic(st.music);
-  if (app) app.ticker.maxFPS = st.saver ? 30 : 0; // 절전: 30fps
+  if (app) app.ticker.maxFPS = st.saver ? 30 : 60; // 절전 30fps, 평소에도 60fps까지만 (120Hz 폰에서 두 배로 그리지 않게 — 발열)
   $('saverScreen').classList.toggle('on', !!st.saver); // 절전: 전장을 가리는 화면 (그림은 updateUI에서)
   fit();                                          // 절전: 백버퍼 해상도 낮춤
   document.querySelectorAll('#settings .switch').forEach((b) => b.classList.toggle('on', !!st[b.dataset.key]));
@@ -1318,7 +1456,6 @@ function openSettings() { applySettings(); $('settings').classList.remove('hidde
 function closeSettings() { $('settings').classList.add('hidden'); paused = false; }
 $('btnSettings').onclick = openSettings;
 // 스테이지 아래 절전모드 알약: 설정의 절전 모드와 같은 값
-$('gemLabel').onclick = (e) => { if (e.target.closest('.plus')) openSheet('shop'); };
 $('btnSaver').onclick = () => { S.settings.saver = !S.settings.saver; Sound.unlock(); applySettings(); save(); updateUI(); banner(`<small>${t(S.settings.saver ? 'hud.saver_on' : 'hud.saver_off')}</small>`, 1); };
 $('btnSetClose').onclick = closeSettings;
 $('settings').onclick = (e) => { if (e.target.id === 'settings') closeSettings(); };
@@ -1375,7 +1512,7 @@ $('shopList').onclick = (e) => {
   if (it.owned() || S.gems < it.price) return;
   S.gems -= it.price; it.buy();
   Sound.play('claim'); buzz(20);
-  banner(`${it.icon} ${it.name}!`, 1.2);
+  banner(`${it.name}!`, 1.2);
   renderGrid(); updateUI(); save();
 };
 
@@ -1430,7 +1567,7 @@ function spawnRushBoss() {
   // 러시는 시간 싸움이라 보스가 화면 안쪽 위에서 바로 나타난다
   e.x = cam.x + FW / 2 + (Math.random() - 0.5) * 300; e.y = cam.y + 260;
   e.c.position.set(e.x, e.y);
-  e.c.scale.set(0.2); e.hit = 0.6; // 뿅 나타나는 연출
+  e.c.scale.set(0.2); e.pop = 0.6; // 뿅 나타나는 연출
   drawBar(e);
   bossSay(BOSS_LINES[Math.floor(Math.random() * BOSS_LINES.length)]);
 }
@@ -1438,7 +1575,7 @@ function rushKill(e) {
   rush.kills++;
   const g = rushGemFor(rush.kills);
   rush.gems += g;
-  popText(e.x, e.y - 70, `💎 +${g}`, 'crit');
+  popText(e.x, e.y - 70, `${GEM} +${g}`, 'crit');
   gemBurst(e.x - cam.x, e.y - cam.y, Math.min(10, 2 + rush.kills));
   rush.next = 0.8;
   rush.t += 3; // 잡을 때마다 3초 보너스
@@ -1456,7 +1593,7 @@ function endRush(reason) {
   save();
   showModal(`<div class="title small">${t('rush.end_title')}</div>
     <p>${reason}<br>${t('rush.end_kills', { n: r.kills })}</p>
-    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}ui_tag_best.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
+    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}${textArt('ui_tag_best')}.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
     <div class="reward">${GEM} ${r.gems}</div>
     <p class="sub">${t('end.tries_left', { n: RUSH_TRIES - rushToday().used, total: RUSH_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
@@ -1470,12 +1607,18 @@ const CHAL_TIME = 60, CHAL_N = 40, CHAL_GEMS = 30, CHAL_GAP = 0.35;
 let chal = null;
 const chalOpen = (ci) => (S.bestStage || S.stage) > (ci + 1) * 10; // 그 챕터 강한 보스(10·20…)를 넘었으면 열린다
 const chalArt = (ch, boss) => { const k = boss ? 'boss_' + ch.boss : 'enemy_' + ch.enemies[0]; return AVAIL.has(k) ? `${IMG}${k}.webp` : `${IMG}${boss ? 'boss_onion' : 'enemy_tomato'}.webp`; };
+// 하루 횟수 초기화(자정)까지 남은 시간 'H:MM'
+function untilMidnight() {
+  const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1), s = Math.max(0, Math.floor((mid - now) / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`; // 시:분 (초는 안 보임)
+}
 function buildChal() {
+  $('rushDesc').innerHTML = t('rush.desc', { gem: GEM }); // 다이아 그림이 들어가서 data-i18n 대신 여기서
   $('chalList').innerHTML = CHAPTERS.map((ch, ci) => `
     <div class="row chal" data-ci="${ci}">
       <span class="big"><img src="${chalArt(ch)}" alt=""></span>
-      <div class="info"><b>${t('chal.row', { n: ci + 1, name: ch.name })}</b><span class="desc">${t('chal.row_desc', { n: CHAL_N })}</span></div>
-      <button class="act gem"></button>
+      <div class="info"><b>${t('chal.row', { n: ci + 1, name: ch.name }).replace(/CHAPTER \d+/, (m) => `<span class="en">${m}</span>`)}</b><span class="desc">${t('chal.row_desc', { n: CHAL_N })}</span><span class="reward">${t('chal.first_reward')} ${GEM} ${CHAL_GEMS}</span></div>
+      <button class="act"></button>
     </div>`).join('');
   $('chalList').onclick = (e) => {
     const row = e.target.closest('.act') && e.target.closest('.chal');
@@ -1520,7 +1663,7 @@ function endChal(ok, reason) {
 }
 
 // ---------- ⚔️ 대군 모드 (2026-10-21): 60초 동안 약한 적이 끝없이 몰려온다 — 잡은 만큼 골드. 스테이지 도전(chal) 위에 얹는다 ----------
-const HORDE_TIME = 60, HORDE_TRIES = 3, HORDE_MAX = 36, HORDE_BURST = 4, HORDE_GAP = 0.5;
+const HORDE_TIME = 60, HORDE_TRIES = 3, HORDE_MAX = 60, HORDE_BURST = 6, HORDE_GAP = 0.4; // 2026-10-21 사용자: 더 많이 (동시 36→60, 한 번에 4→6마리, 0.5→0.4초마다)
 const HORDE_HP = 0.35, HORDE_ATK = 0.5; // 적 체력 = 지금 스테이지 일반 적의 35% (대부분 한두 방), 공격력은 절반
 function hordeToday() {
   const key = todayKey();
@@ -1562,7 +1705,7 @@ function endHorde(reason) {
   save();
   showModal(`<div class="title small">${t('horde.end_title')}</div>
     <p>${reason}<br>${t('horde.end_kills', { n: c.kills })}</p>
-    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}ui_tag_best.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
+    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}${textArt('ui_tag_best')}.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
     <div class="reward">${COIN} ${fmt(c.gold)}</div>
     <p class="sub">${t('end.tries_left', { n: HORDE_TRIES - hordeToday().used, total: HORDE_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
@@ -1575,23 +1718,23 @@ function updateShopRush() {
   let shopReady = false;
   document.querySelectorAll('#shopList [data-shop]').forEach((row) => {
     const it = SHOP.find((x) => x.id === row.dataset.shop), own = it.owned();
-    row.querySelector('.lbl').textContent = it.label ? it.label() : '';
+    setText(row.querySelector('.lbl'), it.label ? it.label() : '');
     const b = row.querySelector('.act');
-    b.innerHTML = own ? t('shop.owned') : `${t('shop.buy')}<span class="cost">${GEM} ${it.price}</span>`;
+    setHTML(b, own ? t('shop.owned') : `${t('shop.buy')}<span class="cost">${GEM} ${it.price}</span>`);
     b.disabled = own || S.gems < it.price;
     b.classList.toggle('claimed', own);
     if (!own && it.id !== 'boost' && S.gems >= it.price) shopReady = true;
   });
-  $('shopHint').innerHTML = t('shop.hint', { n: `<b>${GEM} ${fmt(S.gems)}</b>` });
+  setHTML($('shopHint'), `<span class="txt">${t('shop.hint')}</span><b class="own">${GEM} ${fmt(S.gems)}</b>`); // 보유 다이아는 오른쪽 알약 (2026-10-21)
   const r = rushToday(), left = RUSH_TRIES - r.used;
-  $('rushTries').textContent = t('chal.tries', { n: left, total: RUSH_TRIES });
-  $('rushBest').textContent = t('rush.best', { n: S.rushBest });
+  setText($('rushTries'), left > 0 ? t('chal.tries', { n: left, total: RUSH_TRIES }) : t('chal.reset_in', { time: untilMidnight() })); // 다 쓰면 초기화까지 남은 시간 (2026-10-22 사용자)
+  setText($('rushBest'), t('rush.best', { n: S.rushBest }));
   $('btnRush').disabled = left <= 0 || !!rush;
-  $('btnRush').textContent = rush ? t('chal.running') : left > 0 ? t('chal.start') : t('chal.tomorrow');
+  setText($('btnRush'), rush ? t('chal.running') : left > 0 ? t('chal.start') : t('chal.tomorrow'));
   let chalReady = false;
   document.querySelectorAll('#chalList .chal').forEach((row) => {
     const ci = +row.dataset.ci, done = !!S.chal[ci], open = chalOpen(ci), b = row.querySelector('.act');
-    b.innerHTML = done ? t('chal.done') : open ? `${t('chal.go')}<span class="cost">${GEM} ${CHAL_GEMS}</span>` : `${icon('icon_lock', '🔒')}<span class="cost">${t('chal.locked', { n: (ci + 1) * 10 })}</span>`;
+    setHTML(b, done ? t('chal.done') : open ? t('chal.go') : `${icon('icon_lock', '🔒')}<span class="cost">${t('chal.locked', { n: (ci + 1) * 10 })}</span>`);
     b.disabled = done || !open || !!rush || !!chal;
     b.classList.toggle('claimed', done);
     row.classList.toggle('locked', !open);
@@ -1599,10 +1742,10 @@ function updateShopRush() {
   });
   const hLeft = HORDE_TRIES - hordeToday().used, hImg = chalArt(chapterOf(S.stage));
   if ($('hordeImg').dataset.src !== hImg) { $('hordeImg').dataset.src = hImg; $('hordeImg').src = hImg; } // 지금 챕터 적 그림
-  $('hordeTries').textContent = t('chal.tries', { n: hLeft, total: HORDE_TRIES });
-  $('hordeBest').textContent = t('horde.best', { n: S.hordeBest || 0 });
+  setText($('hordeTries'), hLeft > 0 ? t('chal.tries', { n: hLeft, total: HORDE_TRIES }) : t('chal.reset_in', { time: untilMidnight() }));
+  setText($('hordeBest'), t('horde.best', { n: S.hordeBest || 0 }));
   $('btnHorde').disabled = hLeft <= 0 || !!rush || !!chal;
-  $('btnHorde').textContent = chal && chal.horde ? t('chal.running') : hLeft > 0 ? t('chal.start') : t('chal.tomorrow');
+  setText($('btnHorde'), chal && chal.horde ? t('chal.running') : hLeft > 0 ? t('chal.start') : t('chal.tomorrow'));
   return { shopReady, rushReady: left > 0 || chalReady || hLeft > 0 };
 }
 
@@ -1670,26 +1813,107 @@ addEventListener('pointerup', (e) => {
 
 // ---------- 게임 로직 ----------
 let world, field, hero;
+const KING_H = 350; // 대왕 보스 그림 키 (논리 px)
+// ---------- 스프라이트 시트 애니메이션 (ANIM_TODO, 2026-10-21) ----------
+// 시트 이름 anim_<누구>_<프레임수>f — 정사각형 프레임을 가로로 나란히(정사각형 시트면 √n 칸씩). 영상에서 뽑은 대왕 보스 대기+공격 한 벌
+// 대왕 보스 공격 시트 (2026-10-21 두 번째 시도): 평소엔 한 장 그림 + 코드 움직임, 내려칠 때만 시트 6장을 한 번 재생 (대기 시트는 움직임이 거의 없어 안 씀)
+// 시트 anim_king_<챕터>_attack_6f: 0 준비 · 1~2 두 팔 들기 · 3 내려치기 · 4 땅 치기(= 실제 공격 순간) · 5 돌아오기
+// feet·charH = 프레임 기준 발 높이·캐릭터 키 비율, still* = 한 장 그림(king_*) 기준 — 둘의 캐릭터 키·발 위치를 맞춘다
+const KING_ATK = { hit: 4, fps: 10, feet: 0.945 };
+// 챕터별 크기 맞춤 — charH: 시트 0번 장 캐릭터 키 / 프레임, stillCharH·stillFeet: 한 장 그림(king_*) 캐릭터 키·발 높이 / 그림 (재서 넣는다)
+// hit: 땅 치는(= 실제 공격) 장 번호 — 대부분 4, 시트마다 다르면 여기서
+const KING_FIT = {
+  kitchen: { charH: 0.60, stillCharH: 0.91, stillFeet: 0.977 },
+  fridge: { charH: 0.625, stillCharH: 0.957, stillFeet: 0.984 },
+  pantry: { charH: 0.594, stillCharH: 0.93, stillFeet: 0.990, hit: 3 },
+  hall: { charH: 0.551, stillCharH: 0.84, stillFeet: 0.994, hit: 3 },
+  bakery: { charH: 0.64, stillCharH: 0.98, stillFeet: 0.984 },
+};
+const kingLead = (hit = KING_ATK.hit) => (hit + 0.5) / KING_ATK.fps; // 공격 애니 시작 ~ 땅 치는 순간 (4번 장이면 0.45초, 충격파가 그 장 가운데쯤)
+const animCache = {};
+function animFrames(key) {
+  if (animCache[key]) return animCache[key];
+  const tex = ART[key]; if (!tex) return null;
+  const n = +((key.match(/_(\d+)f$/) || [])[1] || 0); if (!n) return null;
+  // 정사각형 프레임 격자: 그림 가로세로 비율에 맞는 열 수를 찾는다 (한 줄 6칸·3×2·7×7 모두)
+  let cols = n;
+  for (let c = 1; c <= n; c++) if (Math.abs(c / Math.ceil(n / c) - tex.width / tex.height) < 0.01) { cols = c; break; }
+  const fs = tex.width / cols, frames = [];
+  for (let i = 0; i < n; i++) frames.push(new PIXI.Texture({ source: tex.source, frame: new PIXI.Rectangle((i % cols) * fs, Math.floor(i / cols) * fs, fs, fs) }));
+  return (animCache[key] = frames);
+}
+const kingAnimKey = (ch) => Object.keys(ART).find((k) => k.startsWith('anim_king_' + ch.id + '_attack_'));
+function playKingAttack(e) {
+  const a = e.anim; a.mode = 'attack';
+  a.still.visible = false; a.sp.visible = true;
+  a.sp.onComplete = () => { a.mode = 'idle'; a.sp.visible = false; a.still.visible = true; };
+  a.sp.gotoAndPlay(0);
+}
+const glowCache = {}; // 강한 적 빨간 빛 구운 그림 (그림 키:크기)
 function spawnEnemy(boss, wall = false) {
-  const r = wall ? 58 : boss ? 46 : 22;
+  // 몸 반지름 (그림 키 ≈ 반지름 × 2.8~2.9). 2026-10-21 키움: 일반 22→30(키 87, 셰프 168의 52%), 보스 46→60(셰프와 같은 키), 대왕 보스 58→76(셰프의 1.27배)
+  // 2바퀴부터(일반 스테이지만): 가끔 강한 적, 다른 챕터 적이 섞여 나온다
+  const lapOn = !boss && !rush && !chal && lapOf(S.stage) >= 1;
+  const strong = lapOn && Math.random() < STRONG_CHANCE;
+  // 2026-10-21 보스 한 번 더 키움: 보스 60→72(키 202, 셰프의 1.2배), 대왕 보스 76→92(키 258, 셰프의 1.5배)
+  const r = wall ? 92 : boss ? 72 : strong ? Math.round(30 * STRONG.r) : 30;
   const c = new PIXI.Container();
-  const ch = rush ? CHAPTERS[rush.kills % CHAPTERS.length] : chal ? CHAPTERS[chal.ci] : chapterOf(S.stage); // 러시는 잡을 때마다 다음 챕터 보스
+  let ch = rush ? CHAPTERS[rush.kills % CHAPTERS.length] : chal && chal.horde ? CHAPTERS[Math.floor(Math.random() * CHAPTERS.length)] : chal ? CHAPTERS[chal.ci] : chapterOf(S.stage); // 러시는 잡을 때마다 다음 챕터 보스, 대군 모드는 다섯 챕터 적이 마구 섞여 나온다 (2026-10-21)
+  if (lapOn && Math.random() < LAP_MIX) { const others = CHAPTERS.filter((x) => x !== ch); ch = others[Math.floor(Math.random() * others.length)]; }
   const est = chal ? chal.st : S.stage; // 도전은 그 챕터 강한 보스 스테이지 세기
-  const art = enemyArt(ch, boss, Math.floor(Math.random() * 3));
-  let g, barY = -r - 22;
+  const art = enemyArt(ch, boss, Math.floor(Math.random() * 3), wall);
+  let g, barY = -r - 22, glow = null;
+  const animKey = wall && !rush ? kingAnimKey(ch) : null, animFr = animKey && animFrames(animKey);
+  let anim = null;
   if (ART[art.key]) {
     // 손그림: 발이 원 아래쪽(r)에 오도록, 키는 반지름의 약 2.9배
     g = new PIXI.Container();
-    const h = r * (boss ? 2.8 : 2.9), sp = artSprite(art.key, h);
+    // 그림 키: 대왕 보스만 '그림만' 크게 KING_H(350, 셰프의 2.1배) — 판정(반지름 r)은 그대로라 공격 거리·맞는 범위는 안 바뀐다 (2026-10-21)
+    const h = wall ? KING_H : r * (boss ? 2.8 : 2.9), sp = artSprite(art.key, h);
     sp.y = r * 1.05;
     sp.tint = art.tint;
+    // 강한 적: 몸 둘레에 빨간 빛 (같은 그림을 빨갛게 칠해 흐리게 번진 것을 뒤에 깐다, 2026-10-21)
+    if (strong) {
+      // 그림 모양만 따서 순수한 밝은 빨강으로 칠한 뒤(색을 곱하면 초록 적은 어두운 빨강이 된다) 두 겹으로 번지게: 바깥 크게·안쪽 진하게
+      // 번짐(blur)은 매 프레임 계산하면 무거워서(발열) 그림·크기마다 한 번만 그림으로 구워 두고 그 그림을 쓴다 (2026-10-21 최적화)
+      const gk = art.key + ':' + Math.round(h);
+      if (!glowCache[gk]) {
+        const tmp = new PIXI.Container();
+        for (const [k, blur, a] of [[1.42, 18, 0.9], [1.16, 6, 1]]) {
+          const gs = artSprite(art.key, h * k);
+          gs.y = sp.y + h * (k - 1) / 2; gs.alpha = a;
+          gs.filters = [strongRed(), new PIXI.BlurFilter({ strength: blur, quality: 3 })];
+          tmp.addChild(gs);
+        }
+        const b = tmp.getLocalBounds(), pad = 60;
+        const frame = new PIXI.Rectangle(b.x - pad, b.y - pad, b.width + pad * 2, b.height + pad * 2);
+        glowCache[gk] = { tex: app.renderer.generateTexture({ target: tmp, frame, resolution: 1 }), x: frame.x, y: frame.y };
+        tmp.destroy({ children: true });
+      }
+      glow = new PIXI.Sprite(glowCache[gk].tex);
+      glow.position.set(glowCache[gk].x, glowCache[gk].y);
+      g.addChild(glow);
+    }
     g.addChild(sp);
+    if (animFr) {
+      // 대왕 공격 시트: 한 장 그림과 캐릭터 키·발 위치를 맞춰 겹쳐 두고, 공격할 때만 바꿔 보여 준다
+      const as = new PIXI.AnimatedSprite(animFr);
+      as.anchor.set(0.5, KING_ATK.feet);
+      const fit = KING_FIT[ch.id] || KING_FIT.kitchen;
+      as.scale.set((h * fit.stillCharH) / (fit.charH * animFr[0].height));
+      as.y = sp.y - h * (1 - fit.stillFeet);
+      as.loop = false; as.animationSpeed = KING_ATK.fps / 60; as.visible = false;
+      g.addChild(as);
+      anim = { sp: as, still: sp, mode: 'idle', lead: kingLead(fit.hit) };
+    }
     barY = sp.y - h - 14;
   } else { g = new PIXI.Graphics(); drawVeg(g, r, art.kind); g.tint = art.tint; }
   const bar = new PIXI.Container(); // 머리 위 체력 막대 (drawBar)
   // 발밑 그림자 — 셰프·동료와 같은 색·진하기. 몸(g)이 튀거나 찌그러져도 바닥에 남게 컨테이너에 둔다
-  const shadow = new PIXI.Graphics().ellipse(0, r * 1.0, r * 1.15, r * 0.28).fill({ color: 0x000000, alpha: 0.18 });
+  const sw = wall ? KING_H / 2.8 : r; // 그림자는 보이는 크기에 맞춘다
+  const shadow = new PIXI.Graphics().ellipse(0, r * 1.0, sw * 1.15, sw * 0.28).fill({ color: 0x000000, alpha: 0.18 });
   c.addChild(shadow, g, bar);
+  const hpY = boss ? r + sw * 0.28 + 6 : barY - 6; // 체력 막대: 보스만 발밑 그림자 아래, 나머지는 머리 위 (2026-10-21 사용자)
   // 지금 보이는 화면 바로 바깥(위·왼쪽·오른쪽)에서 들어온다
   let x, y;
   const side = boss ? 0 : Math.floor(Math.random() * 4); // 위쪽이 두 배로 자주
@@ -1698,37 +1922,29 @@ function spawnEnemy(boss, wall = false) {
   else { x = cam.x + FW + 50; y = cam.y + 150 + Math.random() * (FH * 0.6); }
   c.position.set(x, y);
   field.addChild(c);
-  const hp = enemyHp(est) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1);
+  const hp = enemyHp(est) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1) * (strong ? STRONG.hp : 1);
   const e = { c, g, bar, x, y, r, hp, max: hp, boss, speed: boss ? 34 : 50 + Math.random() * 22 + S.stage * 0.5,
-    gold: enemyGold(est) * (boss ? BAL.bossGold : 1) * (wall ? BAL.wallGold : 1) * goldAll(), wall, hit: 0, dead: false, wob: Math.random() * 6, atkT: 0.3, lunge: 0, lx: 0, ly: 0, barY };
+    gold: enemyGold(est) * (boss ? BAL.bossGold : 1) * (wall ? BAL.wallGold : 1) * (strong ? STRONG.gold : 1) * goldAll(), wall, strong, glow, anim, hit: 0, dead: false, wob: Math.random() * 6, atkT: 0.3, lunge: 0, lx: 0, ly: 0, barY, hpY };
   drawBar(e);
   enemies.push(e);
 }
-// 적 머리 위 체력 막대: 일반 적은 맞았을 때만 손그림 ui_enemy_hp_*(240×36, 자르기 18), 보스는 빨강 + 왼쪽 왕관
-const EHP_TEX_W = 240, EHP_TEX_H = 36, EHP_SLICE = 18;
+// 적 체력 막대: 일반 적은 맞았을 때만 머리 위(두께 14 빨강), 보스는 발밑(두께 24 + 왼쪽 왕관)
 function drawBar(e) {
-  const b = e.bar, w = e.r * 2.2, r = Math.max(0, e.hp / e.max);
+  const b = e.bar, r = Math.max(0, e.hp / e.max);
   b.visible = e.hp < e.max || e.boss;
   if (!b.visible) return;
   if (!b.built) {
     b.built = true;
-    const art = !e.boss && ART.ui_enemy_hp_bg && ART.ui_enemy_hp_fill;
-    if (art) {
-      const opt = { leftWidth: EHP_SLICE, rightWidth: EHP_SLICE, topHeight: 0, bottomHeight: 0 };
-      const h = w * EHP_TEX_H / EHP_TEX_W, sc = h / EHP_TEX_H;
-      b.bg = new PIXI.NineSliceSprite({ texture: ART.ui_enemy_hp_bg, ...opt });
-      b.fill = new PIXI.NineSliceSprite({ texture: ART.ui_enemy_hp_fill, ...opt });
-      for (const sp of [b.bg, b.fill]) { sp.scale.set(sc); sp.position.set(-w / 2, e.barY); b.addChild(sp); }
-      b.bg.width = EHP_TEX_W;
-    } else {
-      b.g = new PIXI.Graphics(); b.addChild(b.g);
-      if (e.boss && ART.ui_boss_crown) { const cr = artSprite('ui_boss_crown', 30, 0.5); cr.position.set(-w / 2 - 10, e.barY + 4); b.addChild(cr); }
-    }
+    b.g = new PIXI.Graphics(); b.addChild(b.g);
+    if (e.boss && ART.icon_boss) { const cr = artSprite('icon_boss', 44, 0.5); cr.position.set(-bossBarW(e) / 2 - 2, e.hpY + BOSS_BAR.h / 2 - 2); b.addChild(cr); }
   }
-  if (b.fill) { b.fill.visible = r > 0; b.fill.width = Math.max(EHP_SLICE * 2, EHP_TEX_W * r); return; }
-  b.g.clear().roundRect(-w / 2, e.barY, w, 8, 4).fill({ color: 0x000000, alpha: 0.5 });
-  b.g.roundRect(-w / 2, e.barY, w * r, 8, 4).fill(e.boss ? 0xff4d6d : 0x7ee07e);
+  if (e.boss) return drawGauge(b.g, -bossBarW(e) / 2, e.hpY, bossBarW(e), BOSS_BAR.h, r, 0xe8483a, BOSS_BAR.line);
+  const w = Math.max(64, e.r * 2.2);
+  drawGauge(b.g, -w / 2, e.hpY, w, 14, r, 0xe8483a, 3); // 일반 적: 두께 14, 빨강 (2026-10-21)
 }
+// 보스 머리 위 체력 바 (2026-10-21 사용자 결정: 위쪽 큰 바 대신 이것 하나로, 왕관은 납작한 ui_boss_crown 대신 위쪽 진행 바와 같은 icon_boss) — 진갈색 테두리 + 밝은 빨강 채움 + 위쪽 밝은 띠
+const BOSS_BAR = { w: 220, wallW: 280, h: 24, line: 4 };
+const bossBarW = (e) => (e.wall ? BOSS_BAR.wallW : BOSS_BAR.w);
 // 화면 위쪽 보스 체력 바 — 채움을 오른쪽부터 잘라 줄인다(잘린 끝도 둥글게). 채움 칸 = 그림 480×60 중 x 91~478
 let bossBarR = -1;
 function updateBossBar() {
@@ -1746,27 +1962,52 @@ function removeEnemy(e) {
   enemies.splice(enemies.indexOf(e), 1);
 }
 function clearField() {
+  $('warn').classList.remove('on');
   while (enemies.length) removeEnemy(enemies[0]);
   while (bullets.length) bullets.pop().g.destroy();
   if (aimG) { aimG.visible = false; aimG.target = null; } // 잡던 적이 없어졌으니 조준 표시도 끈다
+  for (const g of mateAims) { g.visible = false; g.target = null; }
+  for (const id in mateSprites) mateSprites[id].aimT = null;
 }
 function resetWave() {
   wave = { idx: 0, total: waveCount(S.stage), spawned: 0, kills: 0, bossSpawned: false, spawnT: 0.8, breakT: 0 };
 }
 const isFinalWave = () => wave.idx === wave.total - 1;
+// 보스 경고 (2026-10-21): 마지막 웨이브가 시작되면 WARN_T 동안 화면이 빨갛게 깜빡이고 WARNING 띠 → 그 뒤 보스 등장
+const WARN_T = 1.8;
 function startWave() {
   if (isFinalWave()) {
-    const wall = isWallStage(S.stage);
-    if (wall) banner(t('battle.king', { boss: wallBossName(S.stage), hp: WALL_HP, sec: WALL_TIME }), 2);
-    else banner(t('battle.boss', { sec: BOSS_TIME }), 1.6);
-    wave.bossSpawned = true;
-    spawnEnemy(true, wall);
-    bossT = wall ? WALL_TIME : BOSS_TIME;
-    Sound.play(wall ? 'wall' : 'boss'); shake(wall ? 12 : 5);
-    bossSay(BOSS_LINES[Math.floor(Math.random() * BOSS_LINES.length)]);
+    wave.warnT = WARN_T;
+    $('warn').classList.toggle('wall', isWallStage(S.stage));
+    $('warn').classList.add('on');
+    Sound.play('warn'); buzz(60);
   } else banner(`WAVE ${wave.idx + 1}/${wave.total}`, 1.0);
 }
+function spawnStageBoss() {
+  $('warn').classList.remove('on');
+  const wall = isWallStage(S.stage);
+  if (wall) banner(t('battle.king', { boss: wallBossName(S.stage), hp: WALL_HP, sec: WALL_TIME }), 2);
+  else banner(t('battle.boss', { sec: BOSS_TIME }), 1.6);
+  wave.bossSpawned = true;
+  spawnEnemy(true, wall);
+  bossT = (wall ? WALL_TIME : BOSS_TIME) + BOSS_ENTER_T; // 등장부터 줄어든다 — 걸어 들어오는 시간만큼 더 준다 (2026-10-22 사용자)
+  Sound.play(wall ? 'wall' : 'boss'); shake(wall ? 12 : 5);
+  enemies[enemies.length - 1].talkT = 0; // 첫 대사는 화면 안에 들어오자마자 (bossTalk)
+}
 let bubble = null;
+// 보스는 살아 있는 동안 몇 초마다 다른 대사를 한다 (2026-10-21). 말풍선 아래 끝이 이보다 위로 가지 않게(위쪽 표시·보스 체력 바 아래)
+const BUBBLE_MIN_Y = 300 + SAFE_TOP;
+function bossTalk(dt) {
+  const boss = enemies.find((e) => e.boss && !e.dead);
+  if (!boss || bubble) return;
+  if (boss.c.y + boss.barY - cam.y < BUBBLE_MIN_Y + 60) return; // 머리가 화면 위쪽 밖·위쪽 표시 뒤에 있으면 아직 말하지 않는다
+  boss.talkT = (boss.talkT ?? 2.5) - dt;
+  if (boss.talkT > 0) return;
+  boss.talkT = 6 + Math.random() * 3;
+  const lines = BOSS_LINES.filter((l) => l !== boss.lastLine);
+  boss.lastLine = lines[Math.floor(Math.random() * lines.length)];
+  bossSay(boss.lastLine);
+}
 function bossSay(text) {
   if (bubble) bubble.el.remove();
   const el = document.createElement('div');
@@ -1780,9 +2021,9 @@ function updateBubble(dt) {
   const boss = enemies.find((e) => e.boss);
   bubble.life -= dt;
   if (!boss || bubble.life <= 0) { bubble.el.remove(); bubble = null; return; }
-  // 화면 밖에서 들어올 때도 보이게 화면 안쪽으로 붙인다
-  const bx = Math.max(150, Math.min(FW - 150, boss.x - cam.x));
-  const by = Math.max(290, boss.y - boss.r - 40 - cam.y); // 상단 HUD 아래로
+  // 보스 머리 위(체력 막대 위)에 붙어 따라다닌다 — 통통 뛰는 것까지 따라가게 실제 그려진 위치(c.position) 기준. 화면 밖으로는 안 나가게만 막는다
+  const bx = Math.max(150, Math.min(FW - 150, boss.c.x - cam.x));
+  const by = Math.max(BUBBLE_MIN_Y, boss.c.y + boss.barY - 16 - cam.y);
   bubble.el.style.left = bx + 'px';
   bubble.el.style.top = by + 'px';
   bubble.el.style.opacity = Math.min(1, bubble.life * 2);
@@ -1792,11 +2033,13 @@ let bgNode = null, bgKey = '', lastChapter = -1;
 // 지금 장소(챕터 또는 보스 러시 결투장)에 맞게 배경을 바꾸고, 새 챕터에 들어가면 간판을 띄운다
 function syncChapter(announce = true) {
   const ci = chapterIdx(S.stage);
-  const key = rush ? 'arena' : chal ? CHAPTERS[chal.ci].id : CHAPTERS[ci].id;
+  const night = !rush && !chal && lapOf(S.stage) >= 1;
+  const key = (rush ? 'arena' : chal ? CHAPTERS[chal.ci].id : CHAPTERS[ci].id) + (night ? ':night' : '');
   if (key !== bgKey) {
     if (bgNode) bgNode.destroy({ children: true });
     bgNode = makeBackground(rush ? ARENA : chal ? CHAPTERS[chal.ci] : CHAPTERS[ci]);
     bgNode.zIndex = -2;
+    if (night) bgNode.tint = NIGHT_TINT; // 🌙 한밤의 주방: 배경만 어둡게 (캐릭터는 그대로 밝아 잘 보인다)
     world.addChild(bgNode);
     bgKey = key;
   }
@@ -1807,10 +2050,9 @@ function syncChapter(announce = true) {
 }
 function chapterSign(ci) {
   const ch = CHAPTERS[ci], el = $('chapterSign');
-  const lap = Math.floor((S.stage - 1) / (10 * CHAPTERS.length));
-  el.innerHTML = hasTextArt('ui_chapter_' + ch.id)
-    ? `<img src="${IMG}ui_chapter_${ch.id}.webp" alt="${ch.name}">`
-    : `<div class="sign"><small>${t('chapter.sign', { n: ci + 1 })}${lap ? t('chapter.lap', { n: lap + 1 }) : ''}</small><b>${ch.icon} ${ch.name}</b><span>${t('chapter.sign_sub')}</span></div>`;
+  const lap = lapOf(S.stage);
+  // 그림(ui_chapter_*)은 글자가 게임 글꼴이 아니고 바퀴 안내가 안 나와서 안 쓴다 — 늘 코드 안내판. 챕터 번호는 빼고 2바퀴부터 'N바퀴'만 (2026-10-21 사용자)
+  el.innerHTML = `<div class="sign">${lap ? `<small>${t('chapter.lap_only', { n: lap + 1 })}</small>` : ''}<b>${ch.name}</b><span>${t('chapter.sign_sub')}</span></div>`;
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   Sound.play('claim');
 }
@@ -1860,7 +2102,7 @@ function retreatHint() {
 function stageClear() {
   if (wallFail.st === S.stage) wallFail = { st: 0, n: 0 };
   // 보스가 쓰러지면 남은 채소는 도망간다
-  for (const e of [...enemies]) { popText(e.x, e.y, '💨', ''); removeEnemy(e); }
+  for (const e of [...enemies]) removeEnemy(e);
   S.stage++;
   S.bestStage = Math.max(S.bestStage || 0, S.stage); // 🏠 주방 레벨 기준 (환생해도 유지)
   resetWave();
@@ -1872,7 +2114,9 @@ function stageClear() {
 }
 // 공격 범위: 화면 가장자리·위쪽 표시(명판) 뒤의 적은 아직 노리지 않는다 — 들어오는 게 보인 뒤에 맞게 (2026-10-21 사용자 요청)
 // 좌우 = 옆 메뉴 알약 폭, 위 = 스테이지 명판·절전모드 아래, 아래 = 카드 위. 셰프 가까이(AIM_NEAR) 온 적은 화면 안이면 언제나 노린다
-const AIM_ZONE = { side: 110, top: 300, bottom: 40 }, AIM_NEAR = 220;
+const BOSS_ENTER_SPEED = 130;
+const BOSS_ENTER_T = 3; // 화면 위 밖 → 공격 범위까지 걸어오는 시간(약 400px ÷ 130)을 제한시간에 더한다
+const AIM_ZONE = { side: 110, top: 300 + SAFE_TOP, bottom: 40 }, AIM_NEAR = 220;
 function canAim(e) {
   if (e.x < cam.x || e.x > cam.x + FW || e.y < cam.y + 20 || e.y > cam.y + FH) return false; // 화면 밖
   if (chal && chal.horde) return true; // 대군 모드는 화면 가득 공격 (2026-10-21 사용자 요청)
@@ -1888,10 +2132,37 @@ function nearestEnemy() {
   }
   return best;
 }
+const HIT_T = 0.14; // 맞았을 때 눌림·번쩍·밀림 연출 길이(초)
+// ---------- 보스 내려치기 연출: 충격파 고리 + 먼지 + 화면 흔들림 (보이기만) ----------
+const BOSS_WIND = 0.35, BOSS_SLAM_T = 0.25;
+const shockwaves = [];
+function bossSlam(e, tgt) {
+  e.slam = BOSS_SLAM_T;
+  const x = e.x + e.lx * e.r * 0.8, y = e.y + e.r * 0.9; // 상대 쪽 바닥
+  const g = new PIXI.Graphics();
+  g.ellipse(0, 0, 60, 22).stroke({ width: 10, color: e.wall ? 0xff5a3a : 0xfff0c8, alpha: 0.95 });
+  g.ellipse(0, 0, 60, 22).stroke({ width: 4, color: 0xffffff, alpha: 0.9 });
+  g.position.set(x, y); g.scale.set(0.3);
+  fxLayer.addChild(g);
+  shockwaves.push({ g, t: 0, max: e.wall ? 1.9 : 1.5 });
+  spawnFx('fx_poof', x, y - 10, e.r * 1.2, 0.35);
+  shake(e.wall ? 8 : 5); buzz(20);
+  Sound.play('bossHit');
+}
+function updateShockwaves(dt) {
+  for (let i = shockwaves.length - 1; i >= 0; i--) {
+    const w = shockwaves[i]; w.t += dt;
+    const p = Math.min(1, w.t / 0.38);
+    w.g.scale.set(0.3 + (w.max - 0.3) * (1 - (1 - p) * (1 - p)));
+    w.g.alpha = 1 - p;
+    if (p >= 1) { w.g.destroy(); shockwaves.splice(i, 1); }
+  }
+}
 function launch(kind, L, sx, sy, dmg, target) {
   const key = kind === 'tool' ? toolKey(L) : 'proj_' + kind;
   let g;
-  if (ART[key]) g = artSprite(key, kind === 'tool' ? 34 + Math.min(L, 8) * 1.5 : 26, 0.5);
+  // 크기 (2026-10-21 키움): 도구 54~68 (레벨이 오를수록 조금씩 크게), 동료 투사체 34
+  if (ART[key]) g = artSprite(key, kind === 'tool' ? 52 + Math.min(L, 8) * 2 : 34, 0.5);
   else { g = new PIXI.Graphics(); drawProj(g, kind, L); }
   g.position.set(sx, sy);
   field.addChild(g);
@@ -1917,11 +2188,11 @@ function syncMates() {
     let g;
     if (ART['mate_' + m.id]) { g = new PIXI.Container(); const sp = artSprite('mate_' + m.id, MATE_H[m.id]); sp.y = 30; g.addChild(sp); }
     else { g = new PIXI.Graphics(); drawMate(g, m.id); g.scale.set(1.35); }
-    const bar = makeHpBar(44, 33);
+    const bar = makeHpBar(56, 30 - (ART['mate_' + m.id] ? MATE_H[m.id] : 70) - 20, 14); // 머리 위 (적·셰프와 통일, 두께 14)
     bar.visible = false;
     // 기절했을 때 머리 위에서 도는 별
     let stars;
-    if (ART.fx_stun) { stars = artSprite('fx_stun', 34, 0.5); stars.position.set(0, -MATE_H[m.id] + 18); }
+    if (ART.fx_stun) { stars = artSprite('fx_stun', 34, 0.5); stars.position.set(0, 30 - MATE_H[m.id] - 34); } // 체력 막대 위
     else {
       stars = new PIXI.Graphics();
       [0, 2.1, 4.2].forEach((a) => stars.star(Math.cos(a) * 22, Math.sin(a) * 22, 5, 7, 3).fill(0xffd34d));
@@ -1938,15 +2209,32 @@ function syncMates() {
   });
 }
 function hurtMate(ms, dmg) {
-  if (ms.stun > 0) return;
+  if (ms.stun > 0 || (typeof cheat !== 'undefined' && cheat.god)) return; // 🛠 무적
   ms.hp -= dmg; ms.hitT = 0.2;
   popText(ms.x, ms.y - 50, '-' + fmt(dmg), 'hurt small');
   if (ms.hp <= 0) { ms.hp = 0; ms.stun = 5; popText(ms.x, ms.y - 80, t('mates.stunned'), 'hurt'); Sound.play('stun'); }
 }
 function updateMates(dt) {
+  // 동료는 각자 다른 적을 노린다 (2026-10-22 사용자): 셰프와 가까운 순서로 줄 세워, 셰프가 노리는 가장 가까운 적 다음부터 한 마리씩 나눠 맡는다(적이 적으면 돌아가며 겹침)
+  const targets = enemies.filter(canAim).sort((a, b) => ((a.x - P.x) ** 2 + (a.y - P.y) ** 2) - ((b.x - P.x) ** 2 + (b.y - P.y) ** 2));
+  let mi = 0;
+  if (mateBuffT > 0) mateBuffT -= dt;
   for (const id in mateSprites) {
     const ms = mateSprites[id];
     const max = mateMaxHp(ms.m);
+    // 역할 능력 (기절 중엔 쉼): 개구리 회복 · 펭귄 공격 속도 버프
+    const role = mateRole(ms.m);
+    if (role && role.every && ms.stun <= 0 && (ms.roleT = (ms.roleT ?? role.every) - dt) <= 0) {
+      ms.roleT = role.every;
+      if (role.role === 'heal') {
+        heroHp = Math.min(heroMax, heroHp + heroMax * role.pct);
+        for (const k in mateSprites) { const o = mateSprites[k]; if (o.stun <= 0) o.hp = Math.min(mateMaxHp(o.m), o.hp + mateMaxHp(o.m) * role.pct); }
+        popText(P.x, P.y - 150, t('mates.heal'), 'green');
+      } else if (role.role === 'buff') {
+        mateBuffT = role.dur;
+        popText(P.x, P.y - 150, t('mates.buff'), 'gold');
+      }
+    }
     // 기절: 누워서 별이 돌고, 5초 뒤 체력을 회복하고 일어난다
     if (ms.stun > 0) {
       ms.stun -= dt;
@@ -1971,19 +2259,22 @@ function updateMates(dt) {
     ms.c.position.set(ms.x, ms.y);
     ms.g.y = -Math.abs(Math.sin(ms.walk)) * (3 + 6 * moving);
     ms.g.scale.x = ms.face;
-    // 각자 공격
-    ms.t -= dt;
+    // 각자 공격 — 맡은 적(조준 표시도 이 적에)
+    ms.aimT = ms.stun > 0 ? null : targets.length ? targets[(mi + 1) % targets.length] : null;
+    ms.t -= dt * buffSpd();
     if (ms.t <= 0) {
-      const t = nearestEnemy();
+      const t = ms.aimT;
       if (t) { launch(ms.m.proj, 0, ms.x, ms.y - 14, mateDmg(ms.m), t); ms.t = ms.m.iv * (0.9 + Math.random() * 0.2); }
     }
     // 아래에 있는 것이 앞에 보이게
     ms.c.zIndex = ms.y;
+    mi++;
   }
   hero.c.zIndex = P.y;
 }
 
 function hurtHero(dmg) {
+  if (typeof cheat !== 'undefined' && cheat.god) return false; // 🛠 무적
   heroHp -= dmg; P.hitT = 0.25;
   Sound.play('hurt'); shake(6); buzz(25);
   popText(P.x + (Math.random() - 0.5) * 30, P.y - 120, '-' + fmt(dmg), 'hurt');
@@ -1992,6 +2283,9 @@ function hurtHero(dmg) {
 }
 // 채소는 가장 가까운 셰프나 (기절하지 않은) 동료에게 달려든다
 function pickTarget(e) {
+  // 방어 동료(판다): 가까이 있는 적은 판다부터 노린다
+  const tank = mateSprites.panda, tr = BAL.mateRole?.panda?.taunt || 0;
+  if (tank && tank.stun <= 0 && (tank.x - e.x) ** 2 + (tank.y - e.y) ** 2 < tr * tr) return { x: tank.x, y: tank.y, ms: tank };
   let best = { x: P.x, y: P.y, hero: true }, bd = (P.x - e.x) ** 2 + (P.y - e.y) ** 2;
   for (const id in mateSprites) {
     const ms = mateSprites[id];
@@ -2021,7 +2315,24 @@ function makeAim() {
   g.zIndex = 99998; g.visible = false;
   return g;
 }
+// 동료 조준 표시 (2026-10-22 사용자: 각자 다른 적을 노리니 표시도 여러 개) — 셰프 것보다 작고 조금 흐리게, 셰프 목표와 겹치면 안 그림
+const mateAims = [];
+function updateMateAims(chefT, dt) {
+  const ts = [...new Set(Object.values(mateSprites).map((ms) => ms.aimT).filter((x) => x && x !== chefT && !x.dead))];
+  while (mateAims.length < ts.length) { const g = makeAim(); g.alpha = 0.8; world.addChild(g); mateAims.push(g); }
+  mateAims.forEach((g, k) => {
+    const t = ts[k];
+    g.visible = !!t;
+    if (!t) { g.target = null; return; }
+    const tx = t.x, ty = t.y - t.r * 0.4;
+    if (g.target !== t) { g.target = t; g.position.set(tx, ty); }
+    else g.position.set(g.x + (tx - g.x) * Math.min(1, dt * 20), g.y + (ty - g.y) * Math.min(1, dt * 20));
+    g.rotation -= dt * 1.2;
+    g.scale.set(Math.max(0.8, t.r / 30) * 0.7);
+  });
+}
 function updateAim(t, dt) {
+  updateMateAims(t, dt);
   if (!aimG) return;
   aimG.visible = !!t;
   if (!t) return;
@@ -2160,7 +2471,11 @@ function update(dt) {
     if (!enemies.some((e) => e.boss)) { rush.next -= dt; if (rush.next <= 0) spawnRushBoss(); }
   } else
   // 웨이브 진행: 웨이브 채소를 다 잡으면 잠깐 쉬고 다음 웨이브 (마지막은 보스를 잡아야 클리어)
-  if (wave.breakT > 0) {
+  if (wave.warnT > 0) {
+    // 보스 경고 중에는 졸개도 멈추고 기다린다
+    wave.warnT -= dt;
+    if (wave.warnT <= 0) spawnStageBoss();
+  } else if (wave.breakT > 0) {
     wave.breakT -= dt;
     if (wave.breakT <= 0) startWave();
   } else {
@@ -2173,8 +2488,8 @@ function update(dt) {
       wave.breakT = WAVE_BREAK;
     }
   }
-  // 보스 제한시간은 같이 나온 졸개를 다 잡은 뒤부터, 보스가 공격 범위에 들어온 뒤부터 줄어든다 (걸어 들어오는 동안 시간이 가지 않게)
-  if (!rush && !chal && wave.bossSpawned && enemies.some((e) => e.boss && canAim(e)) && wave.spawned >= waveSize(wave.idx) && !enemies.some((e) => !e.boss)) {
+  // 보스 제한시간은 보스가 나온 순간부터 줄어든다 (2026-10-22 사용자: 멈춰 있다가 줄어드는 게 헷갈림). 걸어 들어오는 시간(BOSS_ENTER_T)은 처음에 더해 둔다
+  if (!rush && !chal && wave.bossSpawned && enemies.some((e) => e.boss)) {
     bossT -= dt;
     if (bossT <= 0) { retreat(); return; }
   }
@@ -2186,31 +2501,59 @@ function update(dt) {
     const reach = e.r + (tgt.hero ? 40 : 24);
     e.atkT -= dt;
     if (d > reach) {
-      e.x += (dx / d) * e.speed * dt;
-      e.y += (dy / d) * e.speed * dt;
+      // 보스는 공격 범위에 들어오기 전까지 빨리 걸어 들어온다 (2026-10-21: 초당 34로 10초쯤 걸려서 너무 늦게 나타났음)
+      const sp = e.boss && !e.entered ? BOSS_ENTER_SPEED : e.speed;
+      if (e.boss && !e.entered && canAim(e)) e.entered = true;
+      e.x += (dx / d) * sp * dt;
+      e.y += (dy / d) * sp * dt;
+      e.inReach = false;
+    } else if (e.boss && !e.inReach) {
+      e.inReach = true; e.atkT = Math.max(e.atkT, e.anim ? e.anim.lead : BOSS_WIND); // 막 도착한 보스도 기 모으기부터 보여 준다
+    } else if (e.anim && e.anim.mode !== 'attack' && e.atkT <= e.anim.lead && e.atkT > 0) {
+      playKingAttack(e); // 애니메이션: 내려치는 프레임이 실제 공격 순간에 맞게 미리 시작
     } else if (e.atkT <= 0) {
       e.atkT = e.boss ? 1.4 : 1.0;
       e.lunge = 0.18; e.lx = dx / d; e.ly = dy / d;
+      if (e.boss) bossSlam(e, tgt); // 보스: 내려치기 연출 (피해량·간격은 그대로)
       const dmg = enemyAtk(chal ? chal.st : S.stage) * (e.boss ? 3 : 1) * (chal && chal.horde ? HORDE_ATK : 1);
       if (tgt.hero) { if (hurtHero(dmg)) return; } else hurtMate(tgt.ms, dmg);
     }
     // 때릴 때 상대 쪽으로 확 덤벼든다
     let ox = 0, oy = 0;
-    if (e.lunge > 0) { e.lunge -= dt; const k = Math.sin((1 - e.lunge / 0.18) * Math.PI) * 18; ox = e.lx * k; oy = e.ly * k; }
+    if (e.lunge > 0) { e.lunge -= dt; const k = e.anim && e.anim.mode === 'attack' ? 0 : Math.sin((1 - e.lunge / 0.18) * Math.PI) * (e.boss ? 30 : 18); ox = e.lx * k; oy = e.ly * k; }
     e.c.position.set(e.x + ox, e.y + oy);
     // 통통 뛰며 흔들리는 걸음
     e.wob += dt * (e.boss ? 5 : 9);
-    e.g.rotation = Math.sin(e.wob) * 0.18;
-    e.g.y = -Math.abs(Math.sin(e.wob)) * e.r * 0.25;
-    if (e.hit > 0) { e.hit -= dt; e.c.scale.set(1 + e.hit * 1.2); e.c.alpha = 0.75; } else { e.c.scale.set(1); e.c.alpha = 1; }
+    if (e.glow) e.glow.alpha = 0.85 + 0.15 * Math.sin(e.wob * 0.7); // 강한 적 빛이 숨 쉬듯
+    const animOn = e.anim && e.anim.mode === 'attack'; // 공격 시트 재생 중에는 그림이 직접 움직이니 코드 움직임을 쉰다
+    e.g.rotation = animOn ? 0 : Math.sin(e.wob) * 0.18;
+    e.g.y = animOn ? 0 : -Math.abs(Math.sin(e.wob)) * e.r * 0.25;
+    e.g.scale.set(1);
+    // 보스 공격 연출 (2026-10-21): 때리기 직전 BOSS_WIND초 동안 뒤로 젖히며 위로 늘어나 기를 모으고 → 내려칠 때 납작하게 눌렸다 돌아온다
+    if (e.boss && !e.anim) { // 공격 시트가 있는 대왕은 기 모으기·눌림 대신 시트
+      if (e.slam > 0) {
+        e.slam -= dt; const k = Math.max(0, e.slam / BOSS_SLAM_T);
+        e.g.scale.set(1 + 0.2 * k, 1 - 0.18 * k); e.g.y = 0; e.g.rotation = 0;
+      } else if (d <= reach && e.atkT < BOSS_WIND) {
+        const w = 1 - Math.max(0, e.atkT) / BOSS_WIND, side = dx >= 0 ? 1 : -1;
+        e.g.scale.set(1 - 0.08 * w, 1 + 0.16 * w); e.g.rotation = -side * 0.22 * w; e.g.y = -e.r * 0.18 * w;
+      }
+    }
+    // 맞았을 때 (타격감, 2026-10-21): 옆으로 퍼지고 위아래로 눌렸다 돌아오기 + 붉게 번쩍 + 맞은 방향으로 살짝 밀림(보이기만)
+    if (e.kb > 0) { e.kb -= dt; const k = Math.max(0, e.kb / HIT_T) * (e.boss ? 6 : 16); e.c.position.x += e.kbx * k; e.c.position.y += e.kby * k; }
+    if (e.pop > 0) { e.pop -= dt; e.c.scale.set(1 + e.pop * 1.2); }
+    else if (e.hit > 0) { e.hit -= dt; const h = Math.max(0, e.hit) / HIT_T; e.c.scale.set(1 + h * 0.28, 1 - h * 0.2); e.c.tint = h > 0.45 ? 0xff8a8a : 0xffffff; }
+    else { e.c.scale.set(1); e.c.tint = 0xffffff; }
+    e.bar.scale.set(1 / e.c.scale.x, 1 / e.c.scale.y); // 맞아서 찌그러지거나 뿅 나타날 때도 체력 막대는 크기·자리 고정 (2026-10-21 사용자)
   }
 
   // 총 발사 — 이번 프레임에 노리는 적 하나 (조준 표시도 이 적에)
   const iv = fireInterval();
   const aim = nearestEnemy();
   updateAim(aim, dt);
+  const eqNow = new Set(equippedIdx()); // 장착 3개만 던진다
   S.grid.forEach((L, i) => {
-    if (!L) return;
+    if (!L || !eqNow.has(i)) return;
     gunTimers[i] -= dt;
     if (gunTimers[i] > 0) return;
     const t = aim;
@@ -2228,24 +2571,29 @@ function update(dt) {
     const step = 1300 * dt;
     if (d <= step + b.target.r * 0.6) {
       const e = b.target;
-      e.hp -= b.dmg;
-      e.hit = 0.12;
+      e.hp -= (typeof cheat !== 'undefined' && cheat.oneshot) ? e.hp : b.dmg; // 🛠 한 방
+      e.hit = HIT_T; e.kb = HIT_T; e.kbx = dx / (d || 1); e.kby = dy / (d || 1);
       const crit = e.boss || b.dmg >= e.max * 0.5;
       // 데미지 숫자는 흰색·초록을 반반 무작위로 (총고식, 2026-10-21) — 얻은 골드는 노랑
-      if (S.settings.dmgNum) popText(e.x + (Math.random() - 0.5) * 40, e.y - e.r - 6, fmt(b.dmg), (crit ? (e.boss ? 'crit boss' : 'crit') : '') + (Math.random() < 0.5 ? ' green' : ''));
+      if (S.settings.dmgNum) popText(e.x + (Math.random() - 0.5) * (e.boss ? 120 : 40), Math.max(cam.y + 250 + SAFE_TOP, e.y + e.barY - 18 - Math.random() * 30), fmt(b.dmg), (crit ? (e.boss ? 'crit boss' : 'crit') : '') + (Math.random() < 0.5 ? ' green' : ''));
       if (e.boss) { Sound.play('bossHit'); shake(e.wall ? 2.5 : 1.5); } else Sound.play('hit');
-      if (crit) spawnFx('fx_hit', e.x + (Math.random() - 0.5) * e.r, e.y - e.r * 0.6, e.boss ? 90 : 60, 0.25);
+      // 때릴 때마다 코인이 튄다 (연출만 — 골드는 처치할 때 들어온다). 절전모드에서는 그리지 않는다
+      // 머리 위(체력 막대 근처)에서 튄다 — 큰 보스 몸이 가려지지 않게 (2026-10-21)
+      if (!S.settings.saver && e.hp > 0) coinBurst(e.x - cam.x, e.y - cam.y + (e.boss ? e.barY + 10 : -e.r * 0.5), e.boss ? 2 : Math.random() < 0.5 ? 2 : 1);
+      // 타격 불꽃은 매번 (치명타는 크게 + 화면 살짝 흔들림)
+      spawnFx('fx_hit', e.x + (Math.random() - 0.5) * e.r * 0.6, e.y - e.r * 0.6, crit ? (e.boss ? 120 : 90) : 54, crit ? 0.25 : 0.16);
+      if (crit && !e.boss) shake(1.2);
       b.g.destroy(); bullets.splice(k, 1);
       if (e.hp <= 0) {
         S.gold += e.gold;
         popText(e.x, e.y + 10, '+' + fmt(e.gold), e.boss ? 'gold big' : 'gold');
-        coinBurst(e.x - cam.x, e.y - cam.y, e.wall ? 25 : e.boss ? 15 : 3);
+        coinBurst(e.x - cam.x, e.y - cam.y, e.wall ? 45 : e.boss ? 30 : 7); // 처치하면 코인이 쏟아진다 (2026-10-21: 3·15·25 → 7·30·45)
         spawnFx('fx_poof', e.x, e.y, e.boss ? 220 : 110, e.boss ? 0.6 : 0.4);
         const wasBoss = e.boss;
         if (wasBoss) { Sound.play('coin'); shake(e.wall ? 16 : 10); buzz(40); mission('boss'); }
         if (wasBoss && e.wall && !rush && !S.wallFirst[S.stage]) {
           S.wallFirst[S.stage] = true; S.gems += 10;
-          popText(e.x, e.y - 60, t('battle.king_first'), 'crit'); gemBurst(e.x - cam.x, e.y - cam.y, 8);
+          popText(e.x, e.y - 60, t('battle.king_first', { gem: GEM }), 'crit'); gemBurst(e.x - cam.x, e.y - cam.y, 8);
         }
         else { Sound.play('kill'); mission('kill'); }
         removeEnemy(e);
@@ -2265,9 +2613,11 @@ function update(dt) {
   // 셰프
   moveHero(dt);
   updateMates(dt);
+  bossTalk(dt);
   updateBubble(dt);
   updateCoins(dt);
   updateFx(dt);
+  updateShockwaves(dt);
   heroHp = Math.min(heroMax, heroHp + BAL.heroRegen * dt);
   $('vignette').classList.toggle('low', heroHp / heroMax < 0.35);
   $('vignette').classList.toggle('flash', P.hitT > 0);
@@ -2278,8 +2628,7 @@ function update(dt) {
   for (let k = fxList.length - 1; k >= 0; k--) {
     const f = fxList[k];
     f.life -= dt; f.y += f.vy * dt; f.x += f.vx * dt; f.vx *= 1 - 3 * dt;
-    f.el.style.left = f.x - cam.x + 'px';
-    f.el.style.top = f.y - cam.y + 'px';
+    f.el.style.transform = `translate(${(f.x - cam.x).toFixed(1)}px, ${(f.y - cam.y).toFixed(1)}px) translate(-50%, -50%)`;
     f.el.style.opacity = Math.min(1, f.life * 2.5);
     if (f.life <= 0) { f.el.remove(); fxList.splice(k, 1); }
   }
@@ -2289,13 +2638,14 @@ function update(dt) {
 // ---------- 부팅 ----------
 (async () => {
   app = new PIXI.Application();
-  await app.init({ width: FW, height: CH, background: '#e9dcc4', resolution: backbufferRes(), autoDensity: true, antialias: true });
+  await app.init({ width: FW, height: CH, background: '#e9dcc4', resolution: backbufferRes(), autoDensity: true, antialias: false, powerPreference: 'low-power' }); // 발열: 계단 현상 보정 끔(그림은 거의 그대로), 저전력 GPU
   $('field').prepend(app.canvas);
   world = new PIXI.Container();
   field = new PIXI.Container();
   // 손그림 셰프 이미지가 있으면 스킨별 텍스처를 만든다 (없으면 코드로 그린 곰)
   await loadArt();
   try { await buildSkinTextures(); } catch (e) { console.warn('셰프 이미지 없음 — 코드 그림 사용', e); }
+  try { outlineArt(); for (const k of SKINS) if (ART[SKIN_ART[k.id]]) skinTex[k.id] = ART[SKIN_ART[k.id]]; } catch (e) { console.warn('외곽선 굽기 실패 — 원래 그림 사용', e); }
   hero = makeHero();
   field.zIndex = -1;
   world.sortableChildren = true; // 셰프·동료는 y값으로 앞뒤를 정한다
@@ -2322,18 +2672,20 @@ function update(dt) {
   renderGrid(); updateUI();
 
   // 처음이면 한 줄 설정, 아니면 자리 비운 동안의 보상
-  if (!S.introSeen) {
-    showModal(`${hasTextArt('ui_logo') ? `<img class="logo" src="${IMG}ui_logo.webp" alt="${t('game.title')}">` : `<div class="logo-text">${t('game.title')}</div>`}
+  if (!S.introSeen) tapToStart(() => playPrologue(() => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); })); // 처음이면 '눌러서 시작'(소리 허용) → 오프닝 영상 → 바로 게임 시작 (2026-10-22 사용자: 타이틀 팝업 없이)
+  else if (!offerOffline(awaySec)) banner(`STAGE ${S.stage}`);
+  function showIntro() {
+    showModal(`${hasTextArt('ui_logo') ? `<img class="logo" src="${IMG}${textArt('ui_logo')}.webp" alt="${t('game.title')}">` : `<div class="logo-text">${t('game.title')}</div>`}
       <img class="titleart" src="${IMG}ui_title_art.webp" alt="">
       <p>${t('intro.line1')}</p>
       <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); }, null, { x: false });
-  } else if (!offerOffline(awaySec)) banner(`STAGE ${S.stage}`);
+  }
 
   let uiT = 0, saveT = 0;
   app.ticker.add((tk) => {
     const dt = Math.min(0.1, tk.deltaMS / 1000);
     if (!paused) {
-      const steps = Date.now() < S.boostUntil ? 2 : 1; // ⏩ 2배속
+      const steps = (Date.now() < S.boostUntil ? 2 : 1) * (typeof cheat !== 'undefined' ? cheat.speed : 1); // ⏩ 2배속 · 🛠 치트 속도
       for (let i = 0; i < steps && !paused; i++) update(dt);
       mission('time', dt);
       autoMergeTick(dt);

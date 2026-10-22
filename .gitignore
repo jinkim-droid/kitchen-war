@@ -3,3 +3,4 @@ bmdak-legacy-removal.md.lock.guard
 .claude/settings.local.json
 .crumbs/
 .DS_Store
+builds/

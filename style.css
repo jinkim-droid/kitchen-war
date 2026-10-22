@@ -1,3 +1,20 @@
+:root {
+  /* 색 정리 (2026-10-22): 같은 역할은 한 색으로 — 새로 쓸 때도 이 값만 쓴다 */
+  --c-ink: #3a2418;      /* 외곽선·테두리 */
+  --c-ink-d: #2a1a10;    /* 그림자·아래 두께 */
+  --c-wood-d: #4b3021;   /* 글자 외곽선·판 테두리 */
+  --c-wood: #6e4a34;     /* 알약·바 바탕 */
+  --c-board: #a8743e;    /* 칸 판 */
+  --c-cream: #fff3dc;    /* 팝업 바탕 */
+  --c-card: #fffbef;     /* 목록 카드 */
+  --c-gold: #ffd34d;     /* 코인·Lv·강조 */
+  --c-buy: #7cc86a;  --c-buy-d: #4f9a44;   /* 골드로 사기 */
+  --c-gem: #92d0e8;  --c-gem-d: #6fb4d0;   /* 다이아로 사기 */
+  --c-act: #ff9a3c;  --c-act-d: #e07a1c;   /* 도전·기타 */
+  --c-red: #e8483a;  --c-red-l: #ff8a8a;   /* 보스·위험 / 번쩍·부족 */
+  --c-up: #94fa10;                         /* 오르는 숫자 */
+  --c-off: #dcd8d3;                        /* 못 누름 */
+}
 /* 게임 폰트 "Game Font" — 두 폰트를 한 이름으로 묶는다 (2026-10-21 사용자 결정). 게임 안에 동봉해 오프라인에서도 쓴다 (사내 기준 ux:fonts-and-text)
    - 한글·나머지: 온글잎 밑미 (ⓒ밑미·보이저엑스 — assets/fonts/Meetme-Font-License.txt). 라이선스가 수정·편집을 막으므로
      서브셋하지 않고 배포받은 TTF 원본 그대로 쓴다.
@@ -28,7 +45,7 @@
 /* 총고처럼: 게임 글자는 흰색 + 진한 외곽선. 외곽선을 글자 뒤에 그려(paint-order) 글자가 가늘어지지 않게 한다.
    상속으로 퍼지고, 데미지 숫자·스테이지처럼 자기 외곽선이 있는 곳은 그 값이 우선한다 */
 /* 총고 카드 글자 실측(2026-10-21): 흰 글자 + 진갈색 외곽선(글자 크기의 약 8%) + 아래로 같은 계열 더 진한 그림자(약 8%) */
-#shell { -webkit-text-stroke: 5px #4a2c1c; paint-order: stroke fill; text-shadow: 0 2px 0 #2a1a10; }
+#shell { -webkit-text-stroke: 5px #3a2418; paint-order: stroke fill; text-shadow: 0 2px 0 #2a1a10; }
 html, body {
   margin: 0; height: 100%; overflow: hidden;
   background: #1b1420;
@@ -39,8 +56,8 @@ html, body {
   color: #fff;
 }
 /* 논리 해상도 720x1280 셸을 화면에 비율 유지로 맞춘다 (main.js fit) */
-#shell { position: absolute; left: 0; top: 0; width: 720px; height: 1280px; transform-origin: 0 0; background: #2a1f2e; overflow: hidden; }
-#field { position: absolute; left: 0; top: 0; width: 720px; height: 1280px; overflow: hidden; } /* 카드 뒤까지 바닥이 비친다 (main.js CH) */
+#shell { position: absolute; left: 0; top: 0; width: 720px; height: var(--shell-h, 1280px); transform-origin: 0 0; background: #2a1f2e; overflow: hidden; } /* 높이는 기기 비율로 (main.js H) */
+#field { position: absolute; left: 0; top: 0; width: 720px; height: var(--shell-h, 1280px); overflow: hidden; } /* 카드 뒤까지 바닥이 비친다 (main.js CH) */
 #field canvas { display: block; }
 #fx { position: absolute; inset: 0; pointer-events: none; }
 /* 셰프가 맞으면 번쩍, 체력이 낮으면 화면 테두리가 붉게 깜빡인다 */
@@ -49,8 +66,8 @@ html, body {
 #vignette.flash { opacity: .55; }
 @keyframes danger { 50% { opacity: .65; } }
 .dmg { position: absolute; font-weight: 900; font-size: 36px; color: #fff; transform: translate(-50%, -50%); white-space: nowrap;
-  -webkit-text-stroke: 5px #56402a; paint-order: stroke fill; text-shadow: 0 3px 0 #3a2418; will-change: transform, opacity; pointer-events: none; }
-/* 총고식(2026-10-21 실측): 데미지는 흰색·연두 #94fa10 반반 무작위(치명타는 크기만 크게), 골드 획득은 노랑 — 외곽선은 갈색 #56402a */
+  -webkit-text-stroke: 5px #4b3021; paint-order: stroke fill; text-shadow: 0 3px 0 #3a2418; will-change: transform, opacity; pointer-events: none; }
+/* 총고식(2026-10-21 실측): 데미지는 흰색·연두 #94fa10 반반 무작위(치명타는 크기만 크게), 골드 획득은 노랑 — 외곽선은 갈색 #4b3021 */
 .dmg span { display: inline-block; animation: dmgPop .32s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes dmgPop { 0% { transform: scale(.3); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
 .dmg.crit { font-size: 50px; color: #fff; }
@@ -58,28 +75,28 @@ html, body {
 .dmg.small { font-size: 26px; }
 .dmg.gold { color: #ffd34d; font-size: 32px; }
 .dmg.green, .dmg.crit.green { color: #94fa10; }
-.dmg.hurt { color: #ff5a5a; font-size: 38px; }
+.dmg.hurt { color: #e8483a; font-size: 38px; }
 
 #hud { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
 /* 맨 위 얇은 진행 바 */
 #topBar { position: relative; width: 100%; height: 22px; background: #3a2418; }
-#topFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(#ffe07a, #f0b830); transition: width .2s; }
+#topFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(#ffd34d, #f0b830); transition: width .2s; }
 #topPct { position: absolute; inset: 0; text-align: center; font-size: 16px; font-weight: 900; line-height: 22px; color: #fff; text-shadow: 0 1px 2px #000; }
 .hud-row { width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 0; gap: 10px; }
 /* 웨이브 트랙 */
 #track { position: relative; flex: 1; max-width: 360px; height: 60px; }
-#track .line { position: absolute; left: 22px; right: 22px; top: 26px; height: 12px; background: #5a3a22; border: 3px solid #3a2418; border-radius: 9px; overflow: hidden; }
+#track .line { position: absolute; left: 22px; right: 22px; top: 26px; height: 12px; background: #4b3021; border: 3px solid #3a2418; border-radius: 9px; overflow: hidden; }
 #trackFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #ffd34d; transition: width .2s; }
 #trackNodes i { position: absolute; top: 20px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: #fff3dc; border: 4px solid #3a2418; box-sizing: border-box; }
 #trackNodes i.done { background: #ffd34d; }
 #trackNodes i.boss { top: 8px; width: 46px; height: 46px; margin-left: -23px; background: #9a5aaa; display: flex; align-items: center; justify-content: center; font-size: 24px; font-style: normal; }
-#trackNodes i.boss.wall { background: #d93a3a; }
+#trackNodes i.boss.wall { background: #e8483a; }
 #trackHero { position: absolute; top: 2px; width: 54px; height: 54px; margin-left: -27px; border-radius: 50%; background: #fff3dc; border: 4px solid #3a2418; box-sizing: border-box; overflow: hidden; transition: left .2s; box-shadow: 0 3px 0 #3a2418; }
 #trackHero img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.9); transform-origin: 52% 50%; }
 /* 스테이지-웨이브 표기 */
 #stageLabel { margin-top: 2px; font-size: 40px; font-weight: 900; color: #fff; -webkit-text-stroke: 3px #3a2418; paint-order: stroke fill; text-shadow: 0 4px 0 #3a2418; letter-spacing: 0; }
 .pill { background: #fff3dc; color: #fff; border: 4px solid #3a2418; border-radius: 22px; padding: 4px 14px; font-weight: 900; box-shadow: 0 3px 0 #3a2418; }
-#bossTimer { display: none; margin-top: 4px; background: #d93a3a; color: #fff; font-size: 24px; }
+#bossTimer { display: none; margin-top: 4px; background: #e8483a; color: #fff; font-size: 24px; }
 #bossTimer.on { display: block; animation: bob 1s ease-in-out infinite; }
 .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 #goldLabel { font-size: 26px; white-space: nowrap; }
@@ -88,7 +105,7 @@ html, body {
 #banner.show { opacity: 1; }
 #banner small { display: block; font-size: 26px; font-weight: 700; margin-top: 8px; }
 
-#panel { position: absolute; left: 0; top: 1090px; width: 720px; height: 190px; box-sizing: border-box; padding: 18px 16px 26px;
+#panel { position: absolute; left: 0; top: calc(var(--shell-h, 1280px) - 190px); width: 720px; height: 190px; box-sizing: border-box; padding: 18px 16px 26px;
   display: flex; gap: 14px; }
 button { font: inherit; color: #fff; border: 0; border-radius: 18px; cursor: pointer; }
 button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
@@ -99,7 +116,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 .up .head b { font-size: 21px; white-space: nowrap; }
 .up .lv { position: absolute; display: block; right: 10px; top: -16px; background: #3a2418; color: #fff3dc; font-size: 16px; font-weight: 900; padding: 2px 10px; border-radius: 10px; }
 .up .val { font-size: 34px; font-weight: 900; }
-.up .cost { background: #6cc070; color: #fff; border: 3px solid #3a2418; border-radius: 14px; padding: 4px 12px; font-size: 20px; font-weight: 900; min-width: 70%; }
+.up .cost { background: #7cc86a; color: #fff; border: 3px solid #3a2418; border-radius: 14px; padding: 4px 12px; font-size: 20px; font-weight: 900; min-width: 70%; }
 .up:disabled { filter: none; opacity: 1; }
 .up:disabled .cost { background: #9a8f80; }
 .cost { font-size: 20px; color: #ffd34d; font-weight: 800; }
@@ -135,7 +152,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 .row .info b { font-size: 26px; }
 .desc { font-size: 18px; opacity: .7; }
 .stat { font-size: 18px; color: #ffd34d; }
-.act { min-width: 150px; height: 84px; background: #e0892b; box-shadow: 0 5px 0 #8a4d12; font-size: 22px; font-weight: 900;
+.act { min-width: 150px; height: 84px; background: #ff9a3c; box-shadow: 0 5px 0 #8a4d12; font-size: 22px; font-weight: 900;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .act .cost { font-size: 19px; color: #fff3c4; }
 .act:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 #0000; }
@@ -172,7 +189,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 .mini.hat-pirate .hat { display: block; left: 12px; top: 18px; width: 80px; height: 30px; border-radius: 6px; background: #2a2a2a; box-shadow: inset 0 -5px 0 #d4a017;
   clip-path: polygon(0 100%, 15% 0, 50% 30%, 85% 0, 100% 100%); }
 .mini.hat-beret .hat { display: block; left: 22px; top: 26px; width: 64px; height: 22px; background: var(--hat); transform: rotate(-8deg); }
-.mini.hat-santa .hat { display: block; left: 20px; top: 2px; width: 64px; height: 44px; border-radius: 0; background: #d93a3a; clip-path: polygon(0 100%, 100% 100%, 40% 0); box-shadow: inset 0 -10px 0 #fff; }
+.mini.hat-santa .hat { display: block; left: 20px; top: 2px; width: 64px; height: 44px; border-radius: 0; background: #e8483a; clip-path: polygon(0 100%, 100% 100%, 40% 0); box-shadow: inset 0 -10px 0 #fff; }
 .mini.hat-santa .pom { display: block; left: 38px; top: -4px; width: 16px; height: 16px; background: #fff; }
 .mini.hat-crown .hat { display: block; left: 30px; top: 12px; width: 44px; height: 30px; border-radius: 4px; background: #ffd34d;
   clip-path: polygon(0 100%, 0 20%, 25% 60%, 50% 0, 75% 60%, 100% 20%, 100% 100%); }
@@ -195,7 +212,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 #modal p b { color: #ff9e7a; }
 #modal .sub { font-size: 22px; opacity: .7; }
 #modal .reward { font-size: 64px; font-weight: 900; color: #ffd34d; margin: 16px 0; }
-#modalBtn { margin-top: 20px; width: 100%; height: 100px; background: #e0892b; box-shadow: 0 6px 0 #8a4d12; font-size: 34px; font-weight: 900; }
+#modalBtn { margin-top: 20px; width: 100%; height: 100px; background: #ff9a3c; box-shadow: 0 6px 0 #8a4d12; font-size: 34px; font-weight: 900; }
 #modalBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a4d12; }
 #btnClose { width: 64px; height: 64px; background: #00000040; font-size: 30px; }
 #grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 10px; flex: 1; }
@@ -211,7 +228,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 @keyframes pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
 #ghost { position: fixed; pointer-events: none; z-index: 10; transform: translate(-50%, -50%); }
 
-#btnBuy { height: 96px; flex-shrink: 0; background: #e0892b; box-shadow: 0 6px 0 #8a4d12; display: flex; align-items: center; justify-content: center; gap: 18px; }
+#btnBuy { height: 96px; flex-shrink: 0; background: #ff9a3c; box-shadow: 0 6px 0 #8a4d12; display: flex; align-items: center; justify-content: center; gap: 18px; }
 #btnBuy b { font-size: 32px; }
 #btnBuy .cost { font-size: 26px; color: #fff3c4; }
 
@@ -254,7 +271,7 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 /* 💎 다이아 */
 #gemLabel { font-size: 22px; white-space: nowrap; background: #e8f8ff; }
 #gemLabel.pulse { animation: goldPulse .18s ease-out; }
-#boostPill { display: none; font-size: 18px; background: #6cc070; color: #fff; padding: 2px 10px; }
+#boostPill { display: none; font-size: 18px; background: #7cc86a; color: #fff; padding: 2px 10px; }
 #boostPill.on { display: block; }
 #shopList { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 #shopList .info b small { font-size: 18px; opacity: .7; }
@@ -272,11 +289,11 @@ button:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
 .setrow small { display: block; font-size: 16px; font-weight: 700; opacity: .6; }
 .switch { position: relative; width: 98px; height: 52px; border-radius: 26px; background: #b8ad9c; border: 4px solid #3a2418; padding: 0; flex-shrink: 0; transition: background .15s; }
 .switch::after { content: ''; position: absolute; left: 4px; top: 4px; width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 3px solid #3a2418; box-sizing: border-box; transition: left .15s; }
-.switch.on { background: #6cc070; }
+.switch.on { background: #7cc86a; }
 .switch.on::after { left: 50px; }
-#btnReset { margin-top: 10px; width: 100%; height: 70px; background: #fff; color: #d93a3a; border: 4px solid #d93a3a; font-size: 24px; font-weight: 900; }
+#btnReset { margin-top: 10px; width: 100%; height: 70px; background: #fff; color: #e8483a; border: 4px solid #e8483a; font-size: 24px; font-weight: 900; }
 .setbox .sub { text-align: center; font-size: 18px; opacity: .6; margin: 14px 0 8px; }
-#btnSetClose { width: 100%; height: 84px; background: #e0892b; border: 4px solid #3a2418; box-shadow: 0 5px 0 #3a2418; font-size: 30px; font-weight: 900; }
+#btnSetClose { width: 100%; height: 84px; background: #ff9a3c; border: 4px solid #3a2418; box-shadow: 0 5px 0 #3a2418; font-size: 30px; font-weight: 900; }
 
 /* 손그림 아이콘 */
 img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
@@ -331,10 +348,10 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 [data-tab="tools"]    { --fc: #ff9a4a; }
 [data-tab="mates"]    { --fc: #ff8fb0; }
 [data-tab="skins"]    { --fc: #b48cff; }
-[data-tab="missions"] { --fc: #7ccf6a; }
-[data-tab="rush"]     { --fc: #ff6b5b; }
+[data-tab="missions"] { --fc: #7cc86a; }
+[data-tab="rush"]     { --fc: #e8483a; }
 [data-tab="shop"]     { --fc: #5ab8f0; }
-[data-tab="prestige"] { --fc: #ffcc3a; }
+[data-tab="prestige"] { --fc: #ffd34d; }
 #btnSettings          { --fc: #c8b49c; }
 
 /* 깅엄: 색 바탕 위에 반투명 흰 줄을 가로·세로로 겹친다 */
@@ -387,8 +404,8 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   padding: 8px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; min-height: 270px;
   background: repeating-linear-gradient(0deg, #ffffff40 0 9px, transparent 9px 18px), repeating-linear-gradient(90deg, #ffffff40 0 9px, transparent 9px 18px), var(--sc, #d8c3a5); }
 .st::before { content: ''; position: absolute; inset: 5px; border: 2.5px dashed #ffffffcc; border-radius: inherit; pointer-events: none; }
-.st[data-st="oven"] { --sc: #ff9a4a; } .st[data-st="board"] { --sc: #c98a55; } .st[data-st="school"] { --sc: #7ccf6a; }
-.st[data-st="fridge"] { --sc: #7cc8f0; } .st[data-st="counter"] { --sc: #ffcc3a; }
+.st[data-st="oven"] { --sc: #ff9a4a; } .st[data-st="board"] { --sc: #c98a55; } .st[data-st="school"] { --sc: #7cc86a; }
+.st[data-st="fridge"] { --sc: #92d0e8; } .st[data-st="counter"] { --sc: #ffd34d; }
 .st.locked { --sc: #8a8078; filter: grayscale(.4); }
 .st.empty .st-ico { opacity: .55; }
 /* 레벨 등급: 동 → 은 → 금 테두리 */
@@ -402,7 +419,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .st-bar { display: none; position: relative; width: 100%; height: 22px; background: #2a1a10; border-radius: 11px; overflow: hidden; }
 .st-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #ffd34d; }
 .st-bar span { position: relative; font-size: 15px; line-height: 22px; }
-.st-act { margin-top: auto; width: 100%; min-height: 70px; background: #e0892b; border: 3px solid #3a2418; box-shadow: 0 4px 0 #3a2418; font-size: 21px;
+.st-act { margin-top: auto; width: 100%; min-height: 70px; background: #ff9a3c; border: 3px solid #3a2418; box-shadow: 0 4px 0 #3a2418; font-size: 21px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 16px; }
 .st-act.gem { background: #3aa0e0; }
 .st-act .cost { font-size: 15px; color: #fff3c4; }
@@ -412,9 +429,9 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 수확 말풍선 */
 .st-collect { display: none; position: absolute; top: -26px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 2;
   background: #fff; color: #fff; border: 3px solid #3a2418; border-radius: 18px; padding: 4px 12px; font-size: 20px; box-shadow: 0 3px 0 #3a2418;
-  animation: bob 1s ease-in-out infinite; background: #6cc070; }
+  animation: bob 1s ease-in-out infinite; background: #7cc86a; }
 #baseBear { width: 150px; height: auto; margin-top: auto; filter: drop-shadow(0 6px 0 #0003); }
-#btnBaseBack { width: 100%; height: 84px; background: #ff6b5b; border: 4px solid #3a2418; box-shadow: 0 5px 0 #3a2418; font-size: 30px; border-radius: 20px; }
+#btnBaseBack { width: 100%; height: 84px; background: #e8483a; border: 4px solid #3a2418; box-shadow: 0 5px 0 #3a2418; font-size: 30px; border-radius: 20px; }
 
 /* ======================================================================
    손그림 UI 판 — 9분할(border-image). 자르기 값 = assets/img/ui_slices_1x.json × 3 (그림이 3배 판)
@@ -616,7 +633,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
    그림이 없는 것(리본·빨간 X·조준·조이스틱·발바닥 무늬)은 CSS 임시 — ASSET_LIST 6차
    ====================================================================== */
 :root {
-  --ink: #5a3a22;        /* 진갈색 외곽선 */
+  --ink: #4b3021;        /* 진갈색 외곽선 */
   --cream: #fbe6b8;      /* 크림 판 */
   --paw: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23e7c48a' opacity='.6'%3E%3Cellipse cx='26' cy='34' rx='10' ry='8'/%3E%3Ccircle cx='14' cy='23' r='4'/%3E%3Ccircle cx='22' cy='16' r='4'/%3E%3Ccircle cx='31' cy='16' r='4'/%3E%3Ccircle cx='39' cy='23' r='4'/%3E%3Cellipse cx='86' cy='94' rx='10' ry='8'/%3E%3Ccircle cx='74' cy='83' r='4'/%3E%3Ccircle cx='82' cy='76' r='4'/%3E%3Ccircle cx='91' cy='76' r='4'/%3E%3Ccircle cx='99' cy='83' r='4'/%3E%3C/g%3E%3C/svg%3E");
 }
@@ -624,9 +641,9 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* ---------- 창: 크림 + 발바닥 무늬 + 진갈색 테두리, 폭 화면의 91% ---------- */
 #modal .box, #settings .setbox {
   position: relative; width: 655px; border: 5px solid var(--ink) !important; border-image: none !important; border-radius: 30px;
-  background: var(--paw) 0 0 / 120px repeat, var(--cream) !important; box-shadow: inset 0 0 0 4px #fff6df !important; filter: drop-shadow(0 7px 0 #3a2418);
+  background: var(--paw) 0 0 / 120px repeat, var(--cream) !important; box-shadow: inset 0 0 0 4px #fff3dc !important; filter: drop-shadow(0 7px 0 #3a2418);
 }
-#modal .box.orange { background: #e99a3c !important; border-color: #f6c84a !important; box-shadow: 0 0 0 5px var(--ink) !important; }
+#modal .box.orange { background: #ff9a3c !important; border-color: #ffd34d !important; box-shadow: 0 0 0 5px var(--ink) !important; }
 #modal .box.has-peek { margin-top: 170px; }
 /* 위로 머리를 내민 그림 (리본 뒤) */
 #modal .peek { position: absolute; left: 50%; top: -205px; width: 250px; height: 230px; object-fit: contain; object-position: bottom; transform: translateX(-50%); z-index: -1; }
@@ -644,7 +661,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 빨간 동그라미 X (패널 오른쪽 위 모서리에 걸침 · 오프라인은 패널 아래 가운데) */
 #modalX, #btnClose {
   position: absolute; right: -24px; top: -24px; width: 66px; height: 66px; padding: 0; border-radius: 50% !important; z-index: 3; font-size: 0;
-  background: radial-gradient(circle at 50% 35%, #ff8f8f, #e95a5a) !important; border: 4px solid #fff !important; box-shadow: 0 0 0 4px var(--ink), 0 6px 0 4px #3a2418 !important; filter: none !important;
+  background: radial-gradient(circle at 50% 35%, #ff8a8a, #e8483a) !important; border: 4px solid #fff !important; box-shadow: 0 0 0 4px var(--ink), 0 6px 0 4px #3a2418 !important; filter: none !important;
 }
 #modalX::before, #modalX::after, #btnClose::before, #btnClose::after {
   content: ''; position: absolute; left: 50%; top: 50%; width: 30px; height: 8px; margin: -4px 0 0 -15px; border-radius: 4px; background: #fff;
@@ -656,7 +673,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 주 버튼: 노랑 */
 #modalBtn {
   display: block; width: 330px; margin: 22px auto 0; height: 92px; border-image: none !important; border: 4px solid var(--ink) !important; border-radius: 22px;
-  background: linear-gradient(#ffe066, #f5c22e) !important; box-shadow: inset 0 -7px 0 #d9a21a !important; filter: drop-shadow(0 5px 0 #3a2418); font-size: 34px;
+  background: linear-gradient(#ffd34d, #ffd34d) !important; box-shadow: inset 0 -7px 0 #d9a21a !important; filter: drop-shadow(0 5px 0 #3a2418); font-size: 34px;
 }
 #modalBtn:disabled { background: #bdb3a2 !important; box-shadow: inset 0 -7px 0 #9a8f80 !important; }
 #modalCancel { display: block; width: 330px; margin: 12px auto 0; }
@@ -671,7 +688,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .off-max { position: absolute; right: -40px; top: -22px; font-style: italic; font-size: 22px; color: #ff9ad5; transform: rotate(14deg); -webkit-text-stroke: 4px #6a2050; }
 .off-lv { display: flex; align-items: center; gap: 12px; width: 190px; background: #c46f22; border-radius: 12px; padding: 4px 12px; font-size: 26px; }
 .off-lv img { width: 44px; height: 44px; object-fit: contain; margin-left: -20px; }
-.off-lv.grew { background: #d98a2e; box-shadow: 0 0 0 3px #ffe066; }
+.off-lv.grew { background: #e07a1c; box-shadow: 0 0 0 3px #ffd34d; }
 .off-gold { margin-top: 18px; font-size: 28px; }
 .off-note { font-size: 22px !important; margin: 14px 0 0 !important; }
 
@@ -681,29 +698,29 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   border-image: none !important; border: 4px solid #1f2d18 !important; border-radius: 16px; background: #3d5634 !important; overflow: visible;
   filter: drop-shadow(0 5px 0 #1a2414); padding: 30px 8px 12px; /* 위 30: 오른쪽 위 Lv와 큰 숫자가 겹치지 않게 (Mplus 숫자가 밑미보다 넓음) */ justify-content: flex-end; gap: 6px;
 }
-/* 카드 제목·큰 숫자 글자 효과: 총고 카드 실측(2026-10-21) — 외곽선 회갈색 #554236, 그림자 반투명 검정. 참고 이미지 대비 0.64배 */
-.up .name { position: absolute; left: -6px; right: -6px; top: -38px; text-align: center; font-size: 22px; white-space: nowrap; -webkit-text-stroke: 4px #554236; text-shadow: none; }
+/* 카드 제목·큰 숫자 글자 효과: 총고 카드 실측(2026-10-21) — 외곽선 회갈색 #4b3021, 그림자 반투명 검정. 참고 이미지 대비 0.64배 */
+.up .name { position: absolute; left: -6px; right: -6px; top: -38px; text-align: center; font-size: 22px; white-space: nowrap; -webkit-text-stroke: 4px #4b3021; text-shadow: none; }
 .up .gauge { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; }
-.up .gauge i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; clip-path: inset(0 100% 0 0); background: linear-gradient(#86cf62, #5aa640); transition: clip-path .25s; } /* main.js가 clip-path로 오른쪽을 잘라 차오르게 한다 */
+.up .gauge i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; clip-path: inset(0 100% 0 0); background: linear-gradient(#7cc86a, #4f9a44); transition: clip-path .25s; } /* main.js가 clip-path로 오른쪽을 잘라 차오르게 한다 */
 .up.full .gauge i { animation: upGlow 1s ease-in-out infinite; }
 @keyframes upGlow { 50% { filter: brightness(1.18); } }
 .up .uico { position: absolute; left: -14px; top: -20px; height: 50px; width: auto; z-index: 2; filter: drop-shadow(0 3px 0 #0005); }
 #panel .up .lv { position: absolute; top: -22px; right: 8px; background: none; padding: 0; font-size: 19px; z-index: 2; -webkit-text-stroke-width: 5px; text-shadow: 0 2px 0 #2a1a10; }
-#panel .up .val { position: relative; z-index: 1; font-size: 36px; line-height: 1; letter-spacing: .02em; -webkit-text-stroke: 8px #554236; text-shadow: 0 6px 0 #1a100ae6; }
-/* 비용 칸: 총고 실측(2026-10-21) — 갈색 둥근 사각형(#5b3f1e) 왼쪽 끝에 큰 코인 아이콘이 걸쳐 튀어나온다.
-   코인+갈색 칸이 한 세트로 카드 가운데(왼쪽 여백 26px = 코인이 튀어나온 만큼), 숫자는 갈색 칸의 정중앙. 글자는 외곽선만(그림자 없음), 모자라면 빨강 #f77478 */
+#panel .up .val { position: relative; z-index: 1; font-size: 36px; line-height: 1; letter-spacing: .02em; -webkit-text-stroke: 8px #4b3021; text-shadow: 0 6px 0 #1a100ae6; }
+/* 비용 칸: 총고 실측(2026-10-21) — 갈색 둥근 사각형(#6e4a34) 왼쪽 끝에 큰 코인 아이콘이 걸쳐 튀어나온다.
+   코인+갈색 칸이 한 세트로 카드 가운데(왼쪽 여백 26px = 코인이 튀어나온 만큼), 숫자는 갈색 칸의 정중앙. 글자는 외곽선만(그림자 없음), 모자라면 빨강 #ff8a8a */
 #panel .up .cost {
-  position: relative; z-index: 1; border-image: none !important; border: 0 !important; background: #5b3f1e !important; border-radius: 10px;
+  position: relative; z-index: 1; border-image: none !important; border: 0 !important; background: #6e4a34 !important; border-radius: 10px;
   filter: none; color: #fff; font-size: 22px; line-height: 1; height: 34px; display: flex; align-items: center; justify-content: center;
   align-self: center; width: 58%; min-width: 0; margin-left: 26px; padding: .22em 6px 0; box-sizing: border-box; /* 위 .22em: Mplus 숫자 모양이 글자 칸 위쪽에 붙어 있어(실측 0.11em) 칸 세로 중앙으로 내린다 */
-  -webkit-text-stroke: 6px #5a3020; text-shadow: none;
+  -webkit-text-stroke: 6px #4b3021; text-shadow: none;
 }
 #panel .up .cost img.ic { position: absolute; left: -26px; top: 50%; height: 40px; transform: translateY(-50%); filter: drop-shadow(0 2px 0 #0005); }
-#panel .up.poor .cost { color: #f77478; }
+#panel .up.poor .cost { color: #ff8a8a; }
 
 /* ---------- 스테이지 아래 절전모드 알약 ---------- */
 #btnSaver { pointer-events: auto; margin-top: 4px; padding: 2px 18px; font-size: 20px; border-radius: 999px; background: #7d746a; border: 3px solid #3a332c; box-shadow: 0 3px 0 #3a332c; }
-#btnSaver.on { background: #6cc070; border-color: #2d5a2f; box-shadow: 0 3px 0 #2d5a2f; }
+#btnSaver.on { background: #7cc86a; border-color: #2d5a2f; box-shadow: 0 3px 0 #2d5a2f; }
 
 /* ---------- 기능 버튼: 화면 끝에 붙은 알약 (왼쪽 6개 · 오른쪽 아래 도전) + 오른쪽 위 미션 동그라미 ---------- */
 #btnSettings { background: none !important; border: 0; box-shadow: none; transform: none; padding: 0; }
@@ -712,13 +729,13 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .side { gap: 10px; bottom: 208px; } /* 전장(#field)이 카드 뒤까지 1280으로 늘어나서 카드 높이 190 + 18 */
 .side.left { left: 0; } .side.right { right: 0; }
 .side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) {
-  width: 104px; height: 72px; transform: none; background: #f6c27a !important; border: 4px solid #4a2e1a; border-left: 0;
-  border-radius: 0 24px 24px 0; box-shadow: 0 5px 0 #4a2e1a, inset 0 -7px 0 #0000001c;
+  width: 104px; height: 72px; transform: none; background: #f6c27a !important; border: 4px solid #3a2418; border-left: 0;
+  border-radius: 0 24px 24px 0; box-shadow: 0 5px 0 #3a2418, inset 0 -7px 0 #0000001c;
 }
-.side.right .sbtn { border: 4px solid #4a2e1a; border-right: 0; border-radius: 24px 0 0 24px; } /* 오른쪽 끝에 붙은 알약은 왼쪽만 둥글게 */
+.side.right .sbtn { border: 4px solid #3a2418; border-right: 0; border-radius: 24px 0 0 24px; } /* 오른쪽 끝에 붙은 알약은 왼쪽만 둥글게 */
 .side.right .sbtn[data-tab="rush"] { height: 86px; background: #f0874a !important; }
 .side .sbtn[data-tab="shop"] { background: #6cc3ea !important; }
-.side .sbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #4a2e1a; }
+.side .sbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #3a2418; }
 .sbtn::before { display: none; }
 .side .sbtn .ico { top: 0; }
 .side .sbtn .ico img { height: 50px; }
@@ -787,7 +804,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .perm-btn { width: 190px; height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 22px;
   background: linear-gradient(#a65bbd, #7e3c96); border: 4px solid #4a2058; border-radius: 16px; box-shadow: 0 4px 0 #4a2058; }
 .perm-cost { font-style: normal; background: #4a2058; border-radius: 999px; padding: 1px 16px; font-size: 20px; }
-.perm-btn:disabled .perm-cost { color: #ff7a7a; }
+.perm-btn:disabled .perm-cost { color: #ff8a8a; }
 .perm-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #4a2058; }
 
 /* ---------- 도전: 보스 러시 + 챕터 도전 ---------- */
@@ -799,7 +816,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .row.chal.locked .big img { filter: brightness(.45); }
 .chal-title { font-size: 44px; margin-top: -10px; }
 .chal-band { margin: 14px -45px; padding: 14px 30px; background: #ecdcba; border-top: 4px solid var(--ink); border-bottom: 4px solid var(--ink);
-  color: #5a3a22; -webkit-text-stroke: 0; font-size: 26px; line-height: 1.35; word-break: keep-all; }
+  color: #4b3021; -webkit-text-stroke: 0; font-size: 26px; line-height: 1.35; word-break: keep-all; }
 .chal-reward { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 60px 0; background: #f3d79c; border-radius: 16px; padding: 10px; }
 .chal-reward small { font-size: 22px; } .chal-reward span img.ic { height: 58px; vertical-align: 0; } .chal-reward b { font-size: 28px; margin-top: -10px; }
 
@@ -841,14 +858,14 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 옆 알약 버튼: 왼쪽 = 오른쪽만 둥근 크림(상점은 파랑), 오른쪽 = 왼쪽만 둥근 크림·파랑(왼쪽 그림을 뒤집은 ui_side_pill_r_cream·_r_blue) · 도전은 진주황
    크기가 고정(104×72, 도전 104×86)이고 그림 비율과 같아서 9분할 대신 통판으로 깐다 — 9분할은 화면 축소 시 조각 이음매가 격자처럼 보였다 */
 .side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) {
-  border-color: transparent !important; border-image: none !important; box-shadow: none; filter: drop-shadow(0 5px 0 #4a2e1a);
+  border-color: transparent !important; border-image: none !important; box-shadow: none; filter: drop-shadow(0 5px 0 #3a2418);
   background: url("assets/img/ui_side_pill_l.webp") center / 100% 100% no-repeat border-box !important;
 }
 .side.left .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_l_blue.webp") !important; }
 .side.right .sbtn { background-image: url("assets/img/ui_side_pill_r_cream.webp") !important; }
 .side.right .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_r_blue.webp") !important; }
 .side.right .sbtn[data-tab="rush"] { background: url("assets/img/ui_side_pill_r.webp") center / 100% 100% no-repeat border-box !important; } /* 위쪽 옛 규칙(주황 단색)보다 우선하도록 전체 지정 */
-.side .sbtn:active { box-shadow: none; filter: drop-shadow(0 2px 0 #4a2e1a); }
+.side .sbtn:active { box-shadow: none; filter: drop-shadow(0 2px 0 #3a2418); }
 /* 화면 끝에 붙는 쪽 테두리(그림에 3px)는 화면 밖으로 밀어 안 보이게 */
 .side.left { left: -4px; } .side.right { right: -4px; }
 
@@ -866,11 +883,11 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 9분할 그림(ui_up_card·ui_up_gauge)은 화면 축소 때 조각 이음매가 선으로 보여서, 그림의 색·테두리를 재서 CSS로 똑같이 그린다 (2026-10-21)
    카드: 바깥 진녹 4 → 어두운 선 1.3 → 밝은 선 1.3 → 몸통 #379072, 모서리 13 · 게이지: 진녹 3 → 연두 2 → 몸통 #b0e992, 위 9px에 하이라이트 줄 */
 #panel .up { border: 4px solid #184e43 !important; border-radius: 13px; border-image: none !important;
-  background: #379072 !important; box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #80c3a2, 0 5px 0 #1a2414 !important;
+  background: #379072 !important; box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #4f9e80, 0 5px 0 #1a2414 !important;
   filter: none !important; } /* 카드 그림자는 몸통에만(box-shadow) — filter로 걸면 카드 밖 제목·Lv 글자에도 그림자가 찍혔다 */
 #panel .up .gauge { border-radius: 9px; }
-#panel .up .gauge i { border-radius: 9px; box-shadow: inset 0 0 0 3px #3d935d, inset 0 0 0 5px #8edc7f;
-  background: linear-gradient(#b0e992 9px, #d8f7bd 9px 11px, #b0e992 11px calc(100% - 5px), #92dc81 calc(100% - 5px)); }
+#panel .up .gauge i { border-radius: 9px; box-shadow: inset 0 0 0 3px #3d935d, inset 0 0 0 5px #7cc86a;
+  background: linear-gradient(#96d37d calc(100% - 5px), #7cc86a calc(100% - 5px)); } /* 2026-10-21: 처음 연두(#b0e992)와 차분한 초록(#7cc86a)의 중간, 위쪽 하이라이트 줄 없앰 (사용자 요청) */
 
 /* 환생 보상 줄 · 영구 강화 버튼 */
 .pr-gain { border-color: transparent; background: none; border-image: url("assets/img/ui_row_purple.webp") 66 fill / 22px stretch; }
@@ -921,27 +938,27 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 #chapterLabel { display: none !important; } /* 챕터 이름은 챕터가 바뀔 때 뜨는 큰 안내판으로 */
 #bossTimer:not(.rush) { display: none !important; } /* 보스 러시·도전(.rush)일 때만 알약 */
 #bossTime { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 1; font-size: 24px; line-height: 1; white-space: nowrap;
-  -webkit-text-stroke: 5px #56402a; text-shadow: 0 2px 0 #3a2418; }
+  -webkit-text-stroke: 5px #4b3021; text-shadow: 0 2px 0 #3a2418; }
 
 /* 카드 제목·Lv: 외곽선 굵게, 그림자 작게 (2026-10-21) */
 #panel .up .name { -webkit-text-stroke-width: 6px; text-shadow: 0 1.5px 0 #2a1a10; }
-#panel .up .lv { -webkit-text-stroke: 6px #554236; text-shadow: 0 1.5px 0 #2a1a10; }
-#panel .up:active:not(:disabled) { box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #80c3a2, 0 2px 0 #1a2414 !important; filter: none !important; }
+#panel .up .lv { -webkit-text-stroke: 6px #4b3021; text-shadow: 0 1.5px 0 #2a1a10; }
+#panel .up:active:not(:disabled) { box-shadow: inset 0 0 0 1.3px #2c7964, inset 0 0 0 2.7px #4f9e80, 0 2px 0 #1a2414 !important; filter: none !important; }
 #panel .up .lv { top: -16px; font-size: 22px; } /* Lv 조금 크게, 조금 아래로 (2026-10-21) */
 
 /* ---------- 절전모드 화면 (2026-10-21, 총고 실측: 바탕 #6b5331 + 아주 흐린 발바닥 무늬, 가운데 작은 캐릭터 + "전투중..") ---------- */
 #saverScreen { display: none; position: absolute; inset: 0; pointer-events: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-bottom: 60px;
   background: #6b5331 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='%235f4829' opacity='.5'%3E%3Cellipse cx='34' cy='46' rx='14' ry='11'/%3E%3Ccircle cx='18' cy='31' r='5.5'/%3E%3Ccircle cx='29' cy='22' r='5.5'/%3E%3Ccircle cx='41' cy='22' r='5.5'/%3E%3Ccircle cx='52' cy='31' r='5.5'/%3E%3Cellipse cx='114' cy='126' rx='14' ry='11'/%3E%3Ccircle cx='98' cy='111' r='5.5'/%3E%3Ccircle cx='109' cy='102' r='5.5'/%3E%3Ccircle cx='121' cy='102' r='5.5'/%3E%3Ccircle cx='132' cy='111' r='5.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 160px repeat; }
 #saverScreen.on { display: flex; }
-#saverScreen p { margin: 0; font-size: 26px; color: #faeee8; -webkit-text-stroke: 5px #3a2a18; }
+#saverScreen p { margin: 0; font-size: 26px; color: #faeee8; -webkit-text-stroke: 5px #3a2418; }
 #saverScreen img { height: 110px; width: auto; animation: saverBob 1.6s ease-in-out infinite; }
 #saverScreen i { width: 90px; height: 18px; margin-top: -14px; border-radius: 50%; background: #0000002e; }
 @keyframes saverBob { 50% { transform: translateY(-6px); } }
 
 /* ---------- 다국어: 한국어 글자가 그려진 그림은 한국어 화면에서만 (2026-10-21). 다른 언어는 같은 자리에 글자로 ---------- */
-html:not([lang="ko"]) .mission.done::after { content: var(--t-done); background: #fde8e8d9; border: 5px solid #d9534f; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; color: #d9534f; font-size: 24px; -webkit-text-stroke: 0; text-shadow: none; }
-html:not([lang="ko"]) .skin.on::after { content: var(--t-equipped); width: auto; height: auto; padding: 2px 8px; border-radius: 999px; background: #6cc070;
+html:not([lang="ko"]) .mission.done::after { content: var(--t-done); background: #fde8e8d9; border: 5px solid #e8483a; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #e8483a; font-size: 24px; -webkit-text-stroke: 0; text-shadow: none; }
+html:not([lang="ko"]) .skin.on::after { content: var(--t-equipped); width: auto; height: auto; padding: 2px 8px; border-radius: 999px; background: #7cc86a;
   border: 3px solid #2d5a2f; font-size: 15px; line-height: 1.2; -webkit-text-stroke: 3px #2d5a2f; }
 #modal .logo-text { font-size: 68px; line-height: 1.1; color: #ffd34d; -webkit-text-stroke: 8px #8a3a12; text-shadow: 0 5px 0 #5a2408; margin: -6px 0 10px; }
 /* 영어는 숫자·영문 글꼴(Rounded Mplus)로 문장 전체를 — 한글이 섞이면 그 글자만 밑미 */
@@ -956,3 +973,830 @@ html[lang="en"] #panel .up .name { font-size: 17px; }
 html[lang="en"] .tab span { font-size: 15px; -webkit-text-stroke-width: 4px; letter-spacing: -0.02em; }
 html[lang="en"] .gun .glv { font-size: 17px; line-height: 1.15; }
 html[lang="en"] #modalBtn { font-size: 28px; white-space: nowrap; }
+/* 옆 메뉴 손질 (2026-10-21, 총고 참고): 안쪽 아래 그림자, 글자 크게, 모두 같은 높이 72 — 도구함·도전은 가로로 더 길게(124)
+   긴 버튼은 둥근 끝을 그대로 두고 가운데만 늘린 그림(ui_side_pill_l_wide·_r_wide)을 쓴다 */
+/* 그림자는 버튼 안쪽 아래(inset) — 바깥 아래 두께는 원래 진갈색 그대로 (2026-10-21 사용자 정정) */
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) { filter: drop-shadow(0 5px 0 #3a2418); box-shadow: inset 0 -9px 0 #00000026 !important; }
+.side .sbtn:active { filter: drop-shadow(0 2px 0 #3a2418); box-shadow: inset 0 -4px 0 #00000026 !important; }
+.side .sbtn > span:not(.ico) { font-size: 26px; -webkit-text-stroke-width: 6px; }
+.side .sbtn[data-tab="tools"] { width: 124px; background-image: url("assets/img/ui_side_pill_l_wide.webp") !important; }
+.side.right .sbtn[data-tab="rush"] { width: 124px; height: 72px; background: url("assets/img/ui_side_pill_r_wide.webp") center / 100% 100% no-repeat border-box !important; }
+html[lang="en"] .side .sbtn > span:not(.ico) { font-size: 18px; }
+/* 버튼 폭이 달라도(도구함·도전 124) 모두 화면 끝에 붙인다 — 묶음 안에서 왼쪽 메뉴는 왼쪽, 오른쪽 메뉴는 오른쪽 정렬 */
+.side.left { align-items: flex-start; } .side.right { align-items: flex-end; }
+/* 안쪽 아래 그림자: 6px, 검정 대신 버튼 몸통색을 어둡게 한 색 (크림 #ffe5bc → #eac48c · 파랑 #b4e0ed → #92d0e8 · 주황 #f7ab5e → #e07a1c) */
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) { box-shadow: inset 0 -6px 0 #eac48c !important; }
+.side .sbtn[data-tab="shop"] { box-shadow: inset 0 -6px 0 #92d0e8 !important; }
+.side .sbtn[data-tab="rush"] { box-shadow: inset 0 -6px 0 #e07a1c !important; }
+.side .sbtn:active { box-shadow: inset 0 -3px 0 #eac48c !important; }
+.side .sbtn[data-tab="shop"]:active { box-shadow: inset 0 -3px 0 #92d0e8 !important; }
+.side .sbtn[data-tab="rush"]:active { box-shadow: inset 0 -3px 0 #e07a1c !important; }
+/* 옆 메뉴 높이 72 → 80 (2026-10-21). 그림도 가운데만 늘려 80 높이로 다시 만듦 (둥근 끝 그대로) */
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even), .side.right .sbtn[data-tab="rush"] { height: 80px; }
+/* ---------- 옆 메뉴 알약을 그림 대신 CSS로 (2026-10-21 사용자 결정) ----------
+   크기를 바꿀 때마다 그림을 다시 만들 필요 없고, 축소돼도 이음매·찌그러짐이 없다. 색은 알약 그림(ui_side_pill_*)에서 잰 값.
+   몸통 크림 #ffe5bc · 상점 파랑 #b4e0ed · 도전 주황 #f7ab5e, 테두리 진갈색 #4b3021 4px(화면 끝 쪽은 없음), 모서리 22.
+   안쪽 아래 그림자·바깥 아래 두께·높이 80·도구함·도전 폭 124는 위 규칙 그대로 */
+#field .side .sbtn { background: #ffe5bc !important; border: 4px solid #4b3021 !important; }
+#field .side .sbtn[data-tab="shop"] { background: #b4e0ed !important; }
+#field .side .sbtn[data-tab="rush"] { background: #f7ab5e !important; }
+#field .side.left .sbtn { border-left: 0 !important; border-radius: 0 22px 22px 0; }
+#field .side.right .sbtn { border-right: 0 !important; border-radius: 22px 0 0 22px; }
+.side.left { left: 0; } .side.right { right: 0; } /* 화면 끝 쪽 테두리가 없으니 밀어 넣지 않는다 */
+/* 바깥 아래 두께(그림자): 진갈색 #4b3021 불투명도 70% (2026-10-21) */
+.side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) { filter: drop-shadow(0 5px 0 #4b3021b3); }
+.side .sbtn:active { filter: drop-shadow(0 2px 0 #4b3021b3); }
+
+/* ---------- 보스 경고 (2026-10-21): 테두리 빨강 깜빡임 + 가운데 WARNING 띠 (위아래 노랑·검정 사선) ---------- */
+#warn { display: none; position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+#warn.on { display: block; animation: warnEdge .3s ease-in-out infinite alternate; }
+@keyframes warnEdge { from { box-shadow: inset 0 0 60px 10px #ff2a2a66; } to { box-shadow: inset 0 0 160px 60px #ff2a2ae6; } }
+#warn .band { position: absolute; left: 0; right: 0; top: 38%; transform: scaleY(0); animation: warnBand 1.8s ease-out forwards; }
+@keyframes warnBand { 0% { transform: scaleY(0); } 12% { transform: scaleY(1.15); } 18%, 88% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+#warn .stripe { height: 16px; background: repeating-linear-gradient(-45deg, #ffd34d 0 18px, #2a1a10 18px 36px); }
+#warn .txt { height: 96px; background: #c8202ae6; display: flex; align-items: center; gap: 70px; white-space: nowrap; overflow: hidden; }
+#warn .txt span { flex: none; font-size: 64px; line-height: 1; color: #fff; letter-spacing: .06em; -webkit-text-stroke: 8px #5a0a10; text-shadow: 0 4px 0 #3a0508;
+  animation: warnScroll 1.8s linear forwards; }
+@keyframes warnScroll { from { transform: translateX(0); } to { transform: translateX(-420px); } }
+#warn.wall .txt { background: #7a1060e6; } /* 대왕 보스는 진보라 */
+/* 오프라인 보상 레벨 줄 (2026-10-21): 아이콘은 모두 같은 54×54 칸에 넣어 갈색 칸 왼쪽 끝에 똑같이 걸치고, Lv 글자는 갈색 칸 정중앙 */
+.off-lv { position: relative; justify-content: center; box-sizing: border-box; height: 52px; padding: 0 12px; }
+.off-lv img { position: absolute; left: -24px; top: 50%; width: 54px; height: 54px; margin: 0; transform: translateY(-50%); object-fit: contain; object-position: center; }
+.off-lv span { line-height: 1; }
+
+/* ---------- 내 주방 카드·버튼을 그림 대신 CSS로 (2026-10-21) — 9분할 이음매가 격자처럼 보여서. 색은 그림(ui_st_card·ui_btn_*)에서 잰 값 ---------- */
+#base .st, #base .st.locked { border: 4px solid #4b3021 !important; border-image: none !important; border-radius: 20px; background: #fffbef !important;
+  box-shadow: inset 0 -6px 0 #f1e3c6 !important; filter: drop-shadow(0 6px 0 #3a2418b3); }
+#base .st.locked { background: #eae9e5 !important; border-color: #89807c !important; box-shadow: inset 0 -6px 0 #d6d3cf !important; filter: drop-shadow(0 6px 0 #3a2418b3) grayscale(.3); }
+#base .st.silver { filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 6px #b8c4d0); }
+#base .st.gold { filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 10px #ffd34d); }
+#base .st-act { border: 3px solid #4b3021 !important; border-image: none !important; border-radius: 16px; background: #ff9a3c !important; box-shadow: inset 0 -5px 0 #e07a1c !important;
+  filter: drop-shadow(0 4px 0 #3a2418b3); }
+#base .st-act.gem { background: #92d0e8 !important; box-shadow: inset 0 -5px 0 #6fb4d0 !important; }
+#base .st-act:disabled { background: #dcd8d3 !important; border-color: #827a73 !important; box-shadow: inset 0 -5px 0 #c4beb7 !important; }
+#base .st-act:active:not(:disabled) { transform: translateY(3px); filter: drop-shadow(0 1px 0 #3a2418b3); }
+/* 수확 가능 표시: 카드보다 크게 어긋나던 빛 테두리 그림 대신, 카드 테두리에 딱 맞는 노란 빛이 숨 쉬듯 깜빡인다 */
+.st-cell.ready::before { display: none; }
+#base .st-cell.ready > .st { animation: stReady 1.2s ease-in-out infinite; }
+@keyframes stReady { 0%, 100% { filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 4px #ffd34d); } 50% { filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 14px #ffd34d) drop-shadow(0 0 4px #ffe680); } }
+/* 수확 말풍선: 코인을 동그라미 정중앙에 (그림 실측 — 동그라미 중심 = 가로 50%, 세로 42.5%, 아래는 꼬리) (2026-10-21) */
+#base .st-collect img.ic { position: absolute; left: 50%; top: 42.5%; height: 36px; margin: 0; transform: translate(-50%, -50%); }
+/* 수확 가능 노란 빛은 뺀다 (사용자 요청) — 말풍선만으로 충분 */
+#base .st-cell.ready > .st { animation: none; }
+
+/* ---------- 🛠 치트 (cheat.js, 개발용) — 미션 버튼 아래 ---------- */
+#btnCheat { position: absolute; right: 18px; top: 300px; width: 56px; height: 56px; border-radius: 50%; z-index: 2; padding: 0; font-size: 28px;
+  background: #3a3a44; border: 3px solid #1a1a22; box-shadow: 0 4px 0 #1a1a22; -webkit-text-stroke: 0; }
+#cheat { position: absolute; inset: 0; z-index: 30; background: #000b; display: flex; align-items: center; justify-content: center; }
+#cheat.hidden { display: none; }
+#cheat .box { width: 640px; background: #2a2a34; border: 4px solid #111; border-radius: 24px; padding: 24px 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; }
+#cheat .title { font-size: 36px; text-align: center; }
+.ch-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ch-row b { width: 96px; font-size: 22px; }
+.ch-row button, .ch-close { padding: 10px 16px; font-size: 20px; border-radius: 12px; background: #4a4a58; border: 3px solid #111; -webkit-text-stroke: 3px #111; }
+.ch-row button.on { background: #ff9a3c; }
+.ch-row input { width: 110px; font: inherit; font-size: 24px; padding: 6px 10px; border-radius: 10px; border: 3px solid #111; -webkit-text-stroke: 0; color: #222; }
+.ch-close { align-self: center; padding: 12px 60px; background: #7cc86a; }
+
+/* ---------- 위쪽 웨이브 진행·스테이지·절전모드 (총고식 비율, 2026-10-21) ----------
+   총고 전체 화면(폭 923)에서 잰 값 × 0.78: 줄 두께 17(테두리 4 + 안 9), 줄 길이 354, 점 지름 34(테두리 5), Stage 글자 22px, 절전모드 높이 39·폭 110
+   색: 지나온 구간·점 크림 #f7d7ae(점 안쪽 #d2b594), 남은 구간·점 어두운 올리브(반투명), 테두리 진갈색 #4b3021 */
+#track { max-width: 354px; height: 46px; }
+#track .line { left: 22px; right: 22px; top: 15px; height: 17px; box-sizing: border-box; background: #4a3814a6 !important; border: 4px solid #4b3021 !important; border-radius: 999px; overflow: hidden; }
+#trackFill { background: #f7d7ae !important; border-radius: 999px; }
+#trackNodes i, #trackNodes i.done, #trackNodes i.boss { top: 6px; width: 34px; height: 34px; margin-left: -17px; box-sizing: border-box; border-radius: 50%;
+  border: 5px solid #4b3021 !important; background: #685018 !important; box-shadow: inset 0 0 0 4px #7a6128; }
+#trackNodes i.done { background: #d2b594 !important; box-shadow: inset 0 0 0 4px #f6dab0; }
+#trackNodes i.boss { display: flex; align-items: center; justify-content: center; }
+#trackNodes i.boss.done, #trackNodes i.boss { background: #9a5aaa !important; box-shadow: inset 0 0 0 3px #c58cf0; }
+#trackNodes i.boss.wall { background: #e8483a !important; box-shadow: inset 0 0 0 3px #ff8a8a; }
+#trackNodes i.boss img { width: 18px; }
+#trackHero { top: 0; width: 46px; height: 46px; margin-left: -23px; background: #fff3dc; border: 4px solid #4b3021; box-sizing: border-box; }
+#trackHero::after { display: none; }
+/* 스테이지: 명판 없이 글자만 */
+#stageLabel, #stageLabel.boss { border: 0 !important; border-image: none !important; height: auto; line-height: 1; padding: 0; margin-top: 6px; filter: none;
+  font-size: 22px; -webkit-text-stroke: 5px #3a2418; text-shadow: 0 2px 0 #2a1a10; }
+/* 절전모드: 회색 알약 (켜면 초록) */
+#btnSaver, #btnSaver.on { margin-top: 8px; height: 39px; min-width: 110px; padding: 0 16px; line-height: 31px; box-sizing: border-box; font-size: 18px;
+  border: 4px solid #4b3021 !important; border-image: none !important; border-radius: 999px; background: #a6a294 !important; box-shadow: inset 0 -5px 0 #8d897c; filter: none; }
+#btnSaver.on { background: #7cc86a !important; box-shadow: inset 0 -5px 0 #4f9a44; }
+/* 셰프 얼굴은 동그라미 안에만, Stage 글자는 진행 줄 바로 아래로 (오른쪽 코인·다이아 두 줄 때문에 윗줄이 높아서 끌어올림) */
+#trackHero { overflow: hidden !important; border-radius: 50% !important; }
+#trackHero img { border-radius: 0; }
+#stageLabel, #stageLabel.boss { margin-top: -26px; }
+
+/* ---------- 팝업 창 판을 그림 대신 CSS로 (2026-10-21) — 9분할 이음매 격자 + 그림 테두리와 창 크기가 어긋나던 것 정리
+   색은 그림에서 잰 값: 테두리 진갈색 #4b3021 5px, 크림 판 = 발바닥 무늬 + 안쪽 흰 선, 주황 판 #fac381 + 안쪽 금색 두 줄 (#edb55d · #ffe6a6) ---------- */
+#modal .box::before, #settings .setbox::before { display: none !important; }
+#modal .box, #settings .setbox { border: 5px solid #4b3021 !important; border-radius: 30px; background: var(--paw) 0 0 / 120px repeat !important;
+  background-clip: border-box !important; box-shadow: inset 0 0 0 4px #fff3dc !important; }
+#modal .box.orange { background: #fac381 !important; box-shadow: inset 0 0 0 4px #edb55d, inset 0 0 0 7px #ffe6a6 !important; }
+
+/* 웨이브 진행 줄은 화면 정가운데 (Stage 글자와 같은 세로줄) — 왼쪽 설정·오른쪽 코인 칸 폭이 달라 가운데가 어긋났다 */
+.hud-row { position: relative; justify-content: space-between; }
+#track { position: absolute; left: 50%; top: 37px; width: 316px; transform: translateX(-50%); } /* 354 → 316: 셰프가 보스 점에 가도 오른쪽 코인 칸과 닿지 않게 */
+#modal .box.orange { border-color: #4b3021 !important; } /* 예전 금색 테두리 규칙보다 우선 */
+/* 노랑 주 버튼도 CSS로 (9분할 격자 정리) — 몸통 #ffd34d, 안쪽 아래 #f0c040, 테두리 #4b3021 */
+#modalBtn { border: 4px solid #4b3021 !important; border-image: none !important; border-radius: 22px; background: #ffd34d !important;
+  box-shadow: inset 0 -7px 0 #f0c040 !important; filter: drop-shadow(0 5px 0 #3a2418b3); }
+#modalBtn:disabled { border-image: none !important; background: #dcd8d3 !important; border-color: #827a73 !important; box-shadow: inset 0 -7px 0 #c4beb7 !important; }
+#modalBtn:active { transform: translateY(3px); filter: drop-shadow(0 2px 0 #3a2418b3); }
+/* 웨이브 진행 줄 색 (2026-10-21 사용자 요청): 바탕은 총고처럼 갈색, 지나온 구간·점은 빨강으로 채움 */
+#track .line { background: #7c5e20 !important; }
+#trackFill { background: #e8483a !important; }
+#trackNodes i, #trackNodes i.done, #trackNodes i.boss { background: #685018 !important; box-shadow: inset 0 0 0 4px #7a6128; }
+#trackNodes i.done { background: #c8392d !important; box-shadow: inset 0 0 0 4px #e8483a; }
+#trackNodes i.boss { background: #9a5aaa !important; box-shadow: inset 0 0 0 3px #c58cf0; }
+#trackNodes i.boss.wall { background: #e8483a !important; box-shadow: inset 0 0 0 3px #ff8a8a; }
+
+/* ---------- 위쪽 손질 (2026-10-21) ---------- */
+/* 맨 위 진행 바 눈금: 노란 선 그림 대신 바탕보다 살짝 밝은 회색 선 — 보일 듯 말 듯 */
+#topBar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 3px), #ffffff1f calc(10% - 3px) 10%) !important; background-size: auto !important; background-position: 0 0 !important; }
+/* 웨이브 진행 묶음 약 15% 크게: 줄 두께 20 · 점 40 · 셰프 얼굴 52 · Stage 25px · 절전모드 높이 46 */
+#track { height: 54px; width: 330px; top: 34px; }
+#track .line { top: 17px; height: 20px; border-width: 5px !important; }
+#trackNodes i, #trackNodes i.done, #trackNodes i.boss { top: 7px; width: 40px; height: 40px; margin-left: -20px; border-width: 6px !important; }
+#trackNodes i.boss img { width: 22px; }
+#trackHero { top: 1px; width: 52px; height: 52px; margin-left: -26px; }
+#stageLabel, #stageLabel.boss { font-size: 25px; margin-top: -16px; }
+#btnSaver, #btnSaver.on { height: 46px; min-width: 124px; line-height: 37px; font-size: 20px; }
+/* 코인·다이아는 조금 작게 (위 묶음이 커진 만큼 자리 확보) */
+#goldLabel, #gemLabel { height: 42px; min-width: 132px; }
+#goldLabel { font-size: 23px; } #gemLabel { font-size: 20px; }
+#goldLabel img.ic, #gemLabel img.ic { left: -40px; height: 34px; }
+#gemLabel .plus { width: 32px; height: 32px; right: -20px; }
+#gemLabel { padding-right: 6px !important; } /* + 버튼 자리 없앰 */
+#gemLabel { justify-content: center; } /* 다이아 숫자는 바 몸통 가운데 (2026-10-21) */
+#gemLabel { padding: 0 3px 0 9px !important; } /* 숫자 앞 띄어쓰기만큼 보정해 몸통 정중앙에 */
+/* 진행 줄 · Stage · 절전모드 사이 간격을 넓히고 절전모드 글자 크게 (2026-10-21) */
+#stageLabel, #stageLabel.boss { margin-top: -4px; }
+#btnSaver, #btnSaver.on { margin-top: 14px; font-size: 23px; }
+/* 보스 말풍선 글자: 효과 없는 진한 갈색 (게임 전체 글자 그림자가 물려 들어와 번져 보였다, 2026-10-21) */
+.bubble { text-shadow: none !important; -webkit-text-stroke: 0 !important; color: #3a2418; }
+/* ---------- 보스 말풍선을 그림 대신 CSS로 (2026-10-21) — 문장 길이에 맞춰 늘어나고 9분할 격자가 생기지 않는다
+   크림 #fffbef 바탕 · 진갈색 #4b3021 테두리 4px · 모서리 20 · 아래 가운데 꼬리(테두리 삼각형 위에 바탕 삼각형) ---------- */
+.bubble { border: 4px solid #4b3021 !important; border-image: none !important; border-radius: 20px !important; background: #fffbef !important;
+  box-shadow: inset 0 -5px 0 #f1e3c6 !important; padding: 10px 18px 13px !important; font-size: 24px; filter: drop-shadow(0 4px 0 #0000004d); }
+.bubble::before, .bubble::after { content: ''; position: absolute; left: 50%; width: 0; height: 0; background: none !important; transform: translateX(-50%);
+  border-style: solid; border-color: transparent; }
+.bubble::before { bottom: -18px; border-width: 18px 14px 0; border-top-color: #4b3021; }
+.bubble::after { bottom: -11px; border-width: 12px 9px 0 !important; border-top-color: #f1e3c6 !important; width: 0 !important; height: 0 !important; }
+
+/* ---------- 스킨 칸: 살 수 있는 것 / 못 사는 것 구분 (2026-10-21) ---------- */
+#skinList .skin .skin-tag { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); display: none; align-items: center; gap: 2px; white-space: nowrap;
+  padding: 1px 10px; border-radius: 999px; font-size: 17px; line-height: 24px; background: #4b3021d9; color: #ff8a7a; -webkit-text-stroke: 3px #2a1a10; z-index: 2; }
+#skinList .skin .skin-tag img.ic { height: 20px; vertical-align: 0; }
+#skinList .skin.locked .skin-tag { display: flex; }
+#skinList .skin.locked.can .skin-tag { background: #4f9a44; color: #fff; }
+#skinList .skin.locked.can .thumb, #skinList .skin.locked.can .mini { filter: brightness(.95); }
+#skinList .skin.locked.can .lock { display: none; }
+#skinList .skin .dot { display: none; position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; z-index: 3; background: url("assets/img/ui_badge.webp") center / contain no-repeat; animation: bob 1s ease-in-out infinite; }
+#skinList .skin.locked.can .dot { display: block; }
+#skinList .skin.locked .lock { top: 44%; }
+
+/* ---------- 스킨 칸 정리 (2026-10-21) ----------
+   칸은 그림 대신 CSS (9분할 격자 정리) — 그림에서 잰 색: 테두리 #4b3021 4px · 안쪽 어두운 띠 #6e4a34 · 밝은 선 #b29586 · 몸통 #937465 / 장착 중 몸통 #fff0b3 · 금색 띠 #fddb75 */
+#skinList .skin { border: 4px solid #4b3021 !important; border-image: none !important; border-radius: 16px !important; background: #937465 !important;
+  box-shadow: inset 0 0 0 2px #6e4a34, inset 0 0 0 4px #b29586 !important; overflow: hidden; }
+#skinList .skin.on { background: #fff0b3 !important; box-shadow: inset 0 0 0 3px #fddb75, inset 0 0 0 5px #fff7be !important; }
+/* 곰 그림: 모든 스킨이 폭을 꽉 채우고 발이 아래 끝에 닿게 그려져 있어 — 폭 기준 같은 크기로, 발을 칸 아래에 맞춘다(모자 높이만 다름) */
+#skinList .skin .thumb { position: absolute; left: 50%; bottom: 7%; width: 80%; height: auto; max-height: none; transform: translateX(-50%); object-fit: unset; }
+/* 장착 중: 글자 배지 대신 초록 체크 + 노란 칸 (총고식) */
+#skinList .skin.on::after, html:not([lang="ko"]) #skinList .skin.on::after { content: '' !important; position: absolute; right: 6px; top: 6px; width: 40px; height: 34px; padding: 0; border: 0; border-radius: 0;
+  z-index: 3; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath d='M5 18 L15 27 L35 6' fill='none' stroke='%232a1a10' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M5 18 L15 27 L35 6' fill='none' stroke='%2346c23a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat !important; }
+/* 메뉴 창: 닫기 X는 창 위로 올리고(창 밖에 걸침), 탭 7개는 가운데 정렬 (2026-10-21) */
+#btnClose { top: -46px; right: 10px; }
+.card-head { padding-right: 0; justify-content: center; }
+.tabs { flex: none; justify-content: center; }
+.tabs { flex: 1; max-width: 660px; } /* 가운데 정렬하되 탭 크기는 원래대로 */
+/* 7차 그림 (2026-10-21) */
+/* 영어 화면: 영어 글자 도장·꼬리표 그림 (그림이 있으니 글자 대체 대신) */
+html[lang="en"] .mission.done::after { content: '' !important; background: url("assets/img/ui_stamp_done_en.webp") center / contain no-repeat !important; border: 0 !important; border-radius: 0 !important; }
+/* 진행 줄 셰프: 테두리 없는 머리 그림 (총고식) */
+#trackHero.head { background: none !important; border: 0 !important; overflow: visible !important; border-radius: 0 !important; width: 56px; height: 56px; margin-left: -28px; top: -1px; filter: drop-shadow(0 3px 0 #0006); }
+#trackHero.head img { transform: none; object-fit: contain; border-radius: 0; }
+/* ---------- 스킨 칸 2차 (2026-10-21, 참고 이미지 실측 × 0.37) ----------
+   잠긴 칸: 회색 #7e7866 + 아래 올리브 띠 #6c5723 + 진갈색 테두리 #3a2418 · 가진 칸: 크림 #fff3dc + 아래 금색 띠 #dbab4a + 갈색 테두리 #6e4a34
+   장착 중은 초록 체크로 구분 · 잠긴 칸은 자물쇠 + 아래 가격표, 지금 살 수 있으면 자물쇠는 그대로 두고 가격표만 초록 */
+#skinList .skin { border: 4px solid #6e4a34 !important; border-radius: 10px !important; background: #fff3dc !important; box-shadow: inset 0 -7px 0 #dbab4a !important; }
+#skinList .skin.on { background: #fff3dc !important; box-shadow: inset 0 -7px 0 #dbab4a !important; }
+#skinList .skin.locked { border-color: #3a2418 !important; background: #7e7866 !important; box-shadow: inset 0 -7px 0 #6c5723 !important; }
+#skinList .skin.locked .thumb, #skinList .skin.locked .mini, #skinList .skin.locked.can .thumb, #skinList .skin.locked.can .mini { filter: brightness(.55) saturate(.8); }
+#skinList .skin.locked.can .lock { display: block; }
+#skinList .skin .skin-tag { bottom: 12px; }
+#skinList .skin .lock { width: 50px; }
+/* 스킨 곰: 발 가운데를 칸 가운데에, 발 아래를 칸 아래 띠 위에 (main.js alignThumb이 translate로 맞춘다) */
+#skinList .skin .thumb { left: 50%; bottom: 13%; width: 78%; transform: none; }
+/* 장착 중: 체크 + 밝은 금색 테두리 (총고식 하이라이트) */
+#skinList .skin.on { border-color: #ffd34d !important; box-shadow: inset 0 -7px 0 #dbab4a, 0 0 0 3px #fff3dc !important; }
+/* 장착 중 칸도 테두리는 다른 가진 칸과 똑같이 — 구분은 초록 체크만 (사용자 정정 2026-10-21) */
+#skinList .skin.on { border-color: #6e4a34 !important; box-shadow: inset 0 -7px 0 #dbab4a !important; }
+#skinList .skin.on { border-image-source: none !important; } /* 예전 장착 칸 그림(ui_skin_slot_on)이 남아 테두리가 밝게 보이던 것 */
+/* 스킨 효과 요약 (2026-10-21): 위 이름 줄·아이콘 없이 칸 안에 '이름(작게) … +45%(크게)' */
+.skin-sum span { padding: 4px 12px; min-height: 44px; box-sizing: border-box; }
+.skin-sum span small { display: inline; margin: 0; font-size: 19px; }
+.skin-sum span b { font-size: 26px; }
+/* 메뉴 탭 빨간 점: 탭 오른쪽 위 모서리에 반쯤 걸치게 (2026-10-21) */
+.tab.ready::after { right: -9px; top: -9px; width: 22px; height: 22px; z-index: 2; }
+.tabs { overflow: visible; padding-top: 6px; }
+.skin-sum span small { font-size: 23px; } /* 19 → 23 (2026-10-21) */
+.skin-tip { font-size: 23px; } /* 19 → 23 */
+
+/* ======================================================================
+   9분할 그림 → CSS 일괄 정리 (2026-10-21) — 화면 축소 때 조각 이음매가 격자처럼 보여서 남은 border-image를 전부 CSS로.
+   색은 각 그림(ui_card·ui_btn_*·ui_bar_*·ui_pill_*·ui_row_purple…)의 가운데·테두리·아래 띠에서 잰 값
+   ====================================================================== */
+#shell .row, #shell .act, #shell #btnBuy, #shell #btnSetClose, #shell #btnBaseBack, #shell #btnReset, #shell .pr-gain, #shell .perm-btn,
+#shell #rushBest, #shell #starNow, #shell .st-bar, #shell .bar2, #shell .st-bar i, #shell .bar2 i, #shell #goldLabel, #shell #gemLabel,
+#shell .pill, #shell #topFill, #shell #tutBubble, #shell #modal .title.small, #shell .setbox .title { border-image: none !important; }
+
+/* 카드 줄 (동료·미션·도전·상점): 크림 #fbe9d8 · 진갈색 테두리 · 아래 띠 / 보너스 줄은 금색 테두리 */
+#shell .row { border: 4px solid #4b3021 !important; border-radius: 18px !important; background: #fbe9d8 !important; box-shadow: inset 0 -6px 0 #efd6bd !important; filter: drop-shadow(0 5px 0 #3a2418b3); }
+#shell .row.bonus { border-color: #efbd4a !important; background: #fdf0d8 !important; }
+/* 버튼: 주황(기본)·파랑(다이아)·회색(못 누름)·빨간 줄(초기화) */
+#shell .act, #shell #btnBuy, #shell #btnSetClose, #shell #btnBaseBack { border: 3px solid #4b3021 !important; border-radius: 16px !important; background: #ff9a3c !important;
+  box-shadow: inset 0 -5px 0 #e07a1c !important; filter: drop-shadow(0 4px 0 #3a2418b3); }
+#shell .act.gem { background: #92d0e8 !important; box-shadow: inset 0 -5px 0 #6fb4d0 !important; }
+#shell .act:disabled, #shell .act.claimed, #shell #btnBuy:disabled { background: #dcd8d3 !important; border-color: #827a73 !important; box-shadow: inset 0 -5px 0 #c4beb7 !important; }
+#shell #btnReset { border: 3px solid #e8483a !important; border-radius: 16px !important; background: #fff3dc !important; box-shadow: none !important; filter: none; color: #e8483a; -webkit-text-stroke: 0; }
+/* 환생: 보라 줄·보라 버튼 */
+#shell .pr-gain { border: 4px solid #654576 !important; border-radius: 18px !important; background: #e0d2f0 !important; box-shadow: inset 0 -6px 0 #c5b2dd !important; }
+#shell .perm-btn { border: 4px solid #613f75 !important; border-radius: 16px !important; background: #a882cf !important; box-shadow: inset 0 -6px 0 #8561a6 !important; filter: drop-shadow(0 4px 0 #4a2058b3); }
+/* 작은 내용 상자 (러시 최고 기록·별 잔액) */
+#shell #rushBest, #shell #starNow { border: 3px solid #c69a77 !important; border-radius: 12px !important; background: #fcf0db !important; }
+/* 진행 막대 (내 주방 공사·미션): 바탕 진갈 테두리 + 회갈, 채움 노랑/초록 */
+#shell .st-bar, #shell .bar2 { border: 3px solid #4b3021 !important; border-radius: 999px !important; background: #8e7866 !important; box-sizing: border-box; overflow: hidden; }
+#shell .st-bar i { border: 0 !important; border-radius: 999px !important; background: #ffd34d !important; box-shadow: inset 0 -3px 0 #d79f37; }
+#shell .bar2 i { border: 0 !important; border-radius: 999px !important; background: #7cc86a !important; box-shadow: inset 0 -3px 0 #489158; }
+/* 코인·다이아 바: 반투명 진갈 알약 (왼쪽 아이콘 자리) */
+#shell #goldLabel, #shell #gemLabel { border: 3px solid #4b3021 !important; border-radius: 999px !important; background: #5e4237d6 !important; padding-left: 40px !important; }
+#shell #goldLabel img.ic, #shell #gemLabel img.ic { left: 2px; }
+/* 알약: 2배속 초록 · 보스 시간 빨강 · 러시 보라 */
+#shell .pill { border: 3px solid #4b3021 !important; border-radius: 999px !important; background: #fff3dc !important; }
+#shell #boostPill { background: #a6d09e !important; }
+#shell #bossTimer { background: #ff8a8a !important; }
+#shell #bossTimer.rush { background: #d5b9eb !important; }
+/* 맨 위 진행 바 채움 */
+#shell #topFill { border: 0 !important; border-radius: 999px !important; background: #ffd34d !important; box-shadow: inset 0 -4px 0 #ce9c39; }
+/* 첫 플레이 안내 말풍선 */
+#shell #tutBubble { border: 4px solid #4b3021 !important; border-radius: 20px !important; background: #fffbef !important; box-shadow: inset 0 -5px 0 #f1e3c6 !important; }
+/* 창 제목 리본: 청록 판 + 양 끝 접힌 꼬리 (CSS) */
+#shell #modal .title.small, #shell .setbox .title { border: 4px solid #4b3021 !important; border-radius: 12px !important; background: #6ad2c8 !important; box-shadow: inset 0 -6px 0 #3fa79c !important;
+  height: 64px !important; line-height: 58px !important; padding: 0 34px !important; }
+#shell #modal .title.small::before, #shell #modal .title.small::after, #shell .setbox .title::before, #shell .setbox .title::after {
+  display: block !important; content: ''; position: absolute; bottom: -14px; width: 40px; height: 44px; z-index: -1; background: #2f9a90; border: 4px solid #4b3021; }
+#shell #modal .title.small::before, #shell .setbox .title::before { left: -28px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 34% 50%); }
+#shell #modal .title.small::after, #shell .setbox .title::after { right: -28px; clip-path: polygon(0 0, 100% 0, 66% 50%, 100% 100%, 0 100%); }
+
+/* 탭 안내 글 23px로 통일 (동료·도구·상점 등, 스킨 Tip과 같게) */
+#shell .pane .hint { font-size: 23px; }
+
+/* 골드를 쓰는 버튼(동료 고용·강화, 도구 구매, 내 주방 짓기·업그레이드)은 초록 = '지금 할 수 있음' (업그레이드 카드 게이지·스킨 가격표와 통일, 2026-10-21)
+   다이아 버튼은 파랑, 그 밖의 버튼(받기·도전·닫기)은 주황 그대로 */
+#shell #mateList .act:not(.gem):not(:disabled), #shell #btnBuy:not(:disabled), #shell #base .st-act:not(.gem):not(:disabled) {
+  background: #7cc86a !important; box-shadow: inset 0 -5px 0 #4f9a44 !important; }
+
+/* 설정 스위치를 그림 대신 CSS로 (2026-10-21): 꺼짐 회색 · 켜짐 초록, 흰 손잡이 */
+#shell .switch { width: 96px; height: 50px; border: 4px solid #4b3021 !important; border-radius: 999px; background: #b8ad9c !important; box-shadow: inset 0 4px 0 #0000001f; box-sizing: border-box; }
+#shell .switch.on { background: #7cc86a !important; }
+#shell .switch::after { top: 3px; left: 3px; width: 36px; height: 36px; border-radius: 50%; background: #fff !important; border: 3px solid #4b3021 !important; box-sizing: border-box; box-shadow: 0 2px 0 #0000002e; transition: left .15s; }
+#shell .switch.on::after { left: 49px; }
+
+/* ---------- 설정 창 단순화 (2026-10-21, 총고식) ---------- */
+#settings .setbox.simple { width: 560px; padding: 34px 32px 26px; display: flex; flex-direction: column; align-items: center; gap: 18px; background: #f2c88a !important; box-shadow: inset 0 0 0 4px #fbe0b0 !important; }
+.settiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 20px; width: 100%; }
+#shell .switch.tile { position: relative; width: auto; height: 130px; padding: 34px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 4px solid #4b3021 !important; border-radius: 18px; background: #a6a294 !important; box-shadow: inset 0 -6px 0 #8d897c !important; overflow: visible; }
+#shell .switch.tile.on { background: #fff3dc !important; box-shadow: inset 0 -6px 0 #ead2a8 !important; }
+#shell .switch.tile::after { display: none !important; }
+.switch.tile b { position: absolute; top: -32px; left: 0; right: 0; text-align: center; font-size: 22px; white-space: nowrap; }
+.switch.tile img { height: 62px; width: auto; filter: drop-shadow(0 2px 0 #0003); }
+.switch.tile:not(.on) img { filter: grayscale(1) brightness(.7); }
+.settiles { margin-top: 26px; }
+#settings .langsel button { font-size: 20px; padding: 8px 16px; }
+#shell #btnReset { width: 260px; height: 58px; font-size: 22px; }
+#settings .setbox.simple #verLabel { margin: -6px 0 0; font-size: 15px; opacity: .8; }
+/* 닫기: 창 아래 가운데 빨간 동그라미 X */
+#shell #btnSetClose { position: absolute; left: 50%; bottom: -96px; width: 66px; height: 66px; margin-left: -33px; padding: 0; border: 0 !important; border-image: none !important;
+  background: url("assets/img/ui_close_round.webp") center / contain no-repeat !important; box-shadow: none !important; filter: drop-shadow(0 4px 0 #3a2418); font-size: 0; }
+.settiles { grid-template-columns: repeat(3, 120px); justify-content: center; gap: 48px 30px; margin-top: 30px; }
+#shell .switch.tile { width: 120px; height: 120px; padding: 0; }
+.switch.tile img { height: 66px; }
+.settiles { grid-template-columns: repeat(6, 54px); } /* 5개: 윗줄 3 · 아랫줄 2를 가운데로 */
+#shell .switch.tile { grid-column: span 2; }
+#shell .switch.tile:nth-child(4) { grid-column: 2 / span 2; }
+
+/* ---------- 보스 체력 (2026-10-21 사용자 결정 A): 위쪽 큰 바는 없애고, 그 자리에 남은 시간 숫자만. 체력은 보스 머리 위 바로 ---------- */
+#bossBar { background: none !important; height: 50px; }
+#bossFill { display: none !important; }
+#bossTime { left: 0; right: 0; text-align: center; font-size: 44px; }
+#bossTime { -webkit-text-stroke: 10px #4b3021; paint-order: stroke fill; text-shadow: 0 3px 0 #2a1a10; } /* 타이머 아이콘·숫자 외곽선 굵게 (2026-10-21) */
+
+/* 위쪽 진행 바 끝 보스 칸: 크게, 왕관도 크게 (2026-10-21 사용자) */
+#trackNodes i.boss { top: 1px !important; width: 52px !important; height: 52px !important; margin-left: -26px !important; display: grid; place-items: center; overflow: visible; }
+#trackNodes i.boss img { width: 54px !important; max-width: none; transform: translateY(-5px); filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 2px 0 #3a2418aa); }
+/* 보스 칸 왕관 빨간 아우라 — 은은하게 숨 쉬듯 (2026-10-21 사용자) */
+#trackNodes i.boss img { animation: crownAura 1.4s ease-in-out infinite; }
+@keyframes crownAura {
+  0%, 100% { filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 2px 0 #3a2418aa) drop-shadow(0 0 4px #ff3b2f) drop-shadow(0 0 4px #ff3b2f); }
+  50% { filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 2px 0 #3a2418aa) drop-shadow(0 0 8px #ff3b2f) drop-shadow(0 0 8px #ff5a3a); }
+}
+
+/* 메뉴 판 발바닥 무늬 3배 (120 → 360px = 타일 원본 크기, 2026-10-21 사용자) */
+#sheet .card { background-size: 360px, auto; }
+/* 스킨 갈색 영역: 메뉴 판 좌우·아래 여백 없이 꽉 채움 (2026-10-21 사용자) */
+#skinList { margin: 0 -18px -30px; border-width: 4px 0 0 !important; border-radius: 0 !important; padding: 14px 16px 30px; }
+
+/* ---------- 2026-10-21 메뉴 다듬기 묶음 ---------- */
+/* 미션: '완료!' 도장 없이 버튼 글자만 '완료' */
+.mission.done::after, html[lang="en"] .mission.done::after { display: none !important; }
+/* 메뉴 목록 스크롤 막대 숨김 (스크롤은 그대로) */
+#sheet *, #sheet { scrollbar-width: none; }
+#sheet *::-webkit-scrollbar { display: none; }
+/* 동료: 이름 옆 Lv, 능력치 알약 3개, 버튼 위 다음 레벨 증가량 */
+#mateList .lvtag { margin-left: 10px; font-size: 22px; color: #ffd34d; }
+#mateList .stat { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#mateList .stat .pill { font-style: normal; font-size: 20px; line-height: 1; padding: 6px 12px 5px; border-radius: 999px; background: #6e4a34; color: #fff;
+  -webkit-text-stroke: 0; text-shadow: none; white-space: nowrap; }
+#mateList .act { position: relative; overflow: visible; }
+#mateList .act .gain { position: absolute; left: 0; right: 0; top: -30px; font-size: 21px; color: #94fa10; -webkit-text-stroke: 5px #2f4a1c; paint-order: stroke fill; text-shadow: none; white-space: nowrap; }
+
+/* 도전·상점: 설명 글자 투명도 빼고 크게, 버튼 글자 크게 */
+#pane-rush .desc, #pane-shop .desc, #shopList .info b small, #pane-shop .hint { opacity: 1 !important; }
+#pane-rush .desc, #pane-shop .desc { font-size: 22px; }
+#shopList .info b small { font-size: 21px; }
+#pane-rush .act, #pane-shop .act { font-size: 30px; }
+#pane-rush .act .cost, #pane-shop .act .cost { font-size: 26px; }
+.chal-head { padding-left: 8px; }
+/* 보스 러시·대군 모드 '도전 시작': 진한 주황 + 흰 글씨 외곽선 */
+#shell #btnRush:not(:disabled), #shell #btnHorde:not(:disabled), #shell #chalList .act:not(:disabled) { background: #ff9a3c !important; box-shadow: inset 0 -5px 0 #e07a1c !important; /* 그림자·글자 외곽선 = 동료 버튼과 같게 (2026-10-21) */ color: #fff; }
+/* 스테이지 도전: 첫 클리어 보상 줄 + 다이아 외곽선 */
+#chalList .reward { display: block; margin-top: 4px; font-size: 22px; color: #ffd34d; }
+#pane-rush img.ic, #pane-shop img.ic { filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 0 1px #3a2418); }
+
+/* 상점: 보유 다이아는 오른쪽 끝 알약 */
+#shopHint { display: flex; align-items: center; gap: 10px; }
+#shopHint .txt { flex: 1; min-width: 0; }
+#shopHint .own { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 16px 4px 10px; border-radius: 999px; background: #6e4a34; border: 3px solid #4b3021; font-size: 24px; color: #fff; }
+/* 도구 합성 칸: 스킨처럼 진갈색 판(좌우 꽉), 빈 칸은 파인 홈, 도구 칸은 진갈색 테두리 + 아래 두께 */
+#shell #grid { margin: 0 -18px; padding: 14px 16px; gap: 12px; background: #a8743e; border-top: 4px solid #4b3021; border-bottom: 4px solid #4b3021; }
+#shell #grid .slot { background: #8a5a2e !important; border: 0 !important; border-radius: 14px !important; box-shadow: inset 0 5px 0 #6e4524, inset 0 0 0 3px #7a4e28 !important; }
+#shell #grid .slot.target { background: #c99a4a !important; box-shadow: inset 0 0 0 4px #ffd34d, 0 0 12px #ffd34d88 !important; }
+#shell #grid .gun { inset: 0; border: 4px solid #4b3021; border-radius: 14px; box-shadow: inset 0 -7px 0 #0003, 0 4px 0 #4b3021; }
+#shell #grid .gun .gdmg { opacity: 1; }
+#shell #mateList .stat .pill { background: #6e4a34 !important; border: 0 !important; box-shadow: none !important; color: #fff !important; -webkit-text-fill-color: #fff; height: auto; min-width: 0; margin: 0; }
+/* 동료 공격력 아이콘: 글꼴 ⚔ 대신 아래 카드와 같은 공격력 그림(icon_atk) */
+#mateList .stat .pill img.ic { height: 24px; width: auto; vertical-align: -5px; margin-right: 2px; filter: none; }
+#mateList .act .gain { display: flex; align-items: center; justify-content: center; gap: 2px; }
+#mateList .act .gain img.ic { height: 32px; width: auto; filter: drop-shadow(0 0 1.5px #2f4a1c) drop-shadow(0 0 1px #2f4a1c); }
+#shell #mateList .stat .pill { filter: none !important; } /* 알약 아래 그림자 없앰 */
+/* 알약 안 아이콘·글자 세로 가운데 맞춤 */
+#shell #mateList .stat .pill { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; line-height: 1; }
+#shell #mateList .stat .pill img.ic { vertical-align: 0; margin: 0; height: 26px; }
+#shell #mateList .stat .pill .gain { font-size: 20px; color: #94fa10; -webkit-text-fill-color: #94fa10; margin-left: 2px; }
+#shell #mateList .stat { flex-wrap: nowrap; gap: 5px; }
+#shell #mateList .stat .pill { padding: 0 10px; gap: 4px; font-size: 19px; height: 38px; }
+#shell #mateList .stat .pill img.ic { height: 24px; }
+#shell #mateList .stat .pill .gain { font-size: 19px; }
+/* 메뉴 판 설명 글자 전부: 투명도 없이, 외곽선 더 진하고 굵게 (2026-10-21 사용자: 여전히 잘 안 보임) */
+#sheet .hint, #sheet .desc, #sheet .info b small { opacity: 1 !important; -webkit-text-stroke: 6px #2a1a10 !important; paint-order: stroke fill; text-shadow: 0 2px 0 #2a1a10 !important; }
+/* 도구 칸 공격력: 글자 ⚔ 대신 공격력 그림 (2026-10-21 사용자) */
+#grid .gun .gdmg { display: inline-flex; align-items: center; gap: 2px; }
+#grid .gun .gdmg img.ic { height: 22px; width: auto; filter: drop-shadow(0 0 1px #3a2418); }
+/* 버튼 안 코인: 버튼 글자와 같은 진갈색 외곽선 (그림이라 drop-shadow 네 방향으로 두름, 2026-10-21 사용자) */
+#shell button img[src*="icon_coin"], #shell .act img[src*="icon_coin"] {
+  filter: drop-shadow(1.2px 0 0 #3a2418) drop-shadow(-1.2px 0 0 #3a2418) drop-shadow(0 1.2px 0 #3a2418) drop-shadow(0 -1.2px 0 #3a2418) !important; }
+#shell .up .cost img[src*="icon_coin"] {
+  filter: drop-shadow(1.5px 0 0 #4b3021) drop-shadow(-1.5px 0 0 #4b3021) drop-shadow(0 1.5px 0 #4b3021) drop-shadow(0 -1.5px 0 #4b3021) !important; }
+/* 미션 제목: 받은 미션도 흐리게 하지 않음 (완료는 버튼 '완료'로 알 수 있음, 2026-10-21 사용자) */
+#sheet .mission.done .info b, #sheet .row .info b { opacity: 1 !important; text-decoration: none; }
+/* 가운데 안내(WAVE 4/5·후퇴 등): 리본 그림 대신 진갈색 알약 (2026-10-21 사용자: 리본이 촌스러움 → 알약 시험) */
+#banner { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 640px; box-sizing: border-box;
+  padding: 10px 48px 14px; border-radius: 48px; background: #6e4a34 !important; border: 5px solid #3a2418;
+  box-shadow: inset 0 4px 0 #6e4a34, inset 0 -6px 0 #4b3021, 0 6px 0 #3a241899; line-height: 1.1; }
+#banner:empty { display: none; }
+/* 챕터 안내판 (코드): 글자 외곽선을 다른 글자들과 같게 굵게, 챕터 아이콘은 그림 (2026-10-21) */
+#chapterSign .sign { color: #fff; }
+#chapterSign b { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 56px; -webkit-text-stroke: 8px #3a2418; text-shadow: 0 4px 0 #2a1a10; }
+#chapterSign b img.ic { height: 64px; width: auto; filter: drop-shadow(0 3px 0 #3a2418aa); }
+#chapterSign small, #chapterSign span { opacity: 1; -webkit-text-stroke: 5px #3a2418; paint-order: stroke fill; color: #fff3c4; }
+#chapterSign small { font-size: 22px; } #chapterSign span { font-size: 22px; margin-top: 6px; }
+#chapterSign .sign::before, #chapterSign .sign::after { display: none; } /* 위 매다는 막대 두 개 뺌, 아이콘도 뺌 (2026-10-21 사용자) */
+/* 메뉴 판 위 탭 줄 숨김 — 옆 메뉴·미션 버튼이 각 화면을 바로 연다 (2026-10-21 사용자: 모바일에서 너무 작고 필요 없음) */
+#sheet .tabs { display: none !important; }
+
+/* ---------- 폰 카메라 구멍·제스처 막대 여백 (2026-10-21 실기) — 값은 main.js SAFE_TOP·SAFE_BOTTOM ---------- */
+#hud { top: var(--safe-top, 0px); }
+#btnMission { top: calc(200px + var(--safe-top, 0px)); }
+#btnCheat { top: calc(300px + var(--safe-top, 0px)); }
+#panel { top: calc(var(--shell-h, 1280px) - 190px - var(--safe-bottom, 0px)); }
+.side { bottom: calc(208px + var(--safe-bottom, 0px)); }
+#sheet .card { padding-bottom: calc(30px + var(--safe-bottom, 0px)); }
+.st-stars img.ic { height: 20px; width: auto; vertical-align: -3px; } /* 내 주방 시설 별: 글자 ★ 대신 별 그림 (2026-10-21) */
+/* 다이아 이모지 대신 다이아 그림 (2026-10-21 사용자) — 떠오르는 글자·설명 글 안 크기 */
+.dmg img.ic { height: 1.1em; width: auto; vertical-align: -0.2em; }
+#rushDesc img.ic, .st-eff img.ic, #banner small img.ic { height: 1.2em; width: auto; vertical-align: -0.25em; }
+/* ---------- 최적화 (2026-10-21 발열) ---------- */
+.dmg { left: 0; top: 0; } /* 위치는 transform으로만 옮긴다 (main.js popText) */
+#trackNodes i.boss img { animation: none !important; filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 2px 0 #3a2418aa) drop-shadow(0 0 6px #ff3b2f) drop-shadow(0 0 6px #ff3b2f); } /* 왕관 아우라: 그림자(filter)를 매 프레임 다시 그리던 깜빡임 대신 고정 */
+/* 8차 초시계·하트 그림 (2026-10-22) */
+#bossTime { display: flex; align-items: center; justify-content: center; gap: 8px; }
+#bossTime img.ic { height: 48px; width: auto; filter: drop-shadow(0 3px 0 #2a1a10); }
+#bossTimer img.ic, .st-act .cost img.ic { height: 1.15em; width: auto; vertical-align: -0.22em; }
+#bossTime img.ic { height: 60px; transform: translateY(-3px); } /* 초시계를 숫자 높이에 맞춰 크게·가운데로 (2026-10-22) */
+#bossTime span { line-height: 1; display: block; }
+
+/* ---------- 장착 도구 3개 (2026-10-22, 임시 모양 — 사용자 시안 오면 다시) ---------- */
+#equip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 10px; }
+.eq-card { position: relative; height: 150px; border-radius: 16px; background: var(--c-card); border: 4px solid var(--c-ink); box-shadow: inset 0 -6px 0 #0001, 0 4px 0 var(--c-ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6px; box-sizing: border-box; overflow: hidden; }
+.eq-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 56px; background: var(--c); opacity: .9; }
+.eq-card.empty { background: #8a5a2e; box-shadow: inset 0 5px 0 #6e4524; border-color: var(--c-ink); }
+.eq-card.empty::before { display: none; }
+.eq-card img { position: relative; height: 54px; filter: drop-shadow(0 2px 0 #0004); }
+.eq-card b { position: relative; font-size: 18px; color: #fff; -webkit-text-stroke: 5px var(--c-wood-d); paint-order: stroke fill; margin-top: 2px; }
+.eq-card .eq-lv { position: absolute; left: 6px; top: 4px; z-index: 1; min-width: 28px; height: 28px; border-radius: 14px; background: var(--c-ink); color: #fff;
+  font-size: 17px; line-height: 28px; text-align: center; }
+.eq-card .eq-stat { position: relative; display: flex; align-items: center; gap: 3px; font-size: 16px; color: #fff; -webkit-text-stroke: 4px var(--c-wood-d); paint-order: stroke fill; }
+.eq-card .eq-stat img.ic { height: 20px; width: auto; }
+#shell #grid .gun.eq { box-shadow: inset 0 -7px 0 #0003, 0 4px 0 var(--c-ink), 0 0 0 3px var(--c-gold); }
+#grid .gun .eq-tag { position: absolute; right: -4px; top: -8px; padding: 1px 7px; border-radius: 10px; background: var(--c-gold); border: 2px solid var(--c-ink);
+  font-style: normal; font-size: 13px; color: var(--c-ink); -webkit-text-stroke: 0; }
+
+/* ---------- 도구함 (2026-10-22 사용자 시안): 위 장착 카드 3장 · 구분선 · 아래 합성 칸(진갈색 판 없이 크림 위 베이지 칸) ---------- */
+#pane-tools .hint { text-align: center; font-size: 22px; }
+.tools-top { margin: 0 -18px; padding: 0 16px 14px; border-bottom: 4px solid var(--c-wood-d); }
+#equip { gap: 14px; margin: 10px 0 0; }
+.eq-card { height: auto; padding: 8px 10px 12px; border: 4px solid var(--c-ink); border-radius: 16px; background: var(--c) !important; align-items: stretch;
+  box-shadow: inset 0 -8px 0 #0002 !important; gap: 6px; }
+.eq-card::before { display: none; }
+.eq-card.empty { min-height: 190px; background: #d8c49c !important; border-color: transparent; box-shadow: none !important; }
+.eq-card .eq-name { font-size: 19px; color: #fff; -webkit-text-stroke: 5px var(--c-ink); paint-order: stroke fill; white-space: nowrap; overflow: hidden; text-overflow: clip; margin: 0; text-align: left; }
+.eq-card .eq-img { align-self: center; height: 64px; width: auto; filter: drop-shadow(0 3px 0 #0004); margin: 2px 0 4px; }
+.eq-card .eq-row { display: flex; align-items: center; gap: 6px; }
+.eq-card .eq-row img.ic { width: 30px; height: auto; flex: none; }
+.eq-card .eq-row i { flex: 1; height: 34px; border-radius: 10px; background: color-mix(in srgb, var(--c) 30%, #1a1420); box-shadow: inset 0 0 0 2px #0003;
+  font-style: normal; font-size: 19px; line-height: 34px; text-align: right; padding: 0 10px; color: #fff; -webkit-text-stroke: 4px var(--c-ink); paint-order: stroke fill; }
+.tools-hint { margin: 14px 0 10px; }
+/* 아래 합성 칸: 진갈색 판·홈 대신 크림 위 베이지 칸, 도구 칸은 그림 + 왼쪽 아래 'Lv N' + 오른쪽 위 노란 '장착' */
+#shell #grid { margin: 0; padding: 0; background: none; border: 0; gap: 14px; }
+#shell #grid .slot { background: #d8c49c !important; box-shadow: none !important; border-radius: 12px !important; }
+#shell #grid .gun { border: 4px solid var(--c-ink); border-radius: 12px; box-shadow: inset 0 -6px 0 #0002 !important; }
+#shell #grid .gun.eq { box-shadow: inset 0 -6px 0 #0002 !important; }
+#grid .gun .ico img { height: 62%; max-height: 74px; }
+#grid .gun .glv { position: absolute; left: 8px; bottom: 6px; font-size: 22px; line-height: 1; color: #fff; -webkit-text-stroke: 5px var(--c-ink); paint-order: stroke fill; text-shadow: none; }
+#grid .gun .eq-tag { right: -10px; top: -12px; padding: 2px 10px; border: 0; border-radius: 999px; background: var(--c-gold); font-size: 16px; color: var(--c-ink); font-weight: 900; }
+#shell #grid { flex: none; grid-template-rows: none !important; grid-auto-rows: auto; }
+#shell #grid .slot { aspect-ratio: 1 / 1; }
+#pane-tools { overflow-y: auto; scrollbar-width: none; }
+#grid .gun .ico img { height: 66%; max-height: none; }
+#grid .gun .ico { position: absolute; left: 14%; right: 14%; top: 8%; bottom: 26%; display: flex; align-items: center; justify-content: center; }
+#grid .gun .ico img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+#shell #grid { gap: 10px; }
+.eq-card .eq-img { height: 54px; margin: 0 0 2px; }
+.eq-card { gap: 4px; padding-bottom: 10px; }
+.tools-top { padding-bottom: 10px; }
+.tools-hint { margin: 10px 0 8px; }
+#sheet .card { height: min(1060px, calc(var(--shell-h, 1280px) - 300px)); } /* 도구함 칸이 다 들어가게 메뉴 판을 조금 높게 (2026-10-22) */
+/* 도구함 2차 (2026-10-22): 판 좌우 끝까지 쓰는 구분선, 카드는 세로로 긴 직사각형 */
+#pane-tools { margin: 0 -18px; padding: 0 18px; }           /* 스크롤 영역을 판 끝까지 넓혀서 카드 양옆·구분선이 잘리지 않게 */
+.tools-top { margin: 0 -18px; padding: 0 22px 14px; }       /* 아래 구분선이 메뉴 판 좌우 끝까지 */
+#equip { gap: 16px; }
+.eq-card { aspect-ratio: 3 / 4; justify-content: space-between; padding: 10px 10px 14px; }
+.eq-card.empty { min-height: 0; }
+.eq-card .eq-img { height: auto; width: 62%; max-height: 40%; object-fit: contain; flex: 1; margin: 4px 0; }
+.eq-card .eq-name { font-size: 20px; }
+.eq-card { aspect-ratio: 4 / 5; }
+#pane-tools #btnBuy { position: sticky; bottom: 0; z-index: 3; margin-top: 12px; } /* 칸이 많아 스크롤돼도 구매 버튼은 늘 보이게 */
+/* 도구함 3차 (2026-10-22): 장착 꼬리표 크게·그림자 없이, 장착 카드 도구 그림 90% */
+#grid .gun .eq-tag { font-size: 22px; padding: 3px 14px; right: -12px; top: -16px; box-shadow: none !important; text-shadow: none !important; filter: none !important; -webkit-text-stroke: 0; }
+.eq-card .eq-img { width: 56%; max-height: 36%; }
+/* 도구함 아이콘 그림자 (2026-10-22 사용자) */
+.eq-card .eq-img, #grid .gun .ico img { filter: drop-shadow(0 5px 0 #00000059); }
+.eq-card .eq-row img.ic { filter: drop-shadow(0 3px 0 #00000059); }
+.eq-card .eq-img, #grid .gun .ico img { filter: drop-shadow(0 10px 0 #00000059); } /* 그림자 아래로 10px (2026-10-22) */
+.eq-card .eq-row img.ic { filter: drop-shadow(0 5px 0 #00000059); }
+#shell #grid { gap: 18px 18px; padding: 4px 6px; } /* 합성 칸 사이 여백 넓게 */
+.eq-card .eq-img, #grid .gun .ico img { filter: drop-shadow(0 5px 0 #00000059); } /* 그림자 5px로 확정 (2026-10-22) */
+.eq-card .eq-row img.ic { filter: drop-shadow(0 3px 0 #00000059); }
+#sheet .card { height: min(1180px, calc(var(--shell-h, 1280px) - 200px)); } /* 도구함이 스크롤 없이 다 들어가게 메뉴 판을 더 높게 */
+#pane-tools #btnBuy { position: static; } /* 구매 버튼이 합성 칸을 가리지 않게(짧은 폰에서는 함께 스크롤) */
+/* 메뉴 판 높이: 내용만큼만 (2026-10-22 사용자 A안) — 최대 높이를 넘으면 그 메뉴 안에서 스크롤 */
+#sheet .card { height: auto; max-height: min(1180px, calc(var(--shell-h, 1280px) - 200px)); display: flex; flex-direction: column; }
+#sheet .pane { flex: 0 1 auto; min-height: 0; }
+#mateList, #shopList, .chal-list, .pr-box, #skinList, #missionList { flex: 0 1 auto; min-height: 0; }
+#skinList { margin-bottom: calc(-30px - var(--safe-bottom, 0px)); padding-bottom: calc(30px + var(--safe-bottom, 0px)); } /* 스킨 갈색 판이 메뉴 판 맨 아래까지 */
+
+/* ==================== 메뉴 UI 통일 (2026-10-22 사용자: 부품 6개로만) ==================== */
+/* ① 안내 문구: 메뉴 맨 위 한 줄, 가운데, 22px, 흰 글자 + 진한 외곽선 */
+#sheet .hint { text-align: center; font-size: 22px; line-height: 1.3; }
+#shopHint { justify-content: center; }
+#shopHint .txt { flex: 0 1 auto; }
+
+/* ② 목록 카드: 살구 바탕·진갈색 4px 테두리·아래 두께·모서리 18 (동료·미션·도전·상점·환생 모두 같게) */
+#shell .row, #shell .pr-gain, #shell .perm { border: 4px solid var(--c-wood-d) !important; border-radius: 18px !important; background: #fbe9d8 !important;
+  box-shadow: inset 0 -6px 0 #efd6bd !important; filter: drop-shadow(0 5px 0 #3a2418b3); border-image: none !important; padding: 12px 14px; }
+#shell .perm .info span, #shell .pr-gain .info span { color: #fff; }
+
+/* ③ 격자 칸(A안): 갈색 판 없이 크림 위에 칸 — 스킨도 도구함처럼 */
+#skinList { background: none !important; border: 0 !important; margin: 0 !important; padding: 4px 2px 6px !important; gap: 18px !important; }
+#skinList .skin { border-radius: 12px !important; }
+.pr-box { background: none !important; border: 0 !important; padding: 2px 0 6px !important; border-radius: 0 !important; }
+
+/* ④ 버튼: 카드 옆 150×84 · 아래 큰 버튼은 전체 폭. 셰프 별(환생)로 사는 건 보라 */
+#shell .perm-btn, #shell #btnPrestige { width: 150px; min-width: 150px; height: 84px; border: 3px solid var(--c-wood-d) !important; border-radius: 16px !important;
+  background: #a882cf !important; box-shadow: inset 0 -5px 0 #8561a6 !important; filter: drop-shadow(0 4px 0 #3a2418b3); border-image: none !important; color: #fff; }
+#shell .perm-btn:disabled, #shell #btnPrestige:disabled { background: var(--c-off) !important; border-color: #827a73 !important; box-shadow: inset 0 -5px 0 #c4beb7 !important; }
+.perm-cost { background: none; padding: 0; font-size: 22px; }
+
+/* ⑤ 정보 알약: 숫자 정보는 진갈색 알약 + 아이콘 + 흰 숫자 */
+.skin-sum span { background: var(--c-wood) !important; border: 0 !important; border-radius: 999px !important; color: #fff; padding: 4px 16px !important; }
+.pr-wallet { background: var(--c-wood) !important; border: 0 !important; color: #fff; }
+
+/* ⑥ 구역 나누기: 판 끝까지 진갈색 선 + 가운데 구역 제목 (도구함과 같은 방식) */
+#pane-rush .chal-list { margin: 0 -18px; padding: 0 18px; }
+.chal-head { text-align: center; margin: 8px -18px 0 !important; padding: 14px 0 0 !important; border-top: 4px solid var(--c-wood-d); font-size: 22px; }
+.chal-head small { display: block; font-size: 18px; margin-top: 2px; }
+.pr-sep { height: 4px; margin: 4px -18px; background: var(--c-wood-d); border-radius: 0; }
+.pr-wallet b { background: none !important; border: 0 !important; color: #fff; }
+/* 목록 카드 글자 크기 통일: 제목 24 · 설명 20 */
+#shell .row .info > b, #shell .perm .info > span, #shell .pr-gain .info > span { font-size: 24px !important; line-height: 1.15; }
+#shell .row .info .desc { font-size: 20px !important; }
+#shell .pr-wallet #starNow { background: none !important; border: 0 !important; box-shadow: none !important; color: #fff; padding: 0 4px; }
+.pr-box { margin: 0 -18px !important; padding: 2px 18px 6px !important; } /* 구분선이 판 끝까지 */
+#shell #chalList .info > b .en { font-size: 20px; } /* 'CHAPTER 1'만 줄임 — 영문·숫자 글꼴이 커 보여서 한글(24px)과 같은 크기로 보이게 (2026-10-22) */
+
+/* 환생 (2026-10-22 사용자 레퍼런스): 날개 달린 셰프 곰이 판 위로 크게 걸쳐 앉음 */
+#pane-prestige .peek.angel { height: 230px; margin: -120px auto -34px; z-index: 2; filter: none; pointer-events: none; }
+#sheet .card:has(#pane-prestige.on) { overflow: visible; }
+/* 보유 셰프 별: 레퍼런스처럼 왼쪽 큰 별 아이콘이 크림 알약 앞에 겹침 */
+#shell .pr-wallet { position: relative; background: #fff3dc !important; border: 4px solid var(--c-ink) !important; border-radius: 999px; padding: 0 26px 0 46px !important;
+  height: 44px; min-width: 150px; justify-content: center; margin-right: 4px; }
+#shell .pr-wallet img { position: absolute; left: -16px; top: 50%; transform: translateY(-50%); height: 56px; filter: drop-shadow(0 3px 0 #0004); }
+#shell .pr-wallet #starNow { color: #fff; font-size: 26px; -webkit-text-stroke: 6px var(--c-wood-d); paint-order: stroke fill; }
+#pane-prestige .peek.angel { height: 300px; margin: -190px auto -46px; } /* 레퍼런스처럼 더 크게, 판 위로 더 올림 */
+#shell .pr-wallet { box-sizing: border-box; width: auto; min-width: 0; padding: 0 20px 0 44px !important; } /* 알약 짧게 (2026-10-22) — 숫자 길이만큼만 */
+#shell .pr-wallet { min-width: 140px; justify-content: center; } /* 너무 짧지 않게 — 숫자는 가운데 */
+/* 보유 셰프 별 = 위쪽 코인 표시와 같은 모양 (2026-10-22 사용자): 진갈색 반투명 알약, 아이콘은 알약 안 왼쪽 */
+#shell .pr-wallet { background: #5e4237 !important; border: 3px solid var(--c-wood-d) !important; height: 48px; min-width: 0; padding: 0 18px 0 6px !important; gap: 8px; justify-content: flex-start; }
+#shell .pr-wallet img { position: static; transform: none; height: 38px; filter: none; }
+#shell .pr-wallet #starNow { font-size: 26px; -webkit-text-stroke: 5px var(--c-ink); }
+#pane-prestige .peek.angel { margin-top: -220px; margin-bottom: -16px; } /* 캐릭터 조금 더 위로 */
+/* 메뉴 판을 닫으면(아래로 내려가도) 판 위로 튀어나온 환생 곰이 전투 화면에 남지 않게 (2026-10-22) */
+#sheet.closed .card { overflow: hidden !important; }
+#sheet.closed #pane-prestige .peek.angel { visibility: hidden; }
+/* 동료 역할 알약 (2026-10-22): 방어 파랑 · 회복 초록 · 지원 노랑 */
+#mateList .role { display: inline-block; margin-left: 8px; padding: 2px 12px; border-radius: 999px; border: 3px solid var(--c-ink); font-style: normal; font-size: 18px;
+  line-height: 1.2; vertical-align: 3px; color: #fff; -webkit-text-stroke: 4px var(--c-ink); paint-order: stroke fill; text-shadow: none; }
+#mateList .role.tank { background: #4aa3df; } #mateList .role.heal { background: var(--c-buy); } #mateList .role.buff { background: #f0b830; }
+
+/* ==================== 글자 크기 3단계 (2026-10-22 사용자: 폰에서 작음) — 작게 24 · 보통 28 · 크게 34+ ==================== */
+/* 작게(최소 24): 설명·알약 숫자·보상·꼬리표·가격 */
+#sheet .row .info .desc, #rushDesc, #rushBest, #hordeBest, #rushTries, #hordeTries, #chalList .reward, .row.mission .info .stat, #missionBonus .desc,
+#mateList .stat .pill, #mateList .stat .pill .gain, #sheet .act .cost, #btnBonus .cost, .eq-card .eq-row i, #shopList .info b small, #starBonus,
+.skin-tag, .perm-lv, .chal-head small, #mateList .role, .info > b > small.lvtag { font-size: 24px !important; }
+/* 보통 28: 안내 문구·카드 제목·버튼·위쪽 표시 */
+#sheet .hint, #shopHint .txt, #pane-skins .skin-tip span, #sheet .row .info > b, #sheet .perm .info > span, #sheet .pr-gain .info > span,
+#sheet .act, #btnBonus, .perm-btn span, .perm-cost, .eq-card .eq-name, #grid .gun .glv, #grid .gun .eq-tag, .chal-head span,
+#goldLabel, #gemLabel, #btnSaver, #panel .up .name, #panel .up .lv, #panel .up .cost, #modal .sub { font-size: 28px !important; }
+#shell #chalList .info > b .en { font-size: 24px; }
+#topPct { font-size: 22px !important; }   /* 맨 위 얇은 바 안이라 이 이상 키우면 넘침 */
+.side .sbtn > span:not(.ico), #btnMission > span:not(.ico) { font-size: 24px !important; }
+/* 커진 글자에 맞춰 넘치지 않게 */
+#mateList .stat { flex-wrap: wrap !important; row-gap: 6px; }
+#mateList .stat .pill { height: 42px !important; padding: 0 12px !important; }
+#sheet .act { min-width: 170px; }
+#mateList .act { height: auto !important; min-height: 92px; padding: 6px 8px !important; line-height: 1.15; }
+.eq-card .eq-row i { height: 40px; line-height: 40px; padding: 0 8px; }
+#goldLabel, #gemLabel { height: 52px !important; }
+#btnBuy b, #btnBuy .cost { font-size: 34px !important; } /* 큰 버튼은 '크게' 단계 */
+#mateList .stat { flex-wrap: nowrap !important; gap: 4px !important; }
+#mateList .stat .pill { padding: 0 8px !important; gap: 3px !important; }
+#mateList .stat .pill img.ic { height: 22px !important; }
+#mateList .act { min-width: 150px !important; }
+#mateList .row { gap: 10px; }
+#mateList .row .big { width: 76px; flex: none; }
+/* 동료 버튼 위치·크기 통일 (2026-10-22 사용자): 버튼은 고정 폭으로 늘 같은 자리, 능력치가 길면 두 줄로 */
+#mateList .act { width: 200px !important; min-width: 200px !important; max-width: 200px; flex: none !important; margin-left: auto; }
+#mateList .row .info { flex: 1 1 0 !important; min-width: 0 !important; }
+#mateList .stat { flex-wrap: wrap !important; }
+
+/* ---------- 2026-10-22 사용자 다듬기 ---------- */
+#sheet { word-break: keep-all; overflow-wrap: break-word; }   /* 설명이 단어 중간에서 끊기지 않게 */
+/* 알약 안 좌우 여백 */
+#shell #mateList .stat .pill { padding: 0 16px !important; gap: 6px !important; }
+#shell #mateList .stat { gap: 8px !important; }
+/* 상점: 다이아 알약은 아래 카드 오른쪽 끝에 맞춤, 문구는 왼쪽 남은 자리 가운데 */
+#shopHint { justify-content: space-between !important; }
+#shopHint .txt { flex: 1 1 auto !important; text-align: center; }
+#shopHint .own { margin-right: 0; padding: 4px 18px 4px 12px; }
+/* 환생: 셰프 별 수·증가 수치는 노랑으로 구분, 버튼은 글자 위아래 여백 */
+#starGain, .perm .info b { color: var(--c-gold) !important; }
+#shell .perm-btn, #shell #btnPrestige { height: auto !important; min-height: 96px; padding: 12px 8px !important; gap: 6px; }
+/* 도전: 제목 크게, 최고 기록 뒤 상자 없앰 */
+#pane-rush .rush-row .info > b { font-size: 32px !important; }
+#shell #rushBest { border: 0 !important; background: none !important; padding: 0 !important; border-radius: 0 !important; }
+#shopHint .own { font-size: 28px !important; height: 52px; box-sizing: border-box; }
+#shopHint .own img.ic { height: 34px !important; }
+#shell #pane-rush .row .info > b { font-size: 36px !important; line-height: 1.15; } /* 도전 탭 제목 크게 (한글 글꼴이 작아 보여서 36) */
+#shell #chalList .info > b .en { font-size: 30px; }
+.chal-head span { font-size: 32px !important; } /* 구역 제목 */
+
+/* ---------- 2026-10-22 사용자 다듬기 3 ---------- */
+/* 카드 제목: 설명과 같은 외곽선(6px 진갈색) + 노랑으로 구분 (상점·도전) */
+#sheet .row .info > b { -webkit-text-stroke: 6px #2a1a10 !important; paint-order: stroke fill; }
+#shopList .info > b, #pane-rush .row .info > b { color: var(--c-gold) !important; }
+#shopList .info > b small { color: #fff; }
+/* 동료: 첫 카드 위 잘림 방지, 캐릭터 크게 */
+#mateList { padding-top: 6px !important; }
+#mateList .row .big { width: 110px !important; }
+#mateList .row .big img { height: 104px !important; width: auto; max-width: 110px; object-fit: contain; }
+/* 도전: 남은 횟수는 버튼 아래 */
+.act-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; }
+.act-col .tries { font-size: 24px !important; color: var(--c-gold); white-space: nowrap; }
+/* 환생: '현재 환생 N회'는 곰 오른쪽, 위 카드 오른쪽 끝에 맞춤 */
+#pane-prestige { position: relative; }
+#prCount { position: absolute; right: 4px; top: 4px; z-index: 3; font-size: 26px; color: #fff; -webkit-text-stroke: 6px #2a1a10; paint-order: stroke fill; }
+
+/* ---------- 2026-10-22 사용자: X 버튼 두껍게 · 글자 투명도 100 · 글자 그림자 없앰 ---------- */
+/* X 버튼: 그림(가는 X) 대신 코드 — 빨간 원 + 진갈색 테두리 + 굵은 흰 X(두께 12, 진갈색 테두리) */
+#modalX, #btnClose, #shell #btnSetClose {
+  background: radial-gradient(circle at 50% 35%, #ff8a7a, #e8483a 70%) !important; border: 5px solid var(--c-ink) !important; border-radius: 50% !important;
+  box-shadow: inset 0 -5px 0 #b8342a, 0 4px 0 var(--c-ink) !important; filter: none !important; box-sizing: border-box; overflow: visible; }
+#modalX::before, #modalX::after, #btnClose::before, #btnClose::after, #shell #btnSetClose::before, #shell #btnSetClose::after {
+  display: block !important; content: '' !important; position: absolute; left: 50%; top: 50%; width: 34px; height: 12px; margin: -7px 0 0 -17px; border-radius: 6px;
+  background: #fff; box-shadow: 0 0 0 3px var(--c-ink); transform: rotate(45deg); }
+#modalX::after, #btnClose::after, #shell #btnSetClose::after { transform: rotate(-45deg); }
+/* 글자 투명도 100 — 그림·연출(합성 빛·끄는 중 도구)은 그대로 */
+#modal *:not(img):not(.mergefx), #settings *:not(img), #sheet .pane *:not(img):not(.mergefx):not(.gun), #hud *:not(img), #panel *:not(img) { opacity: 1 !important; }
+/* 글자 그림자 없앰 (외곽선만) — 팝업·메뉴 */
+#modal *, #settings *, #sheet .pane * { text-shadow: none !important; }
+/* X 모양은 SVG 한 장으로(두 막대의 테두리가 서로 겹쳐 끊겨 보이던 것 고침): 진갈색 굵은 X 위에 흰 X */
+#modalX::before, #modalX::after, #btnClose::before, #btnClose::after, #shell #btnSetClose::before, #shell #btnSetClose::after { display: none !important; }
+#modalX, #btnClose, #shell #btnSetClose {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M11 11L29 29M29 11L11 29' stroke='%233a2418' stroke-width='13' stroke-linecap='round'/%3E%3Cpath d='M11 11L29 29M29 11L11 29' stroke='%23fff' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") center / 64% no-repeat,
+    radial-gradient(circle at 50% 35%, #ff8a7a, #e8483a 70%) !important; }
+/* 내 주방: 뒤 배경 그림(bg_base) 없앰 — 메뉴 판과 같은 크림 + 발바닥 무늬 (2026-10-22 사용자) */
+#base { background: var(--paw) 0 0 / 360px repeat, var(--c-cream) !important; }
+
+/* 내 주방 (2026-10-22 사용자): 글자 크기 3단계 적용 · 제목 아래 여백 · 아래 곰 없앰 */
+#base .st-eff, #base .st-act .cost, #base .st-lv, #kNext, #baseQueue { font-size: 24px !important; }
+#base .st-name, #base .st-act { font-size: 28px !important; }
+#base .st-act { min-height: 92px; padding: 8px 6px !important; line-height: 1.15; }
+#base .st-act .cost img.ic { height: 1.1em; width: auto; vertical-align: -0.2em; }
+#baseGrid { margin-top: 36px !important; }
+#baseBear { display: none !important; }
+#baseQueue { margin-bottom: 30px !important; }
+#btnBaseBack { margin-top: auto !important; } /* 곰이 빠져도 돌아가기 버튼은 맨 아래 */
+/* 버튼 속 초시계: 코인과 같은 크기 + 같은 진갈색 외곽선 (2026-10-22 사용자) */
+#shell button img[src*="icon_timer"] { height: 1.25em !important; width: auto; vertical-align: -0.28em;
+  filter: drop-shadow(1.2px 0 0 #4a2c1c) drop-shadow(-1.2px 0 0 #4a2c1c) drop-shadow(0 1.2px 0 #4a2c1c) drop-shadow(0 -1.2px 0 #4a2c1c) !important; }
+#base .st-act .cost img.ic { height: 1.25em; }
+
+/* ---------- 내 주방 시설 카드: 다른 메뉴처럼 가로로 긴 목록 카드 (2026-10-22 사용자) — 왼쪽 그림 · 가운데 이름/별/효과 · 오른쪽 버튼 ---------- */
+#baseGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
+#base .st, #base .st.locked { display: grid; grid-template-columns: 120px 1fr 200px; grid-template-rows: auto auto 1fr auto; column-gap: 12px; row-gap: 4px;
+  grid-template-areas: "ico name act" "ico stars act" "ico eff act" "ico bar act"; align-items: center; text-align: left; min-height: 0; padding: 14px 14px !important;
+  border-radius: 18px !important; background: #fbe9d8 !important; box-shadow: inset 0 -6px 0 #efd6bd !important; }
+#base .st.locked { background: #eae9e5 !important; }
+#base .st::before { display: none; }
+#base .st-ico { grid-area: ico; justify-self: center; }
+#base .st-ico img { height: 104px; }
+#base .st-name { grid-area: name; }
+#base .st-stars { grid-area: stars; min-height: 0; }
+#base .st-eff { grid-area: eff; min-height: 0; align-self: start; }
+#base .st-bar { grid-area: bar; }
+#base .st-act, #base .st-lock { grid-area: act; width: 200px !important; margin: 0 !important; align-self: center; }
+#base .st-lock { text-align: center; }
+#base .st-collect { right: 214px; top: -30px; }
+
+/* 숫자도 한글 폰트(밑미)로 (2026-10-22 사용자: 한글 옆 숫자가 튐) — 떠오르는 데미지 숫자만 Mplus 숫자 유지. 영어 화면은 그대로 */
+@font-face { font-family: "Game KR"; src: url("assets/fonts/Ongeulip-Meetme.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+html:not([lang="en"]) body, html:not([lang="en"]) button, html:not([lang="en"]) input { font-family: "Game KR", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+html:not([lang="en"]) .dmg { font-family: "Game Font", -apple-system, sans-serif; }
+/* B안 (2026-10-22 사용자): 한글과 섞인 문장은 밑미, 숫자만 있는 곳은 원래 숫자 글꼴(Mplus) */
+html:not([lang="en"]) :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
+  #sheet .act .cost, #btnBuy .cost, #btnBonus .cost, #mateList .stat .pill, .eq-card .eq-row i, #grid .gun .glv, .skin-tag, .skin-sum b,
+  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, #chalList .reward, .st-lv, #mateList .lvtag) {
+  font-family: "Game Font", -apple-system, "Apple SD Gothic Neo", sans-serif; }
+/* 한글 글꼴 자간 조금 넓게 (2026-10-22 사용자: 붙어 보임) — 숫자 글꼴 쓰는 곳은 그대로 */
+html:not([lang="en"]) body, html:not([lang="en"]) button { letter-spacing: 0.04em; }
+html:not([lang="en"]) :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
+  #sheet .act .cost, #btnBuy .cost, #btnBonus .cost, #mateList .stat .pill, .eq-card .eq-row i, #grid .gun .glv, .skin-tag, .skin-sum b,
+  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, #chalList .reward, .st-lv, #mateList .lvtag, .dmg) { letter-spacing: 0.01em; }
+
+/* ==================== 팝업 새 디자인 (2026-10-22 사용자 시안, CSS) ====================
+   크림 판 + 진갈색 테두리 + 안쪽 황토 테두리(아래 두껍게) · 제목은 위쪽 테두리에 걸친 주황 알약 · 내용은 베이지 안쪽 판 · 주황 알약 버튼 · 빨간 X */
+#shell #modal .box, #shell #settings .setbox {
+  background: #fdf0d8 !important; border: 5px solid #4b3021 !important; border-radius: 36px !important; padding: 64px 34px 34px !important;
+  box-shadow: inset 0 0 0 7px #d9a86e, inset 0 -16px 0 #d9a86e, 0 6px 0 #3a2418 !important; overflow: visible; }
+#shell #modal .box.orange { background: #fdf0d8 !important; }
+/* 제목: 주황 알약, 판 위쪽 테두리에 반쯤 걸침 */
+#shell #modal .title.small, #shell .setbox .title {
+  position: absolute !important; left: 50% !important; top: -44px !important; transform: translateX(-50%); margin: 0 !important; width: 72%; box-sizing: border-box;
+  height: 80px !important; line-height: 70px !important; padding: 0 24px !important; border-radius: 999px !important; text-align: center; white-space: nowrap;
+  background: linear-gradient(#ffad4a, #f7931e) !important; border: 5px solid #4b3021 !important;
+  box-shadow: inset 0 7px 0 #ffcd85, inset 0 -7px 0 #e07a1c, 0 4px 0 #3a2418 !important; font-size: 34px !important; z-index: 2; }
+#shell #modal .title.small::before, #shell #modal .title.small::after, #shell .setbox .title::before, #shell .setbox .title::after { display: none !important; }
+/* 내용: 베이지 안쪽 판 */
+#shell #modalBody { background: #f3dfbd; border: 4px solid #a8784a; border-radius: 20px; padding: 22px 18px; box-shadow: inset 0 3px 0 #e6cba0; }
+#shell #modalBody:empty { display: none; }
+/* 버튼: 주황 알약(확인) · 차분한 알약(취소) */
+#shell #modalBtn { display: block; width: 60% !important; min-width: 300px; height: 92px !important; margin: 26px auto 0 !important; border-radius: 999px !important;
+  background: linear-gradient(#ffad4a, #f7931e) !important; border: 5px solid #4b3021 !important; box-shadow: inset 0 7px 0 #ffcd85, inset 0 -8px 0 #e07a1c !important;
+  filter: drop-shadow(0 5px 0 #3a2418) !important; font-size: 32px !important; color: #fff; }
+#shell #modalBtn:disabled { background: #dcd8d3 !important; border-color: #827a73 !important; box-shadow: inset 0 -8px 0 #c4beb7 !important; }
+#shell #modalCancel { width: 60% !important; min-width: 300px; height: 76px; margin: 14px auto 0 !important; border-radius: 999px !important; background: #e8d4b0 !important;
+  border: 4px solid #a8784a !important; box-shadow: inset 0 -6px 0 #d4b98d !important; font-size: 28px !important; color: #fff; }
+/* X: 판 오른쪽 위 모서리에 걸침 */
+#shell #modalX { right: -26px; top: -30px; }
+#shell #modalBody p, #shell #modalBody .sub { font-size: 26px !important; line-height: 1.4; }
+#shell #modal .title.small { font-size: 36px !important; }
+#shell #modalBtn.hidden, #shell #modalCancel.hidden, #shell #modalX.hidden { display: none !important; }
+#shell #modalX.below { right: auto; top: auto; left: 50%; bottom: -110px; margin-left: -33px; } /* 아래 가운데 X(오프라인 보상 등)는 그대로 */
+html:not([lang="en"]) #modal .reward { font-family: "Game Font", -apple-system, sans-serif; letter-spacing: 0.01em; } /* 보상 숫자는 숫자 글꼴 */
+#shell #settings .setbox { padding-top: 30px !important; } /* 설정은 제목 알약이 없어서 위 여백 줄임 */
+/* 도전 시작 팝업: 'CHAPTER N'도 주황 제목 알약, 설명 띠는 안쪽 판 안에 */
+#shell #modal .chal-title { position: absolute; left: 50%; top: -44px; transform: translateX(-50%); width: 72%; box-sizing: border-box; height: 80px; line-height: 70px; margin: 0;
+  border-radius: 999px; text-align: center; background: linear-gradient(#ffad4a, #f7931e); border: 5px solid #4b3021;
+  box-shadow: inset 0 7px 0 #ffcd85, inset 0 -7px 0 #e07a1c, 0 4px 0 #3a2418; font-size: 36px !important; z-index: 2; }
+#shell #modal .chal-band { margin: 0 0 12px !important; padding: 0 !important; background: none !important; border: 0 !important; border-image: none !important; font-size: 26px; }
+#shell #modal .chal-reward { margin: 0 !important; background: #fdf0d8 !important; border: 3px solid #d9a86e; }
+/* 환생 확인 팝업: 날개 곰 — 주황 제목 알약 위로 올림 (2026-10-22 사용자) */
+#shell #modal .peek[src*="illust_prestige_angel"] { width: 360px; height: 270px; top: -300px; z-index: 1; }
+#shell #modal .box.has-peek:has(.peek[src*="illust_prestige_angel"]) { margin-top: 260px; }
+
+/* 오프닝 영상 (2026-10-22): 화면 가득, 위 오른쪽 건너뛰기 */
+#prologue { position: absolute; inset: 0; z-index: 200; background: #000; display: flex; align-items: center; justify-content: center; }
+#prologue.hidden { display: none; }
+#prologue video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+#btnSkipVideo { position: absolute; right: 24px; top: calc(24px + var(--safe-top, 0px)); height: 60px; padding: 0 26px; border-radius: 999px; font-size: 26px; color: #fff;
+  background: #00000088; border: 3px solid #ffffffaa; -webkit-text-stroke: 0; }
+/* 영상 끝(20초~)에 거품이 올라가며 투명해짐 → 뒤의 게임 화면이 드러나게 바탕 투명 (2026-10-22) */
+#prologue, #prologue video { background: transparent !important; }
+#prologue:not(.reveal) { background: #000 !important; } /* 영상 도중 위아래 남는 곳은 검게, 끝(투명 시작)부터만 게임이 보이게 */
+/* 오프닝 자막: 아래쪽 반투명 진갈색 띠 + 흰 글자 */
+#prologueSub { position: absolute; left: 50%; bottom: calc(150px + var(--safe-bottom, 0px)); transform: translateX(-50%); max-width: 88%; box-sizing: border-box;
+  padding: 14px 30px; border-radius: 24px; background: #2a1a10b3; color: #fff; font-size: 32px; line-height: 1.3; text-align: center; word-break: keep-all;
+  -webkit-text-stroke: 6px #2a1a10; paint-order: stroke fill; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#prologueSub.on { opacity: 1 !important; }
+#prologueSub { font-size: 40px !important; max-width: 96%; padding: 14px 24px; -webkit-text-stroke-width: 7px; } /* 자막 크게, 폭 넓게 (2026-10-22) */
+#prologueSub { left: 0 !important; right: 0; margin: 0 auto; transform: none !important; width: fit-content; } /* 폭이 화면 절반으로 줄어 두 줄 되던 것 — 가운데 정렬은 margin으로 */
+#prologueSub { transition: opacity .12s; }
+/* 첫 실행 '화면을 눌러 시작' (소리 허용) */
+#tapStart { position: absolute; inset: 0; z-index: 210; background: #1b1420; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 60px; }
+#tapStart.hidden { display: none; }
+#tapStart img { width: 560px; }
+#tapStart p { font-size: 40px; animation: bob 1.2s ease-in-out infinite; }
+/* 시설 외형 단계 오름 연출 (2026-10-22): 카드 빛 번쩍 + 그림 뿅 + 반짝이 */
+#base .st.look-up { animation: lookCard 1.6s ease-out; }
+#base .st.look-up .st-ico img { animation: lookIco 0.9s cubic-bezier(.2, 1.6, .4, 1); }
+#base .st.look-up .st-ico { position: relative; }
+#base .st.look-up .st-ico::after { content: '✦  ✧  ✦'; position: absolute; left: 50%; top: -10px; transform: translateX(-50%); white-space: nowrap; color: #fff6b0;
+  font-size: 30px; -webkit-text-stroke: 3px #c99a1a; paint-order: stroke fill; animation: lookSpark 1.4s ease-out forwards; pointer-events: none; }
+@keyframes lookCard { 0% { outline: 0 solid #ffd34d00; filter: drop-shadow(0 6px 0 #3a2418b3); } 20% { outline: 8px solid #ffd34d; filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 22px #ffd34d) brightness(1.15); }
+  100% { outline: 0 solid #ffd34d00; filter: drop-shadow(0 6px 0 #3a2418b3); } }
+@keyframes lookIco { 0% { transform: scale(.4) rotate(-12deg); filter: brightness(2.2); } 60% { transform: scale(1.25) rotate(4deg); } 100% { transform: scale(1); filter: none; } }
+@keyframes lookSpark { 0% { opacity: 0; transform: translate(-50%, 20px) scale(.5); } 30% { opacity: 1; transform: translate(-50%, -10px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -40px) scale(1); } }
+#banner { z-index: 6; } /* 내 주방 화면 위에서도 완공·외형 변경 안내가 보이게 (전엔 주방 화면 뒤에 가려짐) */
+/* 일반 업그레이드 완공 연출(작게): 카드 초록 빛 + 그림 통통 + Lv 글자 반짝 (2026-10-22 사용자) */
+#base .st.lv-up { animation: lvCard 1.1s ease-out; }
+#base .st.lv-up .st-ico img { animation: lvIco 0.6s cubic-bezier(.2, 1.8, .4, 1); }
+#base .st.lv-up .st-lv { animation: lvTag 1s ease-out; }
+@keyframes lvCard { 0% { outline: 0 solid #94fa1000; } 25% { outline: 6px solid #94fa10; filter: drop-shadow(0 6px 0 #3a2418b3) drop-shadow(0 0 14px #94fa10) brightness(1.08); } 100% { outline: 0 solid #94fa1000; } }
+@keyframes lvIco { 0% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-6px); } 100% { transform: scale(1); } }
+@keyframes lvTag { 0%, 100% { background: #2a1a10; transform: scale(1); } 30% { background: #4f9a44; transform: scale(1.25); } }
+/* 시설 Lv 글자 조금 작게 */
+#base .st-lv { font-size: 20px !important; padding: 1px 8px; }
+#base .st-stars { display: none !important; } /* 시설 별 뺌 — 셰프 별(환생 재화)로 오해될 수 있어서 (2026-10-22 사용자) */
+/* 시설 Lv 알약: 크기는 예전(24px 때) 그대로, 글자만 작게 (2026-10-22 사용자) */
+#base .st-lv { display: inline-flex !important; align-items: center; justify-content: center; height: 34px; min-width: 70px; padding: 0 12px !important; box-sizing: border-box;
+  font-size: 18px !important; border-radius: 12px; vertical-align: 3px; }
+/* 수확 말풍선: 그림(늘어나 찌그러짐) 대신 CSS — 크림 동그라미 + 진갈색 테두리 + 아래 꼬리 (2026-10-22 사용자) */
+#base .st-collect { width: 76px !important; height: 76px !important; padding: 0 !important; border-radius: 50% !important; background: #fff3dc !important;
+  border: 5px solid var(--c-ink) !important; box-shadow: inset 0 -5px 0 #f1dcb5 !important; box-sizing: border-box; overflow: visible; }
+#base .st-collect::after { content: ''; position: absolute; left: 50%; bottom: -15px; width: 18px; height: 18px; margin-left: -9px; background: #fff3dc;
+  border-right: 5px solid var(--c-ink); border-bottom: 5px solid var(--c-ink); transform: rotate(45deg); box-sizing: border-box; }
+#base .st-collect img.ic { top: 50% !important; height: 44px !important; z-index: 1; }
+#base .st-collect span { bottom: -46px; font-size: 24px; z-index: 1; }
+/* 수확 표시 다시 (2026-10-22 사용자: 말풍선이 여전히 이상함) — 꼬리 없는 알약: 코인 + 모은 양, 카드 위 테두리에 걸쳐 통통 */
+#base .st-collect { width: auto !important; height: 52px !important; min-width: 0; padding: 0 18px 0 54px !important; border-radius: 999px !important;
+  background: #fff3dc !important; border: 4px solid var(--c-ink) !important; box-shadow: inset 0 -5px 0 #f1dcb5, 0 4px 0 var(--c-ink) !important;
+  top: -26px !important; right: 220px !important; align-items: center; }
+#base .st-collect::after { display: none !important; }
+#base .st-collect img.ic { position: absolute; left: -6px !important; top: 50% !important; height: 56px !important; transform: translateY(-50%) !important; filter: drop-shadow(0 3px 0 #0004); }
+#base .st-collect span { position: static !important; transform: none !important; font-size: 26px !important; color: #fff; -webkit-text-stroke: 6px var(--c-ink); paint-order: stroke fill; }
+/* 튜토리얼 말풍선: 흔들림 없애고, 글자 크고 또렷하게 (2026-10-22 사용자: 요란하고 안 읽힘) */
+#shell #tutBubble { animation: none !important; max-width: 600px; padding: 18px 28px !important; }
+#shell #tutBubble, #shell #tutBubble * { font-size: 32px !important; line-height: 1.3; color: #fff; -webkit-text-stroke: 7px #2a1a10 !important; paint-order: stroke fill; text-shadow: none !important; letter-spacing: 0.02em; }
+#shell #tutBubble small { display: block; font-size: 26px !important; margin-top: 6px; color: #ffe8a8; }
+/* 첫 화면 (2026-10-22 사용자 그림): 배경 꽉 채움 · 로고 위쪽 · '화면을 눌러 시작'은 아래 진갈색 알약 */
+#tapStart { background: #1b1420 url("assets/img/bg_title.webp") center / cover no-repeat !important; justify-content: space-between !important;
+  padding: calc(70px + var(--safe-top, 0px)) 0 calc(150px + var(--safe-bottom, 0px)); box-sizing: border-box; }
+#tapStart img { width: 640px !important; filter: drop-shadow(0 8px 0 #3a2418aa); }
+#tapStart p { margin: 0; padding: 14px 40px; border-radius: 999px; background: #2a1a10c0; font-size: 40px !important; color: #fff;
+  -webkit-text-stroke: 7px #2a1a10; paint-order: stroke fill; animation: tapBlink 1.4s ease-in-out infinite !important; }
+@keyframes tapBlink { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+#tapStart p { font-size: 50px !important; padding: 16px 48px; -webkit-text-stroke-width: 8px; }
+@keyframes tapBlink { 0%, 100% { opacity: 1; } 50% { opacity: .65; } }
