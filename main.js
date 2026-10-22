@@ -1161,15 +1161,47 @@ function tapToStart(go) {
 const PROLOGUE_SFX = [[0.3, 'prDay'], [2.5, 'prNight'], [4, 'prSmoke'], [6, 'prKing'], [9.5, 'prMess'], [11.8, 'prShock'], [13.5, 'prPan'], [17.5, 'prCharge'], [19.8, 'prBubbles']];
 // 영상·소리는 통째로 받아 둔 뒤(blob) 재생 — 폰 웹뷰는 파일을 끊어 읽기(range)를 못 해서 바로 재생하면 실패했음 (2026-10-22 실기)
 let prologueReady = null;
+// 실기 진단(치트 켜진 빌드만): 영상 준비·재생 과정을 기록해 실패하면 화면에 보여 준다 (2026-10-22)
+const prologueLog = [];
+const plog = (m) => { prologueLog.push(`${(performance.now() / 1000).toFixed(1)}s ${m}`); console.log('[prologue]', m); };
+function showPrologueLog(why) {
+  if (typeof CHEAT_ON === 'undefined' || !CHEAT_ON) return false;
+  const v = $('prologue').querySelector('video');
+  plog(`실패: ${why} / readyState ${v.readyState} / networkState ${v.networkState} / error ${v.error ? v.error.code + ' ' + (v.error.message || '') : '-'}`);
+  showModal(`<div class="title small">영상 진단</div><p style="text-align:left;font-size:20px;word-break:break-all">${prologueLog.map((x) => x.replace(/</g, '&lt;')).join('<br>')}</p>`, t('common.ok'), () => {});
+  return true;
+}
+// PlayForge 앱은 HTMLMediaElement.play를 감싸서, 다른 앱 소리 등으로 '오디오 멈춤' 상태면 play를 AbortError로 막는다
+// ("Playforge audio lifecycle discarded playback"). 오프닝 영상은 소리 없는(muted) 영상이라 막을 이유가 없으므로
+// 숨긴 iframe의 원래 play로 틀고, 'play' 이벤트에서 다시 멈추는 감시도 이 영상만 건너뛰게 한다. 소리(mp3)는 그대로 규칙을 따름 (2026-10-22)
+let rawPlayFrame = null;
+function playMutedVideo(v) {
+  const lc = window.__playforgeAudioLifecycle;
+  const why = lc && lc.reasons ? lc.reasons() : [];
+  plog(`PlayForge 오디오 멈춤 이유: ${why.length ? why.join(',') : '없음'}`);
+  if (!why.length) return v.play();
+  try {
+    if (!rawPlayFrame) {
+      rawPlayFrame = document.createElement('iframe'); rawPlayFrame.style.display = 'none'; document.body.appendChild(rawPlayFrame);
+      window.addEventListener('play', (e) => { if (e.target === v && v.muted) e.stopImmediatePropagation(); }, true);
+    }
+    const raw = rawPlayFrame.contentWindow.HTMLMediaElement.prototype.play;
+    plog(`우회 play (native ${/\[native code\]/.test(Function.prototype.toString.call(raw))})`);
+    return raw.call(v);
+  } catch (e) { plog(`우회 실패 ${e}`); return v.play(); }
+}
 function loadPrologue() {
   if (prologueReady) return prologueReady;
   const v = $('prologue').querySelector('video'), au = $('prologueAudio');
-  const blobUrl = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url); return r.blob(); }).then((b) => URL.createObjectURL(b));
+  const blobUrl = (url) => fetch(url).then((r) => { plog(`fetch ${url} → ${r.status}`); if (!r.ok) throw new Error(url + ' ' + r.status); return r.blob(); })
+    .then((b) => { plog(`blob ${url} ${(b.size / 1e6).toFixed(1)}MB type=${b.type || '?'}`); return URL.createObjectURL(b); });
+  plog(`UA ${navigator.userAgent.slice(0, 90)}`);
+  plog(`canPlay webm/vp9=${v.canPlayType('video/webm; codecs="vp9"') || 'no'} mp4=${v.canPlayType('video/mp4; codecs="avc1.42E01E"') || 'no'} page=${location.protocol}//${location.host}`);
   const vSrc = v.canPlayType('video/webm; codecs="vp9"') ? 'assets/video/prologue.webm' : 'assets/video/prologue.mp4';
   prologueReady = Promise.all([
-    blobUrl(vSrc).catch(() => blobUrl('assets/video/prologue.mp4')).then((u) => { v.src = u; v.load(); }),
+    blobUrl(vSrc).catch((e) => { plog(`영상 받기 실패 ${e}`); return blobUrl('assets/video/prologue.mp4'); }).then((u) => { v.src = u; v.load(); plog('video src 설정'); }),
     blobUrl('assets/video/prologue.mp3').then((u) => { au.src = u; au.load(); }).catch(() => {}),
-  ]).catch(() => {});
+  ]).catch((e) => plog(`준비 실패 ${e}`));
   return prologueReady;
 }
 function playPrologue(done) {
@@ -1194,9 +1226,14 @@ function playPrologue(done) {
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
-  v.currentTime = 0; v.onended = finish; $('btnSkipVideo').onclick = finish;
+  v.currentTime = 0; v.onended = () => { plog(`ended at ${v.currentTime.toFixed(1)}s / dur ${v.duration}`); const early = v.currentTime < 5; finish(); if (early) showPrologueLog('영상이 바로 끝남'); };
+  $('btnSkipVideo').onclick = finish;
+  setTimeout(() => { if (!wrap.classList.contains('hidden') && v.currentTime < 0.5) { finish(); showPrologueLog('3초 지나도 재생 안 됨'); } }, 3000); // 멈춰 있으면 원인 표시
   v.muted = true;
-  const p = v.play(); if (p && p.catch) p.catch((e) => { console.warn('오프닝 영상 재생 실패', e); finish(); }); // 그래도 막히면 다음으로
+  v.onerror = () => { plog('video error 이벤트'); };
+  plog('play 호출');
+  const p = playMutedVideo(v); if (p && p.then) p.then(() => plog('play 성공'));
+  if (p && p.catch) p.catch((e) => { finish(); showPrologueLog(`play 거부 ${e && e.name}: ${e && e.message}`); }); // 그래도 막히면 다음으로 (치트 빌드는 원인 표시)
 }
 // 모달 — 타이틀·오프라인 보상·확인 창. 떠 있는 동안 게임을 멈춘다
 // opt: { variant: 'orange', peek: 그림 주소(패널 위로 머리를 내민다), x: false(X 없음) | 'below'(패널 아래 가운데), xClose: X는 그냥 닫기 }
@@ -1768,8 +1805,8 @@ function updateShopRush() {
   return { shopReady, rushReady: left > 0 || chalReady || hLeft > 0 };
 }
 
-function openSheet(tab) { if (tab) showTab(tab); renderGrid(); updateUI(); $('sheet').classList.remove('closed'); }
-function closeSheet() { $('sheet').classList.add('closed'); }
+function openSheet(tab) { if (tab) showTab(tab); if (tab && tab !== 'base' && typeof baseOpen !== 'undefined') baseOpen = false; renderGrid(); updateUI(); $('sheet').classList.remove('closed'); }
+function closeSheet() { $('sheet').classList.add('closed'); if (typeof baseOpen !== 'undefined') baseOpen = false; }
 // 양옆 기능 버튼: 누르면 해당 탭이 바로 열린다
 document.querySelectorAll('.sbtn').forEach((b) => { b.onclick = () => openSheet(b.dataset.tab); });
 $('btnClose').onclick = closeSheet;
@@ -2699,6 +2736,8 @@ function update(dt) {
       <p>${t('intro.line1')}</p>
       <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); }, null, { x: false });
   }
+
+  const cover = $('bootCover'); if (cover) cover.remove(); // 준비 끝 — 첫 실행이면 같은 그림의 '눌러서 시작' 화면이 이미 위에 떠 있음
 
   let uiT = 0, saveT = 0;
   app.ticker.add((tk) => {

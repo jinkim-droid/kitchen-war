@@ -41,17 +41,6 @@
     </div>
     <div id="banner"></div>
     <div id="chapterSign"></div>
-    <!-- 🏠 내 주방 (base.js): 전투 화면 위에 열리고, 전투는 뒤에서 계속 진행된다 -->
-    <div id="base" class="hidden">
-      <div class="base-head">
-        <b><img class="ic" src="assets/img/icon_base.webp" alt="🏠"> <span data-i18n="base.title">내 주방</span> <span id="kLv"></span></b>
-        <small id="kNext"></small>
-      </div>
-      <div id="baseQueue"></div>
-      <div id="baseGrid"></div>
-      <img id="baseBear" alt="">
-      <button id="btnBaseBack" data-i18n="base.back">전투로 돌아가기</button>
-    </div>
     <!-- 양쪽 끝에 붙은 알약 버튼(2026-10-21 사용자 요청으로 양쪽에 나눔): 왼쪽 = 셰프 키우기(스킨·동료·도구함), 오른쪽 = 주방·상점·환생 + 맨 아래 도전. 오른쪽 위 미션 동그라미 -->
     <div class="side left">
       <button class="sbtn" data-tab="skins"><span class="ico"><img src="assets/img/icon_tab_skins.webp" alt=""></span><span data-i18n="menu.skins">스킨</span><i class="dot"></i></button>
@@ -150,6 +139,12 @@
         <div class="skin-tip"><span data-i18n="skins.tip">Tip. 스킨을 장착하지 않아도 효과가 적용돼요</span></div>
         <div id="skinList"></div>
       </div>
+      <!-- 🏠 내 주방 (base.js): 다른 메뉴처럼 아래에서 올라오는 판 (2026-10-22 사용자) — 전투는 뒤에서 계속 -->
+      <div class="pane" id="pane-base"><div id="base">
+        <div class="base-head"><span class="txt"><span data-i18n="base.title">내 주방</span> <span id="kLv"></span></span><small id="kNext"></small></div>
+        <div id="baseQueue"></div>
+        <div id="baseGrid"></div>
+      </div></div>
     </div>
   </div>
   <div id="settings" class="hidden">
@@ -170,6 +165,8 @@
   </div>
   <!-- 첫 플레이 안내 (tutorial.js): 클릭은 아래로 통과한다 -->
   <div id="tut" class="hidden"><div id="tutRing"></div><img id="tutHand" src="assets/img/ui_tut_hand.webp" alt="👆"><div id="tutBubble"><span id="tutText"></span></div></div>
+  <!-- 시작할 때 그림을 다 불러오기 전 빈 화면 가리기 (2026-10-22 사용자) — main.js가 준비되면 지움 -->
+  <div id="bootCover"><img src="assets/img/ui_title_logo_en.webp" alt=""><p data-i18n="video.loading">불러오는 중…</p></div>
   <div id="tapStart" class="hidden"><img src="assets/img/ui_logo.webp" alt=""><p data-i18n="video.tap">화면을 눌러 시작</p></div>
   <div id="prologue" class="hidden"><video muted playsinline webkit-playsinline preload="auto"></video><!-- src는 main.js loadPrologue가 blob으로 넣음 --><audio id="prologueAudio" preload="auto"></audio><div id="prologueSub"></div><button id="btnSkipVideo" data-i18n="video.skip">건너뛰기</button></div><!-- 오프닝 영상 -->
   <div id="modal" class="hidden"><div class="box"><button id="modalX" aria-label="닫기" data-i18n-aria="aria.close"></button><div id="modalBody"></div><button id="modalBtn"></button><button id="modalCancel" class="hidden" data-i18n="common.cancel">취소</button></div></div>

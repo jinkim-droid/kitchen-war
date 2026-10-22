@@ -183,15 +183,13 @@ $('baseGrid').addEventListener('click', (e) => {
   updateBase(); updateUI(); save();
 });
 
+// 주방은 메뉴 판(#sheet)의 한 칸 — 열면 판을 띄우고, 판이 닫히면 baseOpen도 끈다 (2026-10-22)
 function openBase() {
   baseOpen = true; baseDirty = true;
-  const art = SKIN_ART[S.skin];
-  $('baseBear').src = art && ART[art] ? `${IMG}${art}.webp` : (skinThumb[S.skin] || `${IMG}hero_chef.webp`);
-  $('base').classList.remove('hidden');
+  openSheet('base');
   baseTick(); updateBase();
 }
-function closeBase() { baseOpen = false; $('base').classList.add('hidden'); }
-$('btnBaseBack').onclick = closeBase;
+function closeBase() { baseOpen = false; closeSheet(); }
 document.querySelectorAll('.sbtn[data-tab="base"]').forEach((b) => { b.onclick = openBase; });
 
 // 1초마다 생산·건설을 진행하고, 화면이 열려 있으면 갱신한다 (알림 점은 늘 갱신)

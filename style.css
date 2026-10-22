@@ -1801,3 +1801,20 @@ html:not([lang="en"]) #modal .reward { font-family: "Game Font", -apple-system, 
 #tapStart p { font-size: 50px !important; padding: 16px 48px; -webkit-text-stroke-width: 8px; }
 @keyframes tapBlink { 0%, 100% { opacity: 1; } 50% { opacity: .65; } }
 #tapStart.loading p { animation: none !important; opacity: .8; }
+
+/* ---------- 내 주방 → 다른 메뉴처럼 아래 판 (2026-10-22 사용자) ---------- */
+#sheet #base { position: static; inset: auto; z-index: auto; display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 0;
+  background: none !important; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+#sheet #base::-webkit-scrollbar { display: none; }
+#pane-base .base-head { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#pane-base .base-head .txt { font-size: 28px; color: #fff; -webkit-text-stroke: 6px var(--c-wood-d); paint-order: stroke fill; }
+#pane-base #kNext { color: #fff; -webkit-text-stroke: 5px var(--c-wood-d); paint-order: stroke fill; margin: 0; }
+#pane-base #baseQueue { align-self: center; margin: 0 !important; }
+#pane-base #baseGrid { margin-top: 18px !important; padding-bottom: 4px; }
+
+/* 시작 가림막: 그림을 다 불러오기 전 빈 화면을 타이틀 배경으로 가림 (첫 화면과 같은 모습, 2026-10-22 사용자) */
+#bootCover { position: absolute; inset: 0; z-index: 209; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  background: #1b1420 url("assets/img/bg_title.webp") center / cover no-repeat; padding: calc(70px + var(--safe-top, 0px)) 0 calc(150px + var(--safe-bottom, 0px)); box-sizing: border-box; }
+#bootCover img { width: 640px; filter: drop-shadow(0 8px 0 #3a2418aa); }
+#bootCover p { margin: 0; padding: 16px 48px; border-radius: 999px; background: #2a1a10c0; font-size: 50px; color: #fff; opacity: .8;
+  -webkit-text-stroke: 8px #2a1a10; paint-order: stroke fill; }
