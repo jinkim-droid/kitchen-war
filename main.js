@@ -1145,13 +1145,13 @@ function updateUI() {
     setText($('stageLabel'), chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 }) + ` · Lv ${chal.lv}`);
     setText($('chapterLabel'), CHAPTERS[chal.ci].name);
     $('bossTimer').classList.add('on', 'rush');
-    if (chal.horde) setHTML($('bossTimer'), t('horde.pill', { sec: TIMER + ' ' + Math.ceil(chal.t), n: chal.kills, coin: COIN, gold: fmt(chal.gold) }));
-    else setHTML($('bossTimer'), t('chal.pill', { sec: TIMER + ' ' + Math.ceil(chal.t), n: chal.kills, total: CHAL_N }));
+    if (chal.horde) setHTML($('bossTimer'), t('horde.pill', { sec: TIMER + ' ' + t('hud.seconds', { n: Math.ceil(chal.t) }), n: chal.kills, coin: COIN, gold: fmt(chal.gold) }));
+    else setHTML($('bossTimer'), t('chal.pill', { sec: TIMER + ' ' + t('hud.seconds', { n: Math.ceil(chal.t) }), n: chal.kills, total: CHAL_N }));
   } else if (rush) {
     setText($('stageLabel'), t('rush.label'));
     setText($('chapterLabel'), t('place.arena'));
     $('bossTimer').classList.add('on', 'rush');
-    setHTML($('bossTimer'), t('rush.pill', { sec: TIMER + ' ' + Math.ceil(rush.t), n: rush.kills, gem: GEM, gems: rush.gems }));
+    setHTML($('bossTimer'), t('rush.pill', { sec: TIMER + ' ' + t('hud.seconds', { n: Math.ceil(rush.t) }), n: rush.kills, gem: GEM, gems: rush.gems }));
   } else {
     $('bossTimer').classList.remove('rush');
     setText($('stageLabel'), `Stage ${S.stage}-${wave.idx + 1}`);

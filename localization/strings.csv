@@ -204,7 +204,7 @@ horde.start_banner,Horde Mode!<small>Beat as many foes as you can in 60s</small>
 chal.start_banner,Challenge!<small>Beat all {n} within 1 minute</small>,도전!<small>1분 안에 {n}마리를 모두 처치하세요</small>,
 rush.label,Boss Rush,보스 러시,
 horde.label,Horde Mode,대군 모드,
-chal.label,CHAPTER {n} Challenge,도전 CHAPTER {n},
+chal.label,CHAPTER {n},CHAPTER {n},전투 명판 (2026-10-23 사용자: '도전' 글자 뺌)
 place.arena,Arena,결투장,
 rush.pill,{sec} · Kills {n} · {gem} {gems},{sec} · 처치 {n} · {gem} {gems},
 horde.pill,{sec} · Kills {n} · {coin} +{gold},{sec} · 처치 {n} · {coin} +{gold},

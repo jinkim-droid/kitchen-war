@@ -2072,3 +2072,8 @@ html[lang="en"] #shell #panel .up .name { transform: translateY(-8px); } /* 큰 
 html:not([lang="en"]) #shell .side .sbtn > span:not(.ico), html:not([lang="en"]) #shell #btnMission > span:not(.ico) { font-size: 27px !important; }
 html:not([lang="en"]) #shell #panel .up .name { font-size: 31px !important; transform: translateY(-6px); }
 #shell #goldLabel.lift, #shell #gemLabel.lift { z-index: 25; } /* 보상 날아가는 동안 메뉴·팝업 딤 위로 */
+/* 도전 중 타이머 알약 크게, 배속 버튼은 그 아래 (2026-10-23 사용자) */
+#shell #bossTimer.rush { font-size: 34px !important; padding: 8px 30px !important; height: auto !important; line-height: 1.1; }
+#shell #bossTimer.rush img.ic { height: 1.2em; }
+#btnChalSpd { margin-top: 10px; }
+#shell #bossTimer img.ic { filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 0 1px #3a2418); } /* 타이머 아이콘 진갈색 테두리 (2026-10-23 사용자) */
