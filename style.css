@@ -439,75 +439,64 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
    ====================================================================== */
 /* 창: 설정·팝업 */
 .setbox, #modal .box {
-  border-style: solid !important; border-color: transparent !important; border-width: 5px !important; background: none !important; box-shadow: none !important;
-  border-image: url("assets/img/ui_panel.webp") 99 fill / 33px stretch; filter: drop-shadow(0 7px 0 #3a2418);
+  border-style: solid !important; border-color: transparent !important; border-width: 5px !important; background: none !important; box-shadow: none !important; filter: drop-shadow(0 7px 0 #3a2418);
 }
 /* 아래에서 올라오는 메뉴 판 (위 모서리만 둥근 판) */
 #sheet .card {
-  border-style: solid; border-color: transparent; border-width: 5px; background: none; box-shadow: none; border-radius: 0;
-  border-image: url("assets/img/ui_sheet.webp") 111 111 15 111 fill / 37px 37px 5px 37px stretch; filter: drop-shadow(0 -6px 10px #0006);
+  border-style: solid; border-color: transparent; border-width: 5px; background: none; box-shadow: none; border-radius: 0; filter: drop-shadow(0 -6px 10px #0006);
 }
 /* 카드: 업그레이드 카드·동료·미션·상점 줄·스킨 카드 */
 .up, .row, .skin {
-  border-style: solid !important; border-color: transparent !important; border-width: 4px !important; background: none !important; box-shadow: none !important;
-  border-image: url("assets/img/ui_card.webp") 78 fill / 26px stretch; filter: drop-shadow(0 5px 0 #3a2418);
+  border-style: solid !important; border-color: transparent !important; border-width: 4px !important; background: none !important; box-shadow: none !important; filter: drop-shadow(0 5px 0 #3a2418);
 }
-.skin.on, .row.bonus { border-image-source: url("assets/img/ui_card_selected.webp"); }
 /* 버튼: 주황(확인) · 파랑(다이아) · 초록(가격) · 회색(비활성) · 빨간 테두리(위험) */
 .act, #btnBuy, #modalBtn, #btnSetClose, .st-act, #btnBaseBack, .up .cost, #btnReset {
-  border-style: solid !important; border-color: transparent !important; border-width: 4px !important; background: none !important; box-shadow: none !important;
-  border-image: url("assets/img/ui_btn_orange.webp") 66 fill / 22px stretch; filter: drop-shadow(0 4px 0 #3a2418);
+  border-style: solid !important; border-color: transparent !important; border-width: 4px !important; background: none !important; box-shadow: none !important; filter: drop-shadow(0 4px 0 #3a2418);
 }
-.act.gem, .st-act.gem { border-image-source: url("assets/img/ui_btn_blue.webp"); }
-.up .cost { border-image-source: url("assets/img/ui_btn_green.webp"); filter: drop-shadow(0 2px 0 #3a2418); }
-#btnReset { border-image-source: url("assets/img/ui_btn_red_line.webp"); }
-.act:disabled, .act.claimed, .st-act:disabled, #btnBuy:disabled, .up:disabled .cost { border-image-source: url("assets/img/ui_btn_gray.webp"); }
+.up .cost { filter: drop-shadow(0 2px 0 #3a2418); }
 .act:active:not(:disabled), #btnBuy:active:not(:disabled), #modalBtn:active, #btnSetClose:active, .st-act:active:not(:disabled), #btnBaseBack:active, .up:active:not(:disabled) {
   transform: translateY(3px); filter: drop-shadow(0 1px 0 #3a2418); box-shadow: none !important;
 }
 /* 알약 (가로로만 늘어남): 골드·다이아·장소 / 보스 시간 / 2배속 */
 .pill, #chapterLabel {
-  border-style: solid !important; border-color: transparent !important; border-width: 3px !important; background: none !important; box-shadow: none !important;
-  border-image: url("assets/img/ui_pill_cream.webp") 0 65 fill / 0 22px stretch; filter: drop-shadow(0 3px 0 #3a2418);
+  border-style: solid !important; border-color: transparent !important; border-width: 3px !important; background: none !important; box-shadow: none !important; filter: drop-shadow(0 3px 0 #3a2418);
 }
-#gemLabel { border-image-source: url("assets/img/ui_pill_cream.webp"); }
-#bossTimer { border-image: url("assets/img/ui_pill_red.webp") 0 59 fill / 0 20px stretch; }
-#boostPill { border-image: url("assets/img/ui_pill_green.webp") 0 47 fill / 0 16px stretch; }
 /* 도구함 칸 (점선은 늘리면 깨지므로 통판) */
-.slot { border: 0; border-radius: 0; background: url("assets/img/ui_slot.webp") center / 100% 100% no-repeat; }
-.slot.target { background-image: url("assets/img/ui_slot_target.webp"); }
+.slot { border: 0; border-radius: 0; }
 /* 닫기 */
-#btnClose { background: url("assets/img/ui_close.webp") center / contain no-repeat; font-size: 0; filter: drop-shadow(0 3px 0 #3a2418); }
+#btnClose { font-size: 0; filter: drop-shadow(0 3px 0 #3a2418); }
 /* 설정 스위치 */
-.switch { border: 0; background: url("assets/img/ui_toggle_off.webp") center / 100% 100% no-repeat; }
-.switch.on { background-image: url("assets/img/ui_toggle_on.webp"); }
-.switch::after { border: 0; background: url("assets/img/ui_toggle_knob.webp") center / contain no-repeat; top: 6px; left: 6px; width: 40px; height: 40px; }
+.switch { border: 0; }
+.switch::after { border: 0; top: 6px; left: 6px; width: 40px; height: 40px; }
 .switch.on::after { left: 52px; }
 /* 알림 점 */
-.sbtn .dot, .tab.ready::after, #menuBadge { border: 0 !important; background: url("assets/img/ui_badge.webp") center / contain no-repeat !important; }
+/* 빨간 점: 그림(ui_badge) 대신 CSS — 빨강 #f68071 + 진갈색 테두리 (지름의 약 7%) */
+.sbtn .dot, .tab.ready::after, #menuBadge { border: 0 !important; border-radius: 50% !important; background: #f68071 !important; box-shadow: inset 0 0 0 1.7px var(--ink, #4b3021) !important; }
 /* 상단 진행 바·웨이브 트랙 */
-#topBar { background: url("assets/img/ui_topbar_bg.webp") center / 100% 100% no-repeat; }
-#topFill { background: url("assets/img/ui_topbar_fill.webp") left center / 720px 100% no-repeat; }
-#track .line { border: 0; background: url("assets/img/ui_track_bg.webp") center / 100% 100% no-repeat; }
-#trackFill { background: url("assets/img/ui_track_fill.webp") left center / auto 100% no-repeat; background-size: 100% 100%; }
-#trackNodes i { border: 0; background: url("assets/img/ui_node_off.webp") center / contain no-repeat; }
-#trackNodes i.done { background-image: url("assets/img/ui_node_on.webp"); }
-#trackNodes i.boss { background: url("assets/img/ui_node_boss.webp") center / contain no-repeat; }
-#trackNodes i.boss.wall { background-image: url("assets/img/ui_node_wall.webp"); }
+#track .line { border: 0; }
+#trackFill { background-size: 100% 100%; }
+#trackNodes i { border: 0; }
 #trackHero { border: 0; background: #fff3dc; overflow: visible; box-shadow: none; }
 #trackHero img { border-radius: 50%; }
-#trackHero::after { content: ''; position: absolute; inset: -6px; background: url("assets/img/ui_hero_frame.webp") center / contain no-repeat; pointer-events: none; }
+#trackHero::after { content: ''; position: absolute; inset: -6px; pointer-events: none; }
 /* 보스 말풍선 */
-.bubble { border-style: solid; border-color: transparent; border-width: 4px; background: none; box-shadow: none; border-radius: 0; color: #3a2418; -webkit-text-stroke: 0;
-  border-image: url("assets/img/ui_bubble.webp") 72 fill / 24px stretch; filter: drop-shadow(0 4px 0 #0003); }
-.bubble::after { border: 0; width: 24px; height: 14px; bottom: -16px; background: url("assets/img/ui_bubble_tail.webp") center / contain no-repeat; }
+.bubble { border-style: solid; border-color: transparent; border-width: 4px; background: none; box-shadow: none; border-radius: 0; color: #3a2418; -webkit-text-stroke: 0; filter: drop-shadow(0 4px 0 #0003); }
+.bubble::after { border: 0; width: 24px; height: 14px; bottom: -16px; }
 /* 보상 뒤에서 도는 빛줄기 */
 #modal .reward { position: relative; z-index: 0; }
 #modal .reward::before { content: ''; position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px; z-index: -1;
-  background: url("assets/img/ui_reward_rays.webp") center / contain no-repeat; animation: rays 6s linear infinite; opacity: .9; }
+  /* 빛살 12줄 (그림 ui_reward_rays 대신 CSS): 폭 21px 막대 6개를 30°씩 돌려 겹치고, 반지름 42.5%~94% 구간만 보이게 */
+  background: linear-gradient(0deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px)),
+    linear-gradient(30deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px)),
+    linear-gradient(60deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px)),
+    linear-gradient(90deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px)),
+    linear-gradient(120deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px)),
+    linear-gradient(150deg, transparent calc(50% - 10.5px), #f8d96a8c calc(50% - 10.5px) calc(50% + 10.5px), transparent calc(50% + 10.5px));
+  -webkit-mask: radial-gradient(closest-side, transparent 42.5%, #000 43% 93.5%, transparent 94%); mask: radial-gradient(closest-side, transparent 42.5%, #000 43% 93.5%, transparent 94%);
+  animation: rays 6s linear infinite; opacity: .9; }
 @keyframes rays { to { transform: rotate(360deg); } }
 /* 배너 리본: 첫 줄 뒤에 */
-#banner { background: url("assets/img/ui_ribbon.webp") center 2px / 600px 88px no-repeat; padding-top: 6px; }
+#banner { padding-top: 6px; }
 
 /* 설정 버튼 아이콘 크기 */
 #btnSettings img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -530,7 +519,7 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   85%, 100% { left: var(--x2); top: var(--y2); transform: translate(-30%, 0) scale(1); }
 }
 #tutBubble { position: absolute; transform: translateX(-50%); width: max-content; max-width: 420px; text-align: center; font-size: 30px; line-height: 1.2;
-  border-style: solid; border-color: transparent; border-width: 4px; border-image: url("assets/img/ui_bubble.webp") 72 fill / 24px stretch;
+  border-style: solid; border-color: transparent; border-width: 4px;
   padding: 14px 22px; color: #fff; filter: drop-shadow(0 4px 0 #3a2418); animation: bob 1.4s ease-in-out infinite; }
 #tutBubble small { display: block; font-size: 20px; margin-top: 4px; }
 
@@ -540,18 +529,21 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 /* 17. 공통 팝업 틀: 제목 띠가 패널 위 테두리에 걸치고(좌우 3분할), 보상 숫자는 안으로 들어간 내용 상자에 */
 #modal .title.small, .setbox .title {
   display: block; width: fit-content; min-width: 260px; max-width: 100%; box-sizing: border-box; height: 72px; margin: -82px auto 14px;
-  border-style: solid; border-width: 0 36px; border-image: url("assets/img/ui_popup_title.webp") 0 108 fill / 0 36px stretch;
+  border-style: solid; border-width: 0 36px;
   padding: 0 10px; font-size: 40px; line-height: 70px; color: #fff; text-shadow: none; white-space: nowrap; -webkit-text-stroke: 6px #2a1a10;
 }
 #modal .box { padding-top: 54px; }
 .setbox { padding-top: 46px; }
 #modal .reward, #starNow, #rushBest {
-  border-style: solid; border-width: 4px; border-image: url("assets/img/ui_content_box.webp") 63 fill / 21px stretch;
+  border: 3px solid #c69a77; border-radius: 12px; background: #fcf0db; /* 보상 상자: 그림(ui_content_box) 대신 CSS — 아래 #starNow·#rushBest와 같은 색 */
   padding: 6px 28px; min-width: 60%; box-sizing: border-box;
 }
 #modal .reward { display: block; margin: 16px auto; }
 #modal .illust { display: block; width: 280px; height: auto; margin: -4px auto 0; }
-#modal .tag-best { display: block; width: 180px; height: auto; margin: 4px auto -4px; animation: bob 1s ease-in-out infinite; }
+/* '최고 기록!' 꼬리표: 그림(ui_tag_best·_en) 대신 CSS 글자 — 노랑 알약 + 진갈색 테두리 4px + 안쪽 밝은 줄, 언어별 그림이 필요 없다 */
+#modal .tag-best { display: block; width: fit-content; margin: 4px auto -4px; padding: 6px 28px; border: 4px solid var(--ink); border-radius: 26px;
+  background: #ffe070; box-shadow: inset 0 0 0 1.5px #ffd890; color: var(--ink); font-size: 34px; line-height: 1.15; font-weight: 900; white-space: nowrap;
+  -webkit-text-stroke: 0; text-shadow: none; animation: bob 1s ease-in-out infinite; }
 
 /* 18. 내 주방 */
 #base { background: url("assets/img/bg_base.webp") center / cover no-repeat, #e9dcc4; }
@@ -559,34 +551,30 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 .st-cell { position: relative; display: flex; }
 .st-cell > .st { flex: 1; z-index: 1; }
 /* 빛 테두리는 가운데가 빈 틀이라 카드 위에 겹친다. 그림 안 테두리(가로 8~92%·세로 10~90%)가 카드 바깥 약 10px에 오게 키운다 */
-.st-cell.ready::before { content: ''; position: absolute; z-index: 2; left: 50%; top: 50%; width: 132%; height: 135%; transform: translate(-50%, -50%);
-  background: url("assets/img/ui_st_ready.webp") center / 100% 100% no-repeat; animation: stGlow 1.4s ease-in-out infinite; pointer-events: none; }
+.st-cell.ready::before { content: ''; position: absolute; z-index: 2; left: 50%; top: 50%; width: 132%; height: 135%; transform: translate(-50%, -50%); animation: stGlow 1.4s ease-in-out infinite; pointer-events: none; }
 @keyframes stGlow { 50% { opacity: .55; transform: translate(-50%, -50%) scale(1.04); } }
 .st, .st.locked {
-  border-style: solid; border-color: transparent; border-width: 4px; border-radius: 0; background: none; box-shadow: none;
-  border-image: url("assets/img/ui_st_card.webp") 78 fill / 26px stretch; filter: drop-shadow(0 6px 0 #3a2418);
+  border-style: solid; border-color: transparent; border-width: 4px; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 6px 0 #3a2418);
 }
-.st.locked { border-image-source: url("assets/img/ui_st_card_lock.webp"); filter: drop-shadow(0 6px 0 #3a2418) grayscale(.3); }
+.st.locked { filter: drop-shadow(0 6px 0 #3a2418) grayscale(.3); }
 .st::before { display: none; }
 /* 레벨 등급은 카드 둘레 빛 색으로 (그림 판은 테두리 색을 못 바꾼다) */
 .st.silver { box-shadow: none; filter: drop-shadow(0 6px 0 #3a2418) drop-shadow(0 0 6px #b8c4d0); }
 .st.gold { box-shadow: none; filter: drop-shadow(0 6px 0 #3a2418) drop-shadow(0 0 10px #ffd34d); }
 .st-ico img { height: 96px; width: auto; display: block; filter: drop-shadow(0 3px 0 #3a241855); }
-.st-collect { top: -44px; left: auto; right: -10px; transform: none; width: 72px; height: 80px; padding: 0 0 8px; border: 0 !important; border-radius: 0; box-shadow: none; animation: bob 1s ease-in-out infinite;
-  background: url("assets/img/ui_harvest_bubble.webp") center / 100% 100% no-repeat !important; }
+.st-collect { top: -44px; left: auto; right: -10px; transform: none; width: 72px; height: 80px; padding: 0 0 8px; border: 0 !important; border-radius: 0; box-shadow: none; animation: bob 1s ease-in-out infinite; }
 .st-collect img.ic { height: 36px; vertical-align: 0; margin-top: 12px; }
 .st-collect span { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 20px; white-space: nowrap; }
 
 /* 19. 공용 진행 막대 (좌우 3분할, 1x 12) */
 .st-bar, .mission .bar2 {
   height: 24px; background: none; border-radius: 0; overflow: visible; box-sizing: border-box;
-  border-style: solid; border-width: 0 12px; border-image: url("assets/img/ui_bar_bg.webp") 0 36 fill / 0 12px stretch;
+  border-style: solid; border-width: 0 12px;
 }
 .st-bar i, .mission .bar2 i {
   left: -12px; background: none; border-radius: 0; box-sizing: content-box; /* 폭(%) + 양 끝 12px씩 = 100%일 때 바탕과 같은 길이 */
-  border-style: solid; border-width: 0 12px; border-image: url("assets/img/ui_bar_fill_yellow.webp") 0 36 fill / 0 12px stretch;
+  border-style: solid; border-width: 0 12px;
 }
-.mission .bar2 i { border-image-source: url("assets/img/ui_bar_fill.webp"); }
 .st-bar span { display: block; text-align: center; line-height: 24px; }
 .mission .bar2 { margin-top: 8px; }
 
@@ -600,7 +588,8 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   75% { left: var(--x2); top: var(--y2); transform: translate(-50%, 0) scale(.85); }
   85%, 100% { left: var(--x2); top: var(--y2); transform: translate(-50%, 0) scale(1); }
 }
-#tutRing { display: none; position: absolute; transform: translate(-50%, -50%); background: url("assets/img/ui_tut_ring.webp") center / contain no-repeat;
+#tutRing { display: none; position: absolute; transform: translate(-50%, -50%); border-radius: 50%; /* 노란 빛 링: 그림(ui_tut_ring) 대신 CSS — 반지름 79% 자리에 진한 선, 앞뒤로 번지는 빛 */
+  background: radial-gradient(closest-side, transparent 70.5%, #ffe37112 72%, #fff08031 74.5%, #f2dd7062 76.3%, #fbdf70c3 77.5%, #fbdf70 78.5% 80%, #feed7dc3 81.3%, #ffed7d62 82.5%, #ffea7d31 84%, #f1e37112 86%, transparent 88.5%);
   animation: tutRing 0.9s ease-in-out infinite; }
 #tut.point #tutRing { display: block; }
 @keyframes tutRing { 50% { transform: translate(-50%, -50%) scale(1.12); opacity: .7; } }
@@ -611,20 +600,18 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 
 /* 22. 메뉴 화면 그림 · 보스 러시 중 보라 알약 */
 .prestige .illust { width: 320px; height: auto; margin: -10px 0 -18px; }
-#bossTimer.rush { border-image: url("assets/img/ui_pill_purple.webp") 0 60 fill / 0 20px stretch; }
 
 /* 23. 표시·도장: 받은 미션 "완료!" 도장, 장착 중 스킨 배지 */
 .mission { position: relative; }
-.mission.done::after { content: ''; position: absolute; right: 176px; top: 50%; width: 104px; height: 104px; transform: translateY(-50%) rotate(-12deg);
-  background: url("assets/img/ui_stamp_done.webp") center / contain no-repeat; pointer-events: none; }
+.mission.done::after { content: ''; position: absolute; right: 176px; top: 50%; width: 104px; height: 104px; transform: translateY(-50%) rotate(-12deg); pointer-events: none; }
 .mission.done .info b { text-decoration: none; }
 .skin { position: relative; }
-.skin.on::after { content: ''; position: absolute; right: 6px; top: 6px; width: 48px; height: 48px; background: url("assets/img/ui_equipped.webp") center / contain no-repeat; }
+.skin.on::after { content: ''; position: absolute; right: 6px; top: 6px; width: 48px; height: 48px; }
 
 /* 5차 일부: 화면 위쪽 보스 체력 바 (크기 고정 통판 400×50 = 그림 480×60의 1/1.2). 채움 칸은 그림 x 91~478 */
-#bossBar { display: none; position: relative; width: 400px; height: 50px; margin-top: 6px; background: url("assets/img/ui_boss_hp_bg.webp") center / 100% 100% no-repeat; }
+#bossBar { display: none; position: relative; width: 400px; height: 50px; margin-top: 6px; }
 #bossBar.on { display: block; }
-#bossFill { position: absolute; left: 75.8px; top: 0; width: 322.5px; height: 100%; background: url("assets/img/ui_boss_hp_fill.webp") -75.8px 0 / 400px 50px no-repeat;
+#bossFill { position: absolute; left: 75.8px; top: 0; width: 322.5px; height: 100%;
   transition: clip-path .15s; }
 #bossBar.wall #bossFill { filter: hue-rotate(-12deg) saturate(1.5) brightness(.9); }
 
@@ -832,52 +819,45 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
 #modal .box, #settings .setbox { border-color: transparent !important; box-shadow: none !important; background-clip: padding-box !important; }
 #modal .box::before, #settings .setbox::before {
   content: ''; position: absolute; inset: -5px; z-index: -1; pointer-events: none;
-  border: 34px solid transparent; border-image: url("assets/img/ui_panel_paw.webp") 102 / 34px stretch;
+  border: 34px solid transparent;
 }
 #modal .box.orange { background: none !important; box-shadow: none !important; }
-#modal .box.orange::before { border-image: url("assets/img/ui_panel_orange.webp") 102 fill / 34px stretch; }
 
 /* 리본 제목 (가운데만 가로로 늘어남, 양 끝 꼬리 70) */
 #modal .title.small, .setbox .title {
   border: 0 solid transparent !important; border-width: 0 70px !important; border-radius: 0; background: none; box-shadow: none;
-  border-image: url("assets/img/ui_ribbon_title.webp") 0 210 fill / 0 70px stretch !important;
   height: 80px; line-height: 80px; padding: 0 4px; min-width: 300px; width: fit-content; box-sizing: border-box;
 }
 #modal .title.small::before, #modal .title.small::after, .setbox .title::before, .setbox .title::after { display: none; }
 
 /* 빨간 동그라미 X */
-#modalX, #btnClose { background: url("assets/img/ui_close_round.webp") center / contain no-repeat !important; border: 0 !important; box-shadow: none !important;
+#modalX, #btnClose { border: 0 !important; box-shadow: none !important;
   filter: drop-shadow(0 4px 0 #3a2418) !important; }
 #modalX::before, #modalX::after, #btnClose::before, #btnClose::after { display: none; }
 
 /* 노랑 주 버튼 (비활성은 기존 회색 버튼 그림) */
-#modalBtn { border: 4px solid transparent !important; background: none !important; box-shadow: none !important;
-  border-image: url("assets/img/ui_btn_yellow.webp") 90 fill / 30px stretch !important; }
-#modalBtn:disabled { border-image: url("assets/img/ui_btn_gray.webp") 66 fill / 22px stretch !important; background: none !important; box-shadow: none !important; }
+#modalBtn { border: 4px solid transparent !important; background: none !important; box-shadow: none !important; }
+#modalBtn:disabled { background: none !important; box-shadow: none !important; }
 
 /* 옆 알약 버튼: 왼쪽 = 오른쪽만 둥근 크림(상점은 파랑), 오른쪽 = 왼쪽만 둥근 크림·파랑(왼쪽 그림을 뒤집은 ui_side_pill_r_cream·_r_blue) · 도전은 진주황
    크기가 고정(104×72, 도전 104×86)이고 그림 비율과 같아서 9분할 대신 통판으로 깐다 — 9분할은 화면 축소 시 조각 이음매가 격자처럼 보였다 */
 .side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) {
   border-color: transparent !important; border-image: none !important; box-shadow: none; filter: drop-shadow(0 5px 0 #3a2418);
-  background: url("assets/img/ui_side_pill_l.webp") center / 100% 100% no-repeat border-box !important;
 }
-.side.left .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_l_blue.webp") !important; }
-.side.right .sbtn { background-image: url("assets/img/ui_side_pill_r_cream.webp") !important; }
-.side.right .sbtn[data-tab="shop"] { background-image: url("assets/img/ui_side_pill_r_blue.webp") !important; }
-.side.right .sbtn[data-tab="rush"] { background: url("assets/img/ui_side_pill_r.webp") center / 100% 100% no-repeat border-box !important; } /* 위쪽 옛 규칙(주황 단색)보다 우선하도록 전체 지정 */
 .side .sbtn:active { box-shadow: none; filter: drop-shadow(0 2px 0 #3a2418); }
 /* 화면 끝에 붙는 쪽 테두리(그림에 3px)는 화면 밖으로 밀어 안 보이게 */
 .side.left { left: -4px; } .side.right { right: -4px; }
 
 /* 미션 동그라미 · 절전모드 알약 */
-#btnMission { background: url("assets/img/ui_round_purple.webp") center / 100% 100% no-repeat !important; border: 0; box-shadow: none; filter: drop-shadow(0 4px 0 #3a2050); }
-#btnSaver { border: 0 solid transparent; border-width: 0 18px; padding: 0 4px; height: 36px; line-height: 36px; background: none; box-shadow: none;
-  border-image: url("assets/img/ui_pill_gray.webp") 0 54 fill / 0 18px stretch; filter: drop-shadow(0 3px 0 #3a332c); }
-#btnSaver.on { background: none; box-shadow: none; border-image: url("assets/img/ui_pill_green.webp") 0 48 fill / 0 18px stretch; filter: drop-shadow(0 3px 0 #2d5a2f); }
+/* 보라 동그라미: 그림(ui_round_purple) 대신 CSS — 진갈색 테두리 → 진보라 줄 → 밝은 줄 → 몸통 */
+#btnMission { background: #d2bced !important; border: 0; box-shadow: inset 0 0 0 3.7px var(--ink), inset 0 0 0 6px #bc9ed4, inset 0 0 0 7.3px #f1d8ff !important; filter: drop-shadow(0 4px 0 #3a2050); }
+#btnSaver { border: 0 solid transparent; border-width: 0 18px; padding: 0 4px; height: 36px; line-height: 36px; background: none; box-shadow: none; filter: drop-shadow(0 3px 0 #3a332c); }
+#btnSaver.on { background: none; box-shadow: none; filter: drop-shadow(0 3px 0 #2d5a2f); }
 
 /* 조이스틱 */
-#joy { border: 0; background: url("assets/img/ui_joy_ring.webp") center / 100% 100% no-repeat; }
-#joy i { border-radius: 0; background: url("assets/img/ui_joy_knob.webp") center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 0 #0003); }
+/* 조이스틱: 그림(ui_joy_ring·ui_joy_knob) 대신 CSS — 반투명 흰 판 + 가는 안쪽 선 + 진한 바깥 테두리 / 흰 손잡이 + 진갈색 테두리 */
+#joy { border: 0; background: radial-gradient(closest-side, #f4f4f42e 77.5%, #ffffff66 78% 80%, #f4f4f429 80.5% 92%, #ffffffb0 92.5% 97.5%, transparent 98%); }
+#joy i { border-radius: 50%; background: radial-gradient(closest-side, #fdfdfb 88.5%, var(--ink) 89.5% 96.5%, transparent 97.5%); box-shadow: none; filter: drop-shadow(0 4px 0 #0003); }
 
 /* 업그레이드 카드 판·게이지 (가격 칸은 총고식 갈색 칸 유지 — 2026-10-21 사용자 결정, ui_up_cost 안 씀) */
 /* 9분할 그림(ui_up_card·ui_up_gauge)은 화면 축소 때 조각 이음매가 선으로 보여서, 그림의 색·테두리를 재서 CSS로 똑같이 그린다 (2026-10-21)
@@ -890,49 +870,43 @@ img.ic { height: 1.05em; width: auto; vertical-align: -0.18em; }
   background: linear-gradient(#96d37d calc(100% - 5px), #7cc86a calc(100% - 5px)); } /* 2026-10-21: 처음 연두(#b0e992)와 차분한 초록(#7cc86a)의 중간, 위쪽 하이라이트 줄 없앰 (사용자 요청) */
 
 /* 환생 보상 줄 · 영구 강화 버튼 */
-.pr-gain { border-color: transparent; background: none; border-image: url("assets/img/ui_row_purple.webp") 66 fill / 22px stretch; }
-.perm-btn { border-color: transparent; background: none; box-shadow: none; filter: drop-shadow(0 4px 0 #4a2058); border-image: url("assets/img/ui_btn_purple.webp") 66 fill / 22px stretch; }
+.pr-gain { border-color: transparent; background: none; }
+.perm-btn { border-color: transparent; background: none; box-shadow: none; filter: drop-shadow(0 4px 0 #4a2058); }
 .perm-btn:active:not(:disabled) { box-shadow: none; filter: drop-shadow(0 1px 0 #4a2058); }
 
 /* 스킨 칸 */
-#skinList .skin { border-color: transparent !important; background: none !important; border-image: url("assets/img/ui_skin_slot.webp") 54 fill / 18px stretch !important; }
-#skinList .skin.on { border-color: transparent !important; background: none !important; border-image-source: url("assets/img/ui_skin_slot_on.webp") !important; }
+#skinList .skin { border-color: transparent !important; background: none !important; }
+#skinList .skin.on { border-color: transparent !important; background: none !important; }
 
 /* 도전 창 설명 띠 (위·아래 진갈색 선만 고정, 나머지는 늘어남) */
-.chal-band { background: none; border: 0 solid transparent; border-width: 5px 0; border-image: url("assets/img/ui_chal_band.webp") 15 0 fill / 5px 0 stretch; }
+.chal-band { background: none; border: 0 solid transparent; border-width: 5px 0; }
 
 /* ---------- 5차: 위쪽 표시 ---------- */
 /* 챕터 진행 바: 바탕·채움 3분할, 스테이지마다 눈금 9개 (10%~90%) */
 #topBar { height: 32px; background: none; }
-#topBar::before { content: ''; position: absolute; inset: 0; border: 0 solid transparent; border-width: 0 18px; border-image: url("assets/img/ui_topbar_bg.webp") 0 54 fill / 0 18px stretch; }
-#topFill { left: 4px; top: 4px; bottom: 4px; max-width: calc(100% - 8px); background: none; box-sizing: border-box; border: 0 solid transparent; border-width: 0 12px;
-  border-image: url("assets/img/ui_topbar_fill.webp") 0 36 fill / 0 12px stretch; }
+/* 바탕: 그림(ui_topbar_bg) 대신 CSS — 진갈색 3px → 갈색 줄 → 밝은 갈색 줄 → 어두운 몸통 */
+#topBar::before { content: ''; position: absolute; inset: 0; border: 3px solid var(--ink); border-radius: 16px; background: #343129; box-shadow: inset 0 0 0 1.3px #705040, inset 0 0 0 2.7px #a08070; }
+#topFill { left: 4px; top: 4px; bottom: 4px; max-width: calc(100% - 8px); background: none; box-sizing: border-box; border: 0 solid transparent; border-width: 0 12px; }
 #topBar::after { content: ''; position: absolute; left: 4px; right: 4px; top: 4px; bottom: 4px; pointer-events: none;
-  background: url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat,
-    url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat,
-    url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat, url("assets/img/ui_topbar_tick.webp") no-repeat;
   background-size: 6px 100%; background-position: 10% 0, 20% 0, 30% 0, 40% 0, 50% 0, 60% 0, 70% 0, 80% 0, 90% 0; }
 #topFill { z-index: 1; } #topPct { z-index: 2; line-height: 32px; } /* 눈금(::after)은 채움 아래 — 채워진 곳은 노랑만 보이게 */
 
 /* 스테이지 명판(보스 스테이지는 보스 명판) + 아래 매달린 챕터 꼬리표 */
-#stageLabel { border: 0 solid transparent; border-width: 0 40px; height: 64px; line-height: 66px; padding: 0 2px; box-sizing: border-box; text-shadow: 0 3px 0 #3a2418;
-  border-image: url("assets/img/ui_stage_plate.webp") 0 120 fill / 0 40px stretch; filter: drop-shadow(0 4px 0 #0004); }
-#stageLabel.boss { border-image-source: url("assets/img/ui_stage_plate_boss.webp"); }
+#stageLabel { border: 0 solid transparent; border-width: 0 40px; height: 64px; line-height: 66px; padding: 0 2px; box-sizing: border-box; text-shadow: 0 3px 0 #3a2418; filter: drop-shadow(0 4px 0 #0004); }
 #chapterLabel { margin-top: -6px !important; height: 36px; line-height: 40px; padding: 0 2px !important; box-sizing: border-box; font-size: 18px;
-  border-width: 0 24px !important; border-image: url("assets/img/ui_chapter_tag.webp") 0 72 fill / 0 24px stretch !important; }
+  border-width: 0 24px !important; }
 
 /* 코인·다이아: 왼쪽 동그란 자리에 아이콘(자리는 바 몸통색으로 칠함), 다이아 오른쪽에 + (상점). DPS 표시는 뺐다(2026-10-21) */
 #goldLabel, #gemLabel { display: flex; align-items: center; height: 48px; min-width: 150px; box-sizing: border-box; padding: 0 6px 0 4px !important; position: relative;
-  border-width: 0 24px 0 48px !important; border-image: url("assets/img/ui_currency_bar.webp") 0 72 0 144 fill / 0 24px 0 48px stretch !important; }
+  border-width: 0 24px 0 48px !important; }
 #goldLabel img.ic, #gemLabel img.ic { position: absolute; left: -44px; top: 50%; height: 40px; transform: translateY(-50%); }
 #gemLabel { padding-right: 26px !important; }
-#gemLabel .plus { position: absolute; right: -22px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); pointer-events: auto; cursor: pointer;
-  background: url("assets/img/ui_btn_plus.webp") center / contain no-repeat; filter: drop-shadow(0 2px 0 #0005); }
+#gemLabel .plus { position: absolute; right: -22px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); pointer-events: auto; cursor: pointer; filter: drop-shadow(0 2px 0 #0005); }
 
 /* 보스 체력: 강한 보스는 불꽃 무늬 채움 (기존 채움 칸 = 그림 높이 60 중 4~55 → 위 3.3px, 높이 42.5px. 끝 둥근 부분은 높이 비율대로 21px) */
 #bossBar.wall #bossFill { background: none; filter: none; }
 #bossBar.wall #bossFill::before { content: ''; position: absolute; left: 0; right: 0; top: 3.3px; height: 42.5px; box-sizing: border-box;
-  border: 0 solid transparent; border-width: 0 21px; border-image: url("assets/img/ui_boss_bar_fill_wall.webp") 0 42 fill / 0 21px stretch; }
+  border: 0 solid transparent; border-width: 0 21px; }
 
 /* ---------- 위쪽 가운데 정리 (2026-10-21 사용자 결정): 챕터 꼬리표 뺌, 일반 보스 시간은 체력 바 안으로 ---------- */
 #chapterLabel { display: none !important; } /* 챕터 이름은 챕터가 바뀔 때 뜨는 큰 안내판으로 */
@@ -979,8 +953,8 @@ html[lang="en"] #modalBtn { font-size: 28px; white-space: nowrap; }
 .side .sbtn, .side .sbtn:nth-child(odd), .side .sbtn:nth-child(even) { filter: drop-shadow(0 5px 0 #3a2418); box-shadow: inset 0 -9px 0 #00000026 !important; }
 .side .sbtn:active { filter: drop-shadow(0 2px 0 #3a2418); box-shadow: inset 0 -4px 0 #00000026 !important; }
 .side .sbtn > span:not(.ico) { font-size: 26px; -webkit-text-stroke-width: 6px; }
-.side .sbtn[data-tab="tools"] { width: 124px; background-image: url("assets/img/ui_side_pill_l_wide.webp") !important; }
-.side.right .sbtn[data-tab="rush"] { width: 124px; height: 72px; background: url("assets/img/ui_side_pill_r_wide.webp") center / 100% 100% no-repeat border-box !important; }
+.side .sbtn[data-tab="tools"] { width: 124px; }
+.side.right .sbtn[data-tab="rush"] { width: 124px; height: 72px; }
 html[lang="en"] .side .sbtn > span:not(.ico) { font-size: 18px; }
 /* 버튼 폭이 달라도(도구함·도전 124) 모두 화면 끝에 붙인다 — 묶음 안에서 왼쪽 메뉴는 왼쪽, 오른쪽 메뉴는 오른쪽 정렬 */
 .side.left { align-items: flex-start; } .side.right { align-items: flex-end; }
@@ -1150,7 +1124,7 @@ html[lang="en"] .side .sbtn > span:not(.ico) { font-size: 18px; }
 #skinList .skin.locked.can .skin-tag { background: #4f9a44; color: #fff; }
 #skinList .skin.locked.can .thumb, #skinList .skin.locked.can .mini { filter: brightness(.95); }
 #skinList .skin.locked.can .lock { display: none; }
-#skinList .skin .dot { display: none; position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; z-index: 3; background: url("assets/img/ui_badge.webp") center / contain no-repeat; animation: bob 1s ease-in-out infinite; }
+#skinList .skin .dot { display: none; position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; z-index: 3; border-radius: 50%; background: #f68071; box-shadow: inset 0 0 0 1.6px var(--ink); animation: bob 1s ease-in-out infinite; }
 #skinList .skin.locked.can .dot { display: block; }
 #skinList .skin.locked .lock { top: 44%; }
 
@@ -1171,7 +1145,7 @@ html[lang="en"] .side .sbtn > span:not(.ico) { font-size: 18px; }
 .tabs { flex: 1; max-width: 660px; } /* 가운데 정렬하되 탭 크기는 원래대로 */
 /* 7차 그림 (2026-10-21) */
 /* 영어 화면: 영어 글자 도장·꼬리표 그림 (그림이 있으니 글자 대체 대신) */
-html[lang="en"] .mission.done::after { content: '' !important; background: url("assets/img/ui_stamp_done_en.webp") center / contain no-repeat !important; border: 0 !important; border-radius: 0 !important; }
+html[lang="en"] .mission.done::after { content: '' !important; border: 0 !important; border-radius: 0 !important; }
 /* 진행 줄 셰프: 테두리 없는 머리 그림 (총고식) */
 #trackHero.head { background: none !important; border: 0 !important; overflow: visible !important; border-radius: 0 !important; width: 56px; height: 56px; margin-left: -28px; top: -1px; filter: drop-shadow(0 3px 0 #0006); }
 #trackHero.head img { transform: none; object-fit: contain; border-radius: 0; }
@@ -1277,8 +1251,7 @@ html[lang="en"] .mission.done::after { content: '' !important; background: url("
 #shell #btnReset { width: 260px; height: 58px; font-size: 22px; }
 #settings .setbox.simple #verLabel { margin: -6px 0 0; font-size: 15px; opacity: .8; }
 /* 닫기: 창 아래 가운데 빨간 동그라미 X */
-#shell #btnSetClose { position: absolute; left: 50%; bottom: -96px; width: 66px; height: 66px; margin-left: -33px; padding: 0; border: 0 !important; border-image: none !important;
-  background: url("assets/img/ui_close_round.webp") center / contain no-repeat !important; box-shadow: none !important; filter: drop-shadow(0 4px 0 #3a2418); font-size: 0; }
+#shell #btnSetClose { position: absolute; left: 50%; bottom: -96px; width: 66px; height: 66px; margin-left: -33px; padding: 0; border: 0 !important; border-image: none !important; box-shadow: none !important; filter: drop-shadow(0 4px 0 #3a2418); font-size: 0; }
 .settiles { grid-template-columns: repeat(3, 120px); justify-content: center; gap: 48px 30px; margin-top: 30px; }
 #shell .switch.tile { width: 120px; height: 120px; padding: 0; }
 .switch.tile img { height: 66px; }
@@ -1818,3 +1791,157 @@ html:not([lang="en"]) #modal .reward { font-family: "Game Font", -apple-system, 
 #bootCover img { width: 640px; filter: drop-shadow(0 8px 0 #3a2418aa); }
 #bootCover p { margin: 0; padding: 16px 48px; border-radius: 999px; background: #2a1a10c0; font-size: 50px; color: #fff; opacity: .8;
   -webkit-text-stroke: 8px #2a1a10; paint-order: stroke fill; }
+
+/* ---------- 동료 역할 강화 띠 (다이아, 2026-10-22 사용자 A안): 고용한 역할 동료 카드 아래에 붙는 하늘색 띠 ---------- */
+#mateList .role-up { margin: -26px 10px 0; padding: 24px 14px 12px; border: 4px solid #4b3021; border-top: 0; border-radius: 0 0 18px 18px; background: #dff1f7;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; flex: none; }
+#mateList .role-up.hidden { display: none; }
+#mateList .row.has-ru { position: relative; z-index: 1; }
+#mateList .role-up .ru-ttl { font-size: 24px; color: #fff; -webkit-text-stroke: 5px #2f6f86; paint-order: stroke fill; display: flex; align-items: center; gap: 8px; }
+#mateList .role-up .pips { display: inline-flex; gap: 4px; }
+#mateList .role-up .pips i { width: 16px; height: 16px; border-radius: 50%; background: #b9d6e0; border: 2px solid #2f6f86; box-sizing: border-box; }
+#mateList .role-up .pips i.on { background: #ffd34d; }
+#mateList .role-up .ru-eff { grid-column: 1; font-size: 22px !important; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; letter-spacing: 0.02em; }
+#mateList .role-up .ru-eff b { color: var(--c-up); }
+#mateList .role-up .ru-btn { grid-row: 1 / span 2; grid-column: 2; min-width: 168px; height: 76px; border: 3px solid #4b3021; border-radius: 16px; background: var(--c-gem);
+  box-shadow: inset 0 -5px 0 var(--c-gem-d, #6fb4d0); font-size: 22px; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+#mateList .role-up .ru-btn .cost { font-size: 26px; display: flex; align-items: center; gap: 4px; }
+#mateList .role-up .ru-btn .cost img.ic { height: 28px; }
+#mateList .role-up .ru-btn:disabled { background: var(--c-off); box-shadow: inset 0 -5px 0 #c4beb7; }
+#mateList .role-up .ru-btn:active:not(:disabled) { transform: translateY(3px); }
+#mateList .role-up.pop { animation: ruPop .45s ease-out; }
+@keyframes ruPop { 0% { filter: brightness(1.35); } 100% { filter: none; } }
+
+/* 줄바꿈 (2026-10-22 사용자: 모든 문장 개행 똑바로): 한국어는 단어(띄어쓰기) 단위로만 끊고, 너무 긴 단어만 강제로 끊는다.
+   text-wrap: pretty = 마지막 줄에 한 글자만 남는 것 방지. 진단 창처럼 break-all을 직접 준 곳은 그대로 */
+body, #shell, #modal, #settings, #sheet, #banner, #tutBubble { word-break: keep-all; overflow-wrap: break-word; line-break: strict; text-wrap: pretty; }
+
+/* ---------- 스테이지 보상 트랙 (미션 창 위, 2026-10-22 사용자: 시즌패스 모양) ---------- */
+#pane-missions { overflow-y: auto; scrollbar-width: none; }
+#stageRw { flex: none; display: flex; flex-direction: column; gap: 8px; }
+:is(#stageRw, #attendBox) .sr-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+:is(#stageRw, #attendBox) .sr-head b { font-size: 30px; color: #fff; -webkit-text-stroke: 6px var(--c-wood-d); paint-order: stroke fill; }
+#btnAttend { position: relative; height: 56px; padding: 0 22px; border-radius: 999px; border: 3px solid var(--c-wood-d); background: var(--c-gold); box-shadow: inset 0 -5px 0 #e0a92a;
+  font-size: 24px; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; }
+#btnAttend .dot { position: absolute; right: -4px; top: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--c-red); border: 3px solid #fff; display: none; }
+#btnAttend.ready .dot { display: block; }
+:is(#stageRw, #attendBox) .sr-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; border-radius: 18px; background: #6e4a3433; padding: 12px 0 10px; scroll-behavior: smooth; }
+:is(#stageRw, #attendBox) .sr-scroll::-webkit-scrollbar { display: none; }
+:is(#stageRw, #attendBox) .sr-track { position: relative; display: flex; gap: 14px; padding: 0 16px; width: max-content; }
+:is(#stageRw, #attendBox) .sr-line { position: absolute; left: 0; right: 0; bottom: 20px; height: 14px; background: #4b3021; border-radius: 7px; }
+:is(#stageRw, #attendBox) .sr-fill { position: absolute; left: 0; top: 2px; bottom: 2px; width: 0; background: var(--c-gold); border-radius: 5px; transition: width .4s; }
+:is(#stageRw, #attendBox) .sr-node { position: relative; width: 120px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+:is(#stageRw, #attendBox) .sr-card { position: relative; width: 116px; height: 118px; border-radius: 18px; border: 4px solid var(--c-wood-d); background: var(--c-card); box-shadow: inset 0 -6px 0 #e9dcc4;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0; }
+:is(#stageRw, #attendBox) .sr-card img { height: 52px; }
+:is(#stageRw, #attendBox) .sr-card b { font-size: 26px; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; }
+:is(#stageRw, #attendBox) .sr-num { position: relative; z-index: 1; min-width: 46px; height: 46px; box-sizing: border-box; border-radius: 12px; background: #8a6a55; border: 3px solid var(--c-wood-d);
+  font-style: normal; font-size: 24px; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; display: grid; place-items: center; padding: 0 6px; }
+:is(#stageRw, #attendBox) .sr-node:not(.locked) .sr-num { background: var(--c-gold); }
+:is(#stageRw, #attendBox) .sr-node.ready .sr-card { background: #fff1c2; border-color: #e07a1c; box-shadow: inset 0 -6px 0 #ffd34d, 0 0 0 4px #ffd34d; animation: srPulse 1.1s ease-in-out infinite; }
+@keyframes srPulse { 50% { transform: translateY(-4px); } }
+
+
+:is(#stageRw, #attendBox) .sr-head { min-height: 44px; }
+/* 미션 창 세 구역 제목 통일: 왼쪽 정렬 제목 + 오른쪽 작은 글씨 (2026-10-22 사용자) */
+#pane-missions .mission-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px; margin-top: 4px; }
+#pane-missions .mission-head b { font-size: 30px; color: #fff; -webkit-text-stroke: 6px var(--c-wood-d); paint-order: stroke fill; white-space: nowrap; }
+#pane-missions #missionHint { font-size: 22px !important; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; text-align: right; }
+/* 웨이브 안내 'WAVE 2/5'는 알약 바탕 없이 글자만 (2026-10-22 사용자) */
+#banner.plain { background: none !important; box-shadow: none !important; border: 0 !important; -webkit-text-stroke-width: 8px !important; paint-order: stroke fill; }
+
+/* 출석 줄 = 스테이지 보상과 같은 트랙 모양, 선 아래 칸에 '1일·2일…' (2026-10-22 사용자). 7일차 카드만 넓게 */
+#attendBox { flex: none; display: flex; flex-direction: column; gap: 8px; }
+#attendBox .sr-node.big { width: 220px; }
+#attendBox .sr-node.big .sr-card { width: 216px; background: #ffe6f0; }
+#attendBox .sr-node.big .sr-card img { height: 84px; }
+#attendBox .sr-card b { font-size: 22px; text-align: center; line-height: 1.1; }
+#attendBox .sr-num { min-width: 60px; }
+
+/* 보상 칸 상태 (2026-10-22 사용자): 잠김 = 어두운 칸 + 보상 그림 어둡게 + 가운데 자물쇠(icon_lock) · 받음 = 체크(icon_check 그림이 오면 그걸, 없으면 ✓ 글자) */
+:is(#stageRw, #attendBox) .sr-node.locked .sr-card { background: #3d2b22; border-color: #2a1a10; box-shadow: inset 0 -6px 0 #2a1a10; }
+:is(#stageRw, #attendBox) .sr-node.locked .sr-card > * { filter: grayscale(.7) brightness(.3); opacity: .8; }
+:is(#stageRw, #attendBox) .sr-node.locked .sr-card::after { content: ''; position: absolute; left: 50%; top: 46%; width: 54px; height: 54px; transform: translate(-50%, -50%);
+  background: url("assets/img/icon_lock.webp") center / contain no-repeat; filter: drop-shadow(0 2px 0 #0008); }
+:is(#stageRw, #attendBox) .sr-node.locked .sr-num { background: #8a6a55; }
+:is(#stageRw, #attendBox) .sr-node.got .sr-card > * { opacity: .45; }
+:is(#stageRw, #attendBox) .sr-node.got .sr-card::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 72px; color: var(--c-buy);
+  -webkit-text-stroke: 7px #2a1a10; paint-order: stroke fill; }
+body.has-check :is(#stageRw, #attendBox) .sr-node.got .sr-card::after { content: ''; background: url("assets/img/icon_check.webp") center / 62% no-repeat; }
+/* 진행 선 테두리 = 번호 칸 테두리와 같은 3px 진갈색 (2026-10-22 사용자), 선 가운데를 번호 칸 가운데에 맞춤 */
+:is(#stageRw, #attendBox) .sr-line { bottom: 13px; height: 20px; background: var(--c-wood-d); border-radius: 10px; }
+:is(#stageRw, #attendBox) .sr-fill { top: 3px; bottom: 3px; left: 3px; border-radius: 7px; max-width: calc(100% - 6px); }
+/* 미션 창은 통째로 위아래로 넘김 — 안의 목록이 줄어들며 겹치지 않게 (보상 줄 추가 뒤 '모두 완료' 줄이 미션과 겹치던 문제) */
+#pane-missions > * { flex: none !important; }
+/* 전투 진행 안내(WAVE·STAGE·보스 등장·후퇴)는 메뉴 판·팝업 뒤로 (2026-10-22 사용자). 메뉴 안에서 받은 보상 안내 등은 그대로 위 */
+#banner.under { z-index: 4; }
+/* 스킨 칸 가격 알약: 글자·아이콘이 알약 밖으로 튀어나와서 알약을 키워 맞춤 (2026-10-22 사용자) */
+#skinList .skin .skin-tag { height: 38px; box-sizing: border-box; padding: 0 16px 0 10px; line-height: 1; gap: 4px; border: 3px solid #2a1a10; -webkit-text-stroke-width: 5px; paint-order: stroke fill; }
+#skinList .skin .skin-tag img.ic { height: 26px; width: auto; }
+/* 가격 알약 아이콘·숫자 세로 정렬: 숫자 글꼴은 글자가 위로 떠 있어서 숫자를 살짝 내리고 아이콘은 그만큼 올림 (2026-10-22 사용자) */
+#skinList .skin .skin-tag { padding-top: 4px; }
+#skinList .skin .skin-tag img.ic { position: relative; top: -4px; }
+
+/* ---------- 스킨 전용 카드 (14차 그림 ui_skin_card 560×760 기준, 화면 600×814, 2026-10-22) ---------- */
+#shell #modal .box.skincard { width: 600px; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+#shell #modal .box.skincard::before, #shell #modal .box.skincard::after { display: none !important; }
+#shell #modal .box.skincard #modalX { right: -6px; top: 18px; }
+#shell #modal .box.skincard #modalBtn { margin-top: 18px; }
+.skcard { position: relative; isolation: isolate; width: 600px; height: 814px; background: url("assets/img/ui_skin_card.webp") center / 100% 100% no-repeat; }
+.skcard .sk-win { position: absolute; left: 10.4%; right: 10.3%; top: 13.5%; bottom: 43.7%; border-radius: 22px; overflow: hidden; z-index: -1; background: #fff3dc; }
+.skcard .sk-back { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; }
+.skcard .sk-hero { position: absolute; left: 50%; bottom: 4%; height: 92%; width: auto; transform: translateX(-50%); filter: drop-shadow(0 6px 0 #3a241840); }
+.skcard .sk-name { position: absolute; left: 10%; right: 10%; top: 59.6%; height: 10.6%; display: grid; place-items: center; font-size: 40px !important;
+  color: #fff; -webkit-text-stroke: 8px #4b3021; paint-order: stroke fill; }
+.skcard .sk-info { position: absolute; left: 8%; right: 8%; top: 73%; bottom: 9%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.skcard .sk-info .skin-eff, .skcard .sk-info .skin-price { margin: 0 !important; }
+.skcard .sk-info p.sub { margin: 0; font-size: 22px !important; text-align: center; color: #fff; -webkit-text-stroke: 5px #4b3021; paint-order: stroke fill; }
+#shell #modal .box.skincard #modalBody { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.skcard .sk-info .skin-eff { font-size: 30px !important; }
+.skcard .sk-info .skin-price { font-size: 34px !important; }
+.skcard .sk-info .skin-price img.ic { height: 1.1em; }
+/* 받은 칸 체크 그림 크기·위치 = 자물쇠와 같게 (54px, 카드 위에서 46% 지점) (2026-10-22 사용자) */
+body.has-check :is(#stageRw, #attendBox) .sr-node.got .sr-card::after { inset: auto; left: 50%; top: 46%; width: 54px; height: 54px; transform: translate(-50%, -50%);
+  background: url("assets/img/icon_check.webp") center / contain no-repeat; }
+/* 스킨 장착 체크도 체크 그림(icon_check)으로 (2026-10-22 사용자) */
+body.has-check #skinList .skin.on::after, body.has-check html:not([lang="ko"]) #skinList .skin.on::after { width: 44px; height: 44px; right: 8px; top: 8px;
+  background: url("assets/img/icon_check.webp") center / contain no-repeat !important; }
+/* 보상 칸 체크는 보상 그림 가운데 높이로 (2026-10-22 사용자) */
+body.has-check :is(#stageRw, #attendBox) .sr-node.got .sr-card::after { top: 37%; }
+/* 받은 보상: 체크는 자물쇠 자리(위에서 46%)로 되돌림 + 카드 전체 어둡게 딤 (2026-10-22 사용자) */
+body.has-check :is(#stageRw, #attendBox) .sr-node.got .sr-card::after { top: 46%; z-index: 2; }
+:is(#stageRw, #attendBox) .sr-node.got .sr-card > * { opacity: 1; }
+:is(#stageRw, #attendBox) .sr-node.got .sr-card::before { content: ''; position: absolute; inset: 0; border-radius: 14px; background: #2a1a1080; z-index: 1; }
+/* 미션 창 맨 아래 '모두 완료' 줄의 아래 두께·그림자가 잘리지 않게 아래 여백 (2026-10-22 사용자) */
+#pane-missions { padding-bottom: 18px; box-sizing: border-box; }
+/* 보상 줄: 한 화면에 4칸 반 — 오른쪽에 다음 칸이 살짝 보여 '뒤에 더 있다'를 알림. 왼쪽은 여백 16px만, 넘기면 칸 왼쪽 끝에 딱 맞게 멈춤 (2026-10-22 사용자) */
+:is(#stageRw, #attendBox) .sr-track { gap: 28px; }
+:is(#stageRw, #attendBox) .sr-scroll { scroll-snap-type: x mandatory; scroll-padding-left: 16px; }
+:is(#stageRw, #attendBox) .sr-node { scroll-snap-align: start; }
+/* 미션 동그라미 빨간 점: 버튼 테두리에 걸치게 아래·왼쪽으로 (2026-10-22 사용자) */
+#shell #btnMission .dot { right: 2px !important; top: 4px !important; left: auto !important; }
+/* 스킨 카드 v2 (2026-10-22 사용자: 단순한 카드 그림 + 창 배경은 그림 대신 CSS 연베이지). 칸 위치는 v2 그림 기준 */
+.skcard .sk-win { left: 10%; right: 9.8%; top: 7.8%; bottom: 42.9%; border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 50%, #fffaea 0 26%, #fbefcc 27% 31%, transparent 32%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #f8d98a99 0deg 7deg, transparent 7deg 22.5deg),
+    radial-gradient(circle at 50% 50%, #fff6dc, #fbeac3); }
+.skcard .sk-name { top: 61.3%; height: 8%; }
+.skcard .sk-info { top: 72%; bottom: 7.5%; }
+.skcard .sk-hero { height: 86%; bottom: 6%; }
+/* 스킨 카드 시안 반영 (2026-10-23 사용자): 창 = 가운데에서 퍼지는 빛살, 왼쪽 위 노란 '보유 중' 꼬리표, 큰 이름, 효과는 황토 알약, 아래 작은 안내 */
+.skcard .sk-win { background:
+    radial-gradient(circle at 50% 50%, #fff8e6 0 18%, transparent 48%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #f7dfa6 0deg 9deg, #fdf0cf 9deg 22.5deg) !important; }
+.skcard .sk-tag { position: absolute; left: 22px; top: 18px; z-index: 1; padding: 4px 14px 6px; border-radius: 12px; background: #ffd34d; border: 4px solid #3a2418;
+  font-size: 30px !important; color: #fff; -webkit-text-stroke: 6px #3a2418; paint-order: stroke fill; line-height: 1.1; }
+.skcard .sk-name { font-size: 48px !important; -webkit-text-stroke-width: 9px; }
+.skcard .sk-info { justify-content: center; gap: 0; }
+.skcard .sk-eff { padding: 10px 40px 12px; border-radius: 12px; background: #7d6530; font-size: 32px !important; color: #fff8e6; -webkit-text-stroke: 0; margin-top: 18px; }
+.skcard .sk-note { position: absolute; left: 0; right: 0; bottom: 14px; margin: 0; text-align: center; font-size: 24px !important; color: #d3a24a; -webkit-text-stroke: 0; }
+.skcard .sk-info .skin-price { margin-top: 18px !important; }
+.skcard .sk-info { justify-content: flex-start !important; }
+.skcard .sk-eff { margin-top: 26px; font-size: 34px !important; }
+.skcard .sk-note { bottom: 16px; }
+.skcard .sk-tag { font-size: 32px !important; }

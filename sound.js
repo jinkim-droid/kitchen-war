@@ -10,7 +10,11 @@ const Sound = (() => {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       ctx = new AC();
-      master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
+      // 전체 볼륨 0.55 → 0.85 (2026-10-22 사용자: 폰에서 작게 들림). 소리가 겹쳐 깨지지 않게 끝에 리미터(압축기)를 둔다
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -6; limiter.knee.value = 6; limiter.ratio.value = 12; limiter.attack.value = 0.003; limiter.release.value = 0.15;
+      limiter.connect(ctx.destination);
+      master = ctx.createGain(); master.gain.value = 0.85; master.connect(limiter);
       sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? 0.9 : 0; sfxBus.connect(master);
       musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? 0.35 : 0; musicBus.connect(master);
       startMusic();

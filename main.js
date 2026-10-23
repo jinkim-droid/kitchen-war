@@ -37,27 +37,28 @@ const OFFLINE_RATE = 0.5;      // 접속 중 수입의 절반
 const BEAR = { fur: 0x8b5a3c, face: 0x9a6644, inner: 0xd9a27a, muzzle: 0xe8c49a };
 const SKINS = [
   { id: 'brown', name: t('skin.brown'), apron: 0xf7f7f2, neck: 'scarf', neckColor: 0xd93a3a, hat: 'chef', cost: 0, eff: {}, look: {} },
-  { id: 'pirate', name: t('skin.pirate'), apron: 0xf7f7f2, stripes: 0xd93a3a, neck: 'scarf', neckColor: 0x2a2a2a, hat: 'pirate', eyepatch: true, cost: 300, eff: { atk: 0.1 },
+  { id: 'pirate', name: t('skin.pirate'), apron: 0xf7f7f2, stripes: 0xd93a3a, neck: 'scarf', neckColor: 0x2a2a2a, hat: 'pirate', eyepatch: true, cost: 300, eff: { atk: 0.07 },
     look: { hat: 0x3a3a44, scarf: 0x2a2a2a, eyepatch: true, skull: true } },
-  { id: 'patissier', name: t('skin.patissier'), apron: 0xff9ec4, neck: 'bow', neckColor: 0x4aa3df, hat: 'beret', hatColor: 0xd94a6a, cost: 2500, eff: { gold: 0.2 },
+  { id: 'patissier', name: t('skin.patissier'), apron: 0xff9ec4, neck: 'bow', neckColor: 0x4aa3df, hat: 'beret', hatColor: 0xd94a6a, cost: 2500, eff: { gold: 0.15 },
     look: { hat: 0xff8fb8, coat: 0xffd6e6, scarf: 0x4aa3df } },
-  { id: 'santa', name: t('skin.santa'), coat: 0xd93a3a, beard: true, neck: 'none', hat: 'santa', cost: 15000, eff: { atk: 0.35 },
+  { id: 'santa', name: t('skin.santa'), coat: 0xd93a3a, beard: true, neck: 'none', hat: 'santa', cost: 15000, eff: { atk: 0.25 },
     look: { hat: 0xd93a3a, coat: 0xd93a3a, scarf: 0xffffff, pom: true } },
-  { id: 'ninja', name: t('skin.ninja'), gem: 300, cost: 0, eff: { spd: 0.1 },
+  { id: 'ninja', name: t('skin.ninja'), gem: 300, cost: 0, eff: { spd: 0.07 },
     look: { hat: 0x2a2f45, coat: 0x3a4060, scarf: 0xd93a3a } },
-  { id: 'hanbok', name: t('skin.hanbok'), gem: 400, cost: 0, eff: { gold: 0.4 }, look: {} },
-  { id: 'wizard', name: t('skin.wizard'), gem: 800, cost: 0, eff: { atk: 0.6 }, look: {} },
-  { id: 'sushi', name: t('skin.sushi'), cost: 600000, eff: { gold: 0.7 }, look: {} },
-  { id: 'pizza', name: t('skin.pizza'), cost: 6000000, eff: { atk: 0.8 }, look: {} },
-  { id: 'barista', name: t('skin.barista'), cost: 60000000, eff: { spd: 0.15 }, look: {} },
-  { id: 'space', name: t('skin.space'), req: 8, cost: 0, eff: { atk: 1.0 }, look: {} }, // 보스 러시 최고 8마리
-  { id: 'king', name: t('skin.king'), apron: 0x2a2a2a, apronTrim: 0xffd34d, cape: 0xb02a3a, neck: 'scarf', neckColor: 0xffd34d, hat: 'crown', cost: 120000, eff: { gold: 0.6 },
+  { id: 'hanbok', name: t('skin.hanbok'), gem: 400, cost: 0, eff: { gold: 0.3 }, look: {} },
+  { id: 'wizard', name: t('skin.wizard'), gem: 800, cost: 0, eff: { atk: 0.4 }, look: {} },
+  { id: 'sushi', name: t('skin.sushi'), cost: 600000, eff: { gold: 0.5 }, look: {} },
+  { id: 'pizza', name: t('skin.pizza'), cost: 6000000, eff: { atk: 0.55 }, look: {} },
+  { id: 'barista', name: t('skin.barista'), cost: 60000000, eff: { spd: 0.1 }, look: {} },
+  { id: 'space', name: t('skin.space'), req: 8, cost: 0, eff: { atk: 0.7 }, look: {} }, // 보스 러시 최고 8마리
+  { id: 'king', name: t('skin.king'), apron: 0x2a2a2a, apronTrim: 0xffd34d, cape: 0xb02a3a, neck: 'scarf', neckColor: 0xffd34d, hat: 'crown', cost: 120000, eff: { gold: 0.4 },
     look: { hat: 0xffd34d, coat: 0x34343c, scarf: 0xffd34d, gems: true } },
 ];
 // 예전 저장본(곰 종류 스킨) id를 의상 스킨으로 옮긴다
 const OLD_SKIN_IDS = { panda: 'pirate', polar: 'patissier', honey: 'santa' };
 const skinById = (id) => SKINS.find((k) => k.id === id) || SKINS[0];
 const SKIN_EFF = { atk: 'skin.eff_atk', spd: 'skin.eff_spd', gold: 'skin.eff_gold' }; // 문구 키 (strings.csv)
+// 스킨 보유 효과는 2026-10-22 사용자 결정으로 전부 약 70%로 낮춤 (D1: 첫날에 끝까지 가지 않게, 시뮬 50 도달 4:07 → 약 4:44)
 const skinEff = (t) => SKINS.reduce((a, k) => a + (S.skins.includes(k.id) ? k.eff[t] || 0 : 0), 0);
 const skinEffText = (k) => { const e = Object.keys(k.eff)[0]; return e ? t(SKIN_EFF[e], { n: Math.round(k.eff[e] * 100) }) : t('skin.eff_none'); };
 
@@ -74,7 +75,18 @@ const MATES = [
 ];
 const MATE_SPOTS = [{ x: -115, y: 25 }, { x: 115, y: 25 }, { x: 0, y: 110 }, { x: -205, y: 85 }, { x: 205, y: 85 }, { x: -115, y: 160 }, { x: 115, y: 160 }];
 const mateLv = (m) => S.mates[m.id] || 0;
-const mateRole = (m) => (BAL.mateRole || {})[m.id];
+// 역할 값 = 기본(BAL.mateRole) + 다이아 강화 단계 × BAL.roleUp (단계별로 한 번만 계산해 둠)
+const roleLv = (id) => (S.roleUp && S.roleUp[id]) || 0;
+const roleMax = () => BAL.roleUp.cost.length;
+const roleCache = {};
+function roleStat(id, lv = roleLv(id)) {
+  const base = (BAL.mateRole || {})[id];
+  if (!base) return undefined;
+  const key = id + lv;
+  if (!roleCache[key]) { const r = { ...base }, add = BAL.roleUp[id] || {}; for (const k in add) r[k] = base[k] + add[k] * lv; roleCache[key] = r; }
+  return roleCache[key];
+}
+const mateRole = (m) => roleStat(m.id);
 const mateDmg = (m, lv = mateLv(m)) => m.dmg * Math.pow(BAL.mateG, lv - 1) * atkMul() * baseMateMul() * (mateRole(m)?.dmg ?? 1); // 🏠 요리 학교 · 역할 동료는 약하게
 const mateCost = (m) => Math.ceil(m.cost * Math.pow(BAL.mateCostG, mateLv(m)));
 // 일일 미션 — 매일 3개, 자정에 바뀐다. 5~10분 플레이로 끝낼 수 있는 양
@@ -110,7 +122,7 @@ const permMax = (k) => !!BAL.perm[k].max && permLv(k) >= BAL.perm[k].max;
 const atkMul = () => (1 + BAL.atkStep * S.atkLv) * (1 + skinEff('atk')) * permMul('atk') * baseAtkMul(); // baseAtkMul: 🏠 조리대 (base.js)
 const spdMul = () => Math.min(BAL.spdMax, 1 + BAL.spdStep * S.spdLv);                   // 업그레이드 카드 값 (상한 BAL.spdMax)
 let mateBuffT = 0; // 펭귄 지원: 남은 공격 속도 버프 시간
-const buffSpd = () => (mateBuffT > 0 ? BAL.mateRole.penguin.spd : 1);
+const buffSpd = () => (mateBuffT > 0 ? roleStat('penguin').spd : 1);
 const fireInterval = () => BAL.fireBase / (spdMul() * (1 + skinEff('spd')) * permMul('spd') * buffSpd());
 const costAtk = () => Math.ceil(BAL.atkCost * Math.pow(BAL.atkCostG, S.atkLv));
 const costSpd = () => Math.ceil(BAL.spdCost * Math.pow(BAL.spdCostG, S.spdLv));
@@ -133,9 +145,9 @@ const VEGGIES = ['tomato', 'carrot', 'broccoli'];
 // ---------- 상태 ----------
 function freshState() {
   return { gold: BAL.startGold, stage: 1, atkLv: 0, spdLv: 0, buys: 0, grid: [1, ...Array(SLOTS - 1).fill(0)],
-    skin: 'brown', skins: ['brown'], mates: {}, introSeen: false, lastSeen: Date.now(),
+    skin: 'brown', skins: ['brown'], mates: {}, roleUp: {}, introSeen: false, lastSeen: Date.now(),
     stars: 0, prestiges: 0, perm: { atk: 0, spd: 0, gold: 0 }, chal: {}, sound: true, daily: null, goldLv: 0,
-    gems: 0, wallFirst: {}, shop: { slots: 0, autoMerge: false, offline12: false }, boostUntil: 0, rush: null, rushBest: 0, horde: null, hordeBest: 0,
+    gems: 0, wallFirst: {}, stageRw: {}, attend: { n: 0, last: '' }, shop: { slots: 0, autoMerge: false, offline12: false }, boostUntil: 0, rush: null, rushBest: 0, horde: null, hordeBest: 0,
     settings: { sfx: true, music: true, vibrate: true, dmgNum: true, shake: true, saver: false } };
 }
 function load() {
@@ -211,7 +223,7 @@ const ART = {};
 const AVAIL = new Set(); // manifest에 있는 그림 이름 (HTML에서만 쓰는 UI·아이콘은 여기서 있는지만 확인)
 // 한국어 글자가 그려진 그림(꼬리표·도장·로고 등)은 한국어 화면에서만 쓰고, 다른 언어에서는 글자로 대신한다
 // 영어 화면은 같은 이름 + '_en' 그림(7차, 2026-10-21)을 쓰고, 없으면 글자로 대신한다
-const KO_TEXT_ART = new Set(['ui_tag_best', 'ui_tag_new', 'ui_stamp_done', 'ui_equipped', 'ui_logo']);
+const KO_TEXT_ART = new Set(['ui_logo']); // 꼬리표·도장·배지는 CSS 글자로 바꿈 (2026-10-22)
 const isTextArt = (k) => KO_TEXT_ART.has(k) || k.startsWith('ui_chapter_');
 const textArt = (k) => (LANG !== 'ko' && isTextArt(k) ? k + '_' + LANG : k); // 언어에 맞는 그림 이름
 const hasTextArt = (k) => AVAIL.has(textArt(k));
@@ -222,6 +234,7 @@ async function loadArt() {
   let keys = ART_KEYS;
   try { keys = await (await fetch(IMG + 'manifest.json', { cache: 'no-store' })).json(); } catch (e) { /* 목록이 없으면 기본 목록 */ }
   keys.forEach((k) => AVAIL.add(k));
+  document.body.classList.toggle('has-check', AVAIL.has('icon_check')); // 체크 그림(13차)이 오면 ✓ 글자 대신 그림
   await Promise.all(keys.filter((k) => PIXI_ART.test(k)).map(async (k) => {
     try { ART[k] = await PIXI.Assets.load(IMG + k + '.webp'); } catch (e) { console.warn('이미지 없음 — 코드 그림 사용:', k); }
   }));
@@ -866,8 +879,9 @@ function updateCoins(dt) {
 }
 
 let bannerT = 0;
-function banner(html, t = 1.4) {
+function banner(html, t = 1.4, cls = '') {
   $('banner').innerHTML = html;
+  $('banner').className = cls; // 'plain' = 알약 바탕 없이 글자만 (웨이브 안내)
   $('banner').classList.add('show');
   bannerT = t;
 }
@@ -921,7 +935,7 @@ function buildMenus() {
       <span class="big"><img src="${IMG}mate_${m.id}.webp" alt="${m.icon}"></span>
       <div class="info"><b>${m.name}<small class="lvtag"></small></b><span class="desc">${m.desc}</span><span class="stat"></span></div>
       <button class="act"></button>
-    </div>`).join('');
+    </div>${BAL.mateRole?.[m.id] ? `<div class="role-up hidden" data-role="${m.id}"><div class="ru-ttl"></div><div class="ru-eff"></div><button class="ru-btn"></button></div>` : ''}`).join('');
   // 스킨 (총고식 4열 격자): 칸에는 그림만, 잠긴 건 어둡게 + 자물쇠, 장착 중은 노랑 칸 + 체크. 누르면 구매·장착 창
   $('skinList').innerHTML = SKINS.map((k) => {
     const hex = (n) => '#' + n.toString(16).padStart(6, '0');
@@ -936,6 +950,18 @@ function buildMenus() {
   }).join('');
   document.querySelectorAll('#skinList .thumb[data-art]').forEach(alignThumb);
   $('mateList').onclick = (e) => {
+    // 역할 강화 (다이아)
+    const ru = e.target.closest('.ru-btn') && e.target.closest('.role-up');
+    if (ru) {
+      const id = ru.dataset.role, lv = roleLv(id), c = BAL.roleUp.cost[lv];
+      if (lv >= roleMax() || S.gems < c || !mateLv(MATES.find((x) => x.id === id))) return;
+      S.gems -= c; S.roleUp = S.roleUp || {}; S.roleUp[id] = lv + 1;
+      const m = MATES.find((x) => x.id === id);
+      Sound.play('buy'); banner(t('roleup.done', { name: m.name, role: t('role.' + roleStat(id).role), n: lv + 1 }), 1.4);
+      ru.classList.remove('pop'); void ru.offsetWidth; ru.classList.add('pop');
+      syncMates(); updateUI(); save();
+      return;
+    }
     const row = e.target.closest('.act') && e.target.closest('.row');
     if (!row) return;
     const m = MATES.find((x) => x.id === row.dataset.mate), c = mateCost(m);
@@ -976,8 +1002,14 @@ function openSkin(k) {
   const own = S.skins.includes(k.id), on = S.skin === k.id, can = skinCanGet(k);
   const price = k.req ? t('skin.req_rush', { n: k.req, best: S.rushBest || 0 }) : k.gem ? `${GEM} ${k.gem}` : `${COIN} ${fmt(k.cost)}`;
   const btn = on ? t('skin.equipped') : own ? t('skin.equip') : k.req ? (can ? t('skin.claim') : t('skin.locked')) : can ? t('skin.buy') : t('skin.poor');
-  showModal(`<div class="title small">${k.name}</div>
-    <img class="skin-big" src="${AVAIL.has(SKIN_ART[k.id]) ? IMG + SKIN_ART[k.id] + '.webp' : skinThumb[k.id] || IMG + 'hero_chef.webp'}" alt=""><!-- 원본 그림(작은 썸네일 150px 대신) -->
+  const art = AVAIL.has(SKIN_ART[k.id]) ? IMG + SKIN_ART[k.id] + '.webp' : skinThumb[k.id] || IMG + 'hero_chef.webp';
+  const card = AVAIL.has('ui_skin_card'); // 14차 스킨 전용 카드 그림(2026-10-22): 위 창에 캐릭터, 가운데 이름판, 아래 효과·가격
+  showModal(card ? `<div class="skcard">
+      <div class="sk-win"><img class="sk-hero" src="${art}" alt="">${own ? `<span class="sk-tag">${on ? t('skin.equipped') : t('skin.owned_tag')}</span>` : ''}</div><!-- 창 배경은 CSS 빛살 (카드 배경 그림은 안 씀) · 왼쪽 위 '보유 중/장착 중' 꼬리표 (2026-10-23 사용자 시안) -->
+      <div class="sk-name">${k.name}</div>
+      <div class="sk-info"><div class="sk-eff">${skinEffText(k)}</div>${own ? `<p class="sk-note">${t('skin.card_note')}</p>` : `<div class="skin-price">${price}</div>`}</div>
+    </div>` : `<div class="title small">${k.name}</div>
+    <img class="skin-big" src="${art}" alt=""><!-- 원본 그림(작은 썸네일 150px 대신) -->
     <div class="skin-eff">${skinEffText(k)}</div>
     ${own ? `<p class="sub">${t('skin.owned_note')}</p>` : `<div class="skin-price">${price}</div>`}`,
     btn, () => {
@@ -990,7 +1022,7 @@ function openSkin(k) {
       S.skin = k.id;
       drawHero(hero, k);
       renderGrid(); updateUI(); save();
-    }, null, { xClose: true });
+    }, null, { xClose: true, variant: card ? 'skincard' : '' });
   $('modalBtn').disabled = on || (!own && !can);
 }
 
@@ -1009,6 +1041,22 @@ function updateMenus() {
     setHTML(b, `${lv ? t('mates.upgrade_to', { lvl: `Lv ${lv + 1}` + (LANG === 'ko' ? roKo(lv + 1) : '') }) : t('mates.hire')}<span class="cost">${COIN} ${fmt(c)}</span>`); // 'Lv 9로 강화', 오르는 공격력은 공격력 알약 안 초록 글씨 (2026-10-21 사용자 A안)
     b.disabled = S.gold < c;
     row.classList.toggle('locked', !lv);
+    // 역할 강화 띠: 고용한 뒤에만 보임 (2026-10-22 사용자)
+    const ru = row.nextElementSibling;
+    if (ru && ru.classList.contains('role-up')) {
+      ru.classList.toggle('hidden', !lv);
+      row.classList.toggle('has-ru', !!lv);
+      if (lv) {
+        const id = m.id, rlv = roleLv(id), max = rlv >= roleMax(), cur = roleStat(id, rlv), nxt = roleStat(id, Math.min(rlv + 1, roleMax()));
+        const n1 = (v) => +v.toFixed(2), vals = cur.role === 'tank' ? { a: n1(cur.hp), b: n1(nxt.hp), c: cur.taunt, d: nxt.taunt }
+          : cur.role === 'heal' ? { a: Math.round(cur.pct * 100), b: Math.round(nxt.pct * 100) } : { a: n1(cur.spd), b: n1(nxt.spd), c: n1(cur.dur), d: n1(nxt.dur) };
+        setHTML(ru.querySelector('.ru-ttl'), `${t('roleup.title', { role: t('role.' + cur.role) })}<span class="pips">${Array.from({ length: roleMax() }, (_, i) => `<i class="${i < rlv ? 'on' : ''}"></i>`).join('')}</span>`);
+        setHTML(ru.querySelector('.ru-eff'), t(`roleup.${cur.role}${max ? '_max' : ''}`, vals));
+        const rb = ru.querySelector('.ru-btn'), rc = BAL.roleUp.cost[rlv];
+        setHTML(rb, max ? 'MAX' : `${t('roleup.btn', { lvl: `Lv ${rlv + 1}` + (LANG === 'ko' ? roKo(rlv + 1) : '') })}<span class="cost">${GEM} ${rc}</span>`);
+        rb.disabled = max || S.gems < rc;
+      }
+    }
     if (S.gold >= c) mateReady = true; // 고용·강화 둘 다 살 수 있으면 동료 메뉴에 빨간 점 (2026-10-21)
   });
   // 순서: 장착 중 → 가진 것 → 잠긴 것 (각각은 SKINS 순서). 바뀔 때만 다시 줄 세운다 (2026-10-21)
@@ -1312,7 +1360,7 @@ function offerOffline(away) {
     if (moved) { clearField(); resetWave(); syncChapter(false); }
     if (plan.gold > 0) { popText(P.x, P.y - 130, '+' + fmt(plan.gold), 'gold big'); coinBurst(FW / 2, FH * 0.5, 30); }
     renderGrid(); updateUI(); save();
-    banner(`STAGE ${S.stage}`);
+    banner(`STAGE ${S.stage}`, 1.4, 'under');
   };
   // 다른 창이 떠 있으면 창을 덮지 않고 바로 받는다
   if (!$('modal').classList.contains('hidden')) { take(); return true; }
@@ -1448,9 +1496,118 @@ function updateMissions() {
   // 자정까지 남은 시간
   const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const left = Math.max(0, (mid - now) / 1000);
-  setText($('missionHint'), t('mission.hint', { h: Math.floor(left / 3600), m: Math.floor((left % 3600) / 60) }));
+  setText($('missionHint'), t('mission.reset', { h: Math.floor(left / 3600), m: Math.floor((left % 3600) / 60) }));
+  if (updateStageRw()) ready = true;
+  updateAttend();
+  if (attendReady()) ready = true;
   return ready;
 }
+
+// ---------- 스테이지 보상 (2026-10-22 사용자: 미션 창 위 시즌패스 모양 트랙) ----------
+// 챕터마다 3·6·10번째 스테이지를 처음 깨면 한 번: 3 = 골드 묶음(그 스테이지 적 골드 × 300), 6 = 다이아 20, 10(대왕) = 다이아 50. 환생해도 다시 안 줌
+const STAGE_RW = [];
+for (let c = 0; c < 5; c++) for (const k of [3, 6, 10]) STAGE_RW.push({ st: c * 10 + k, gold: k === 3, gems: k === 6 ? 20 : k === 10 ? 50 : 0 });
+const stageRwGold = (st) => enemyGold(st) * 300;
+const stageRwCleared = (st) => (S.bestStage || S.stage) > st;
+const stageRwReady = (r) => stageRwCleared(r.st) && !(S.stageRw || {})[r.st];
+let stageRwSig = '';
+function updateStageRw() {
+  const track = document.querySelector('#stageRw .sr-track');
+  if (!track.querySelector('.sr-node')) {
+    track.insertAdjacentHTML('beforeend', STAGE_RW.map((r) => `<div class="sr-node" data-st="${r.st}"><button class="sr-card">${r.gold ? `<img src="${IMG}icon_coin.webp" alt=""><b>${fmt(stageRwGold(r.st))}</b>` : `<img src="${IMG}icon_gem.webp" alt=""><b>${r.gems}</b>`}</button><i class="sr-num">${r.st}</i></div>`).join(''));
+    track.onclick = (e) => { const n = e.target.closest('.sr-node'); if (n) claimStageRw(+n.dataset.st); };
+  }
+  const sig = STAGE_RW.map((r) => (stageRwReady(r) ? 'r' : (S.stageRw || {})[r.st] ? 'g' : stageRwCleared(r.st) ? 'c' : 'l')).join('');
+  if (sig !== stageRwSig) {
+    stageRwSig = track.offsetParent ? sig : ''; // 창이 닫혀 있으면 칸 위치를 못 재므로 다음에 다시 그림 (진행 선이 0으로 남던 문제)
+    let lastDone = -1;
+    track.querySelectorAll('.sr-node').forEach((n, i) => {
+      const r = STAGE_RW[i], got = !!(S.stageRw || {})[r.st];
+      n.classList.toggle('ready', stageRwReady(r)); n.classList.toggle('got', got); n.classList.toggle('locked', !stageRwCleared(r.st));
+      if (stageRwCleared(r.st)) lastDone = i;
+    });
+    // 진행 선: 깬 마지막 칸까지 + 다음 칸 쪽으로 진행도만큼
+    const nodes = track.querySelectorAll('.sr-node'), best = S.bestStage || S.stage;
+    const nx = nodes[lastDone + 1], prevSt = lastDone >= 0 ? STAGE_RW[lastDone].st : 0;
+    const part = nx ? Math.max(0, Math.min(1, (best - 1 - prevSt) / (STAGE_RW[lastDone + 1].st - prevSt))) : 0;
+    const x0 = lastDone >= 0 ? nodes[lastDone].offsetLeft + nodes[lastDone].offsetWidth / 2 : 0;
+    const x1 = nx ? nx.offsetLeft + nx.offsetWidth / 2 : x0;
+    track.querySelector('.sr-fill').style.width = nx ? `${x0 + (x1 - x0) * part}px` : '100%'; // 마지막 칸까지 깼으면 선 끝까지 (2026-10-22 사용자)
+    // 받을 칸(없으면 다음 칸)이 보이게 스크롤
+    const focus = [...nodes].find((n) => n.classList.contains('ready')) || nx || nodes[nodes.length - 1];
+    const sc = track.parentNode, prev = focus && focus.previousElementSibling; if (focus) sc.scrollLeft = Math.max(0, (prev && prev.classList.contains('sr-node') ? prev : focus).offsetLeft - 16); // 받을 칸 앞 칸을 왼쪽 끝에
+  }
+  return STAGE_RW.some(stageRwReady);
+}
+function claimStageRw(st) {
+  const r = STAGE_RW.find((x) => x.st === st);
+  if (!r || !stageRwReady(r)) return;
+  S.stageRw = S.stageRw || {}; S.stageRw[st] = true;
+  if (r.gold) { S.gold += stageRwGold(st); coinBurst(FW / 2, FH * 0.45, 20); }
+  else { S.gems += r.gems; gemBurst(FW / 2, FH * 0.45, 10); }
+  banner(t('srw.got', { n: st }), 1.4); Sound.play('claim');
+  stageRwSig = ''; updateUI(); save();
+}
+
+// ---------- 7일 출석 (2026-10-22 사용자: 단순 출석판, 7일 다 받으면 1일차부터 다시) ----------
+const ATTEND = [{ gems: 30 }, { gems: 50 }, { boost: 30 }, { gold: true }, { gems: 80 }, { gems: 100 }, { skin: 'hanbok', alt: 400 }];
+const attendReady = () => (S.attend || {}).last !== todayKey();
+const attendGold = () => Math.max(200, Math.floor((offlineGoldPerSec() / OFFLINE_RATE) * 600)); // 지금 수입 10분치
+const attendIcon = (a) => (a.skin && !S.skins.includes(a.skin) ? `${SKIN_ART[a.skin] && AVAIL.has(SKIN_ART[a.skin]) ? SKIN_ART[a.skin] : 'icon_gem'}` : a.boost ? 'icon_boost' : a.gold ? 'icon_coin' : 'icon_gem');
+const attendLabel = (a) => (a.skin ? (S.skins.includes(a.skin) ? `${a.alt}` : t('attend.skin', { name: skinById(a.skin).name })) : a.boost ? t('attend.boost', { n: a.boost }) : a.gold ? t('attend.gold') : `${a.gems}`);
+function claimAttend() {
+  if (!attendReady()) return;
+  const idx = S.attend.n % 7, a = ATTEND[idx];
+  S.attend.n++; S.attend.last = todayKey();
+  if (a.gems) { S.gems += a.gems; gemBurst(FW / 2, FH * 0.5, 10); }
+  if (a.boost) S.boostUntil = Math.max(Date.now(), S.boostUntil) + a.boost * 60 * 1000;
+  if (a.gold) { S.gold += attendGold(); coinBurst(FW / 2, FH * 0.5, 20); }
+  if (a.skin) { if (S.skins.includes(a.skin)) S.gems += a.alt; else S.skins.push(a.skin); gemBurst(FW / 2, FH * 0.5, 12); }
+  banner(t('attend.got', { n: idx + 1 }), 1.6); Sound.play('prestige');
+  renderGrid(); updateUI(); save();
+}
+// 보상 줄 가로 넘기기: 폰은 손가락으로 원래 됨. PC 마우스는 끌기·휠로도 넘기게 (2026-10-23 사용자)
+document.querySelectorAll('#pane-missions .sr-scroll').forEach((sc) => {
+  let down = null, moved = false;
+  sc.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; down = { x: e.clientX, left: sc.scrollLeft }; moved = false; sc.style.scrollSnapType = 'none'; sc.style.scrollBehavior = 'auto'; });
+  window.addEventListener('pointermove', (e) => { if (!down) return; const dx = e.clientX - down.x; if (Math.abs(dx) > 5) moved = true; sc.scrollLeft = down.left - dx; });
+  window.addEventListener('pointerup', () => { if (!down) return; down = null; sc.style.scrollSnapType = ''; sc.style.scrollBehavior = ''; });
+  sc.addEventListener('click', (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true); // 끌고 난 뒤엔 칸 누름으로 치지 않음
+  sc.addEventListener('wheel', (e) => { // 세로 휠은 줄 끝에 닿기 전까지만 가로로 (끝이면 창이 위아래로 넘어감)
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    const max = sc.scrollWidth - sc.clientWidth, canGo = e.deltaY > 0 ? sc.scrollLeft < max - 1 : sc.scrollLeft > 1;
+    if (canGo) { sc.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
+});
+// 미션 창 안 7칸 줄: 받은 날 ✓ · 오늘(받을 수 있으면 노란 빛, 누르면 받음) · 내일 점선 ('내일 오면' 예고는 사용자 요청으로 뺌)
+let attendSig = '';
+function updateAttend() {
+  if (!S.attend) S.attend = { n: 0, last: '' };
+  const ready = attendReady(), idx = S.attend.n % 7, today = ready ? idx : (idx + 6) % 7;
+  const sig = `${ready}${S.attend.n}${S.skins.includes('hanbok')}${LANG}`;
+  if (sig === attendSig) return;
+  const track = document.querySelector('#attendBox .sr-track');
+  attendSig = track.offsetParent ? sig : ''; // 창이 닫혀 있으면 위치를 못 재므로 열렸을 때 다시
+  const st = (i) => ((ready ? i < idx : i <= today) ? 'got' : ready && i === idx ? 'ready' : i === (ready ? idx + 1 : today + 1) % 7 ? 'next locked' : 'locked');
+  track.querySelectorAll('.sr-node').forEach((n) => n.remove());
+  track.insertAdjacentHTML('beforeend', ATTEND.map((a, i) => `<div class="sr-node ${st(i)}${i === 6 ? ' big' : ''}" data-i="${i}"><button class="sr-card"><img src="${IMG}${attendIcon(a)}.webp" alt=""><b>${attendLabel(a)}</b></button><i class="sr-num">${t('attend.day', { n: i + 1 })}</i></div>`).join(''));
+  // 진행 선: 오늘 받을 수 있으면 오늘 칸까지, 오늘 받았으면 다음 날 칸까지 반쯤 (2026-10-22 사용자)
+  const nodes = track.querySelectorAll('.sr-node'), mid = (n) => n.offsetLeft + n.offsetWidth / 2;
+  const un = nodes[ready ? idx : today], nx = !ready && today < 6 ? nodes[today + 1] : null;
+  track.querySelector('.sr-fill').style.width = !un ? '0' : nx ? `${(mid(un) + mid(nx)) / 2}px` : !ready && today === 6 ? '100%' : `${mid(un)}px`; // 7일차까지 받았으면 끝까지
+  // 오늘 칸(이미 받았으면 다음 칸)이 가운데 오게 넘김
+  const focus = track.querySelector('.ready') || track.querySelector('.next'), sc = track.parentNode, prev = focus && focus.previousElementSibling;
+  if (focus) sc.scrollLeft = Math.max(0, (prev && prev.classList.contains('sr-node') ? prev : focus).offsetLeft - 16); // 오늘 칸 앞 칸을 왼쪽 끝에
+}
+document.querySelector('#attendBox .sr-track').onclick = (e) => { const d = e.target.closest('.sr-node.ready'); if (d) { claimAttend(); attendSig = ''; updateAttend(); } };
+// 하루 첫 접속이면 미션 창을 자동으로 열어 출석 칸을 보여 줌 — 첫 실행은 영상·튜토리얼이 끝난 뒤, 다른 창·도전 모드 중이 아닐 때
+let attendShown = '';
+setInterval(() => {
+  if (!S || !attendReady() || attendShown === todayKey() || paused || !S.introSeen) return;
+  if (typeof TUT_DONE !== 'undefined' && (S.tut || 0) < TUT_DONE) return;
+  if (!$('modal').classList.contains('hidden') || !$('sheet').classList.contains('closed') || rush || chal || (typeof baseOpen !== 'undefined' && baseOpen)) return;
+  attendShown = todayKey(); openSheet('missions'); $('pane-missions').scrollTop = 0;
+}, 1500);
 
 // ---------- 환생 (총고식) — 받은 셰프 별로 영구 강화 3종을 직접 산다 ----------
 function buildPerm() {
@@ -1662,11 +1819,11 @@ function endRush(reason) {
   save();
   showModal(`<div class="title small">${t('rush.end_title')}</div>
     <p>${reason}<br>${t('rush.end_kills', { n: r.kills })}</p>
-    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}${textArt('ui_tag_best')}.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
+    ${best ? `<div class="tag-best">${t('end.best')}</div>` : ''}
     <div class="reward">${GEM} ${r.gems}</div>
     <p class="sub">${t('end.tries_left', { n: RUSH_TRIES - rushToday().used, total: RUSH_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
-      banner(`STAGE ${S.stage}`);
+      banner(`STAGE ${S.stage}`, 1.4, 'under');
     });
 }
 $('btnRush').onclick = startRush;
@@ -1727,7 +1884,7 @@ function endChal(ok, reason) {
     <p>${ok ? t('chal.win_desc', { c: c.ci + 1, n: CHAL_N }) : `${reason}<br>${t('chal.lose_desc', { n: c.kills, total: CHAL_N })}`}</p>
     ${first ? `<div class="reward">${GEM} ${CHAL_GEMS}</div>` : `<p class="sub">${t('chal.retry')}</p>`}`, t('common.ok'), () => {
       Sound.play('clear');
-      banner(`STAGE ${S.stage}`);
+      banner(`STAGE ${S.stage}`, 1.4, 'under');
     }, null, { peek: chalArt(CHAPTERS[c.ci], true) });
 }
 
@@ -1774,11 +1931,11 @@ function endHorde(reason) {
   save();
   showModal(`<div class="title small">${t('horde.end_title')}</div>
     <p>${reason}<br>${t('horde.end_kills', { n: c.kills })}</p>
-    ${best ? (hasTextArt('ui_tag_best') ? `<img class="tag-best" src="${IMG}${textArt('ui_tag_best')}.webp" alt="${t('end.best')}">` : `<p>${t('end.best')}</p>`) : ''}
+    ${best ? `<div class="tag-best">${t('end.best')}</div>` : ''}
     <div class="reward">${COIN} ${fmt(c.gold)}</div>
     <p class="sub">${t('end.tries_left', { n: HORDE_TRIES - hordeToday().used, total: HORDE_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
-      banner(`STAGE ${S.stage}`);
+      banner(`STAGE ${S.stage}`, 1.4, 'under');
     });
 }
 $('btnHorde').onclick = startHorde;
@@ -2050,13 +2207,13 @@ function startWave() {
     $('warn').classList.toggle('wall', isWallStage(S.stage));
     $('warn').classList.add('on');
     Sound.play('warn'); buzz(60);
-  } else banner(`WAVE ${wave.idx + 1}/${wave.total}`, 1.0);
+  } else banner(`WAVE ${wave.idx + 1}/${wave.total}`, 1.0, 'plain under'); // 2026-10-22 사용자: 웨이브 안내는 알약 바탕 없이
 }
 function spawnStageBoss() {
   $('warn').classList.remove('on');
   const wall = isWallStage(S.stage);
-  if (wall) banner(t('battle.king', { boss: wallBossName(S.stage), hp: WALL_HP, sec: WALL_TIME }), 2);
-  else banner(t('battle.boss', { sec: BOSS_TIME }), 1.6);
+  if (wall) banner(t('battle.king', { boss: wallBossName(S.stage), hp: WALL_HP, sec: WALL_TIME }), 2, 'under');
+  else banner(t('battle.boss', { sec: BOSS_TIME }), 1.6, 'under');
   wave.bossSpawned = true;
   spawnEnemy(true, wall);
   bossT = (wall ? WALL_TIME : BOSS_TIME) + BOSS_ENTER_T; // 등장부터 줄어든다 — 걸어 들어오는 시간만큼 더 준다 (2026-10-22 사용자)
@@ -2153,7 +2310,7 @@ function retreat() {
   syncChapter(false);
   heroHp = heroMax;
   for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
-  banner(`${t('battle.retreat')}<small>${retreatHint()}</small>`, 2.6);
+  banner(`${t('battle.retreat')}<small>${retreatHint()}</small>`, 2.6, 'under');
   Sound.play('retreat');
   if (wallFailNow && wallFail.n >= WALL_HINT_FAILS) setTimeout(() => wallPrestigeHint(failSt), 1200); // 후퇴 배너를 먼저 보여 준 뒤
 }
@@ -2176,7 +2333,7 @@ function stageClear() {
   S.bestStage = Math.max(S.bestStage || 0, S.stage); // 🏠 주방 레벨 기준 (환생해도 유지)
   resetWave();
   syncChapter();
-  banner(isWallStage(S.stage) ? `${t('battle.stage', { n: S.stage })}<small>${t('battle.king_next', { boss: wallBossName(S.stage) })}</small>` : t('battle.stage', { n: S.stage }), isWallStage(S.stage) ? 2 : 1.4);
+  banner(isWallStage(S.stage) ? `${t('battle.stage', { n: S.stage })}<small>${t('battle.king_next', { boss: wallBossName(S.stage) })}</small>` : t('battle.stage', { n: S.stage }), isWallStage(S.stage) ? 2 : 1.4, 'under');
   Sound.play('clear');
   mission('stage');
   save();
@@ -2353,7 +2510,7 @@ function hurtHero(dmg) {
 // 채소는 가장 가까운 셰프나 (기절하지 않은) 동료에게 달려든다
 function pickTarget(e) {
   // 방어 동료(판다): 가까이 있는 적은 판다부터 노린다
-  const tank = mateSprites.panda, tr = BAL.mateRole?.panda?.taunt || 0;
+  const tank = mateSprites.panda, tr = roleStat('panda')?.taunt || 0;
   if (tank && tank.stun <= 0 && (tank.x - e.x) ** 2 + (tank.y - e.y) ** 2 < tr * tr) return { x: tank.x, y: tank.y, ms: tank };
   let best = { x: P.x, y: P.y, hero: true }, bd = (P.x - e.x) ** 2 + (P.y - e.y) ** 2;
   for (const id in mateSprites) {
@@ -2661,8 +2818,7 @@ function update(dt) {
         const wasBoss = e.boss;
         if (wasBoss) { Sound.play('coin'); shake(e.wall ? 16 : 10); buzz(40); mission('boss'); }
         if (wasBoss && e.wall && !rush && !S.wallFirst[S.stage]) {
-          S.wallFirst[S.stage] = true; S.gems += 10;
-          popText(e.x, e.y - 60, t('battle.king_first', { gem: GEM }), 'crit'); gemBurst(e.x - cam.x, e.y - cam.y, 8);
+          S.wallFirst[S.stage] = true; // 대왕 첫 처치 다이아는 스테이지 보상(10번째 칸)으로 옮김 (2026-10-22)
         }
         else { Sound.play('kill'); mission('kill'); }
         removeEnemy(e);
@@ -2741,13 +2897,13 @@ function update(dt) {
   renderGrid(); updateUI();
 
   // 처음이면 한 줄 설정, 아니면 자리 비운 동안의 보상
-  if (!S.introSeen) tapToStart(() => playPrologue(() => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); })); // 처음이면 '눌러서 시작'(소리 허용) → 오프닝 영상 → 바로 게임 시작 (2026-10-22 사용자: 타이틀 팝업 없이)
-  else if (!offerOffline(awaySec)) banner(`STAGE ${S.stage}`);
+  if (!S.introSeen) tapToStart(() => playPrologue(() => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`, 1.4, 'under'); })); // 처음이면 '눌러서 시작'(소리 허용) → 오프닝 영상 → 바로 게임 시작 (2026-10-22 사용자: 타이틀 팝업 없이)
+  else if (!offerOffline(awaySec)) banner(`STAGE ${S.stage}`, 1.4, 'under');
   function showIntro() {
     showModal(`${hasTextArt('ui_logo') ? `<img class="logo" src="${IMG}${textArt('ui_logo')}.webp" alt="${t('game.title')}">` : `<div class="logo-text">${t('game.title')}</div>`}
       <img class="titleart" src="${IMG}ui_title_art.webp" alt="">
       <p>${t('intro.line1')}</p>
-      <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`); }, null, { x: false });
+      <p class="sub">${t('intro.line2')}</p>`, t('intro.start'), () => { S.introSeen = true; save(); banner(`STAGE ${S.stage}`, 1.4, 'under'); }, null, { x: false });
   }
 
   const cover = $('bootCover'); if (cover) cover.remove();

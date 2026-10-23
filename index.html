@@ -89,7 +89,17 @@
         <div id="mateList"></div>
       </div>
       <div class="pane" id="pane-missions">
-        <div class="hint" id="missionHint"></div>
+        <!-- 스테이지 보상 트랙 (2026-10-22 사용자: 시즌패스 모양, 챕터마다 3·6·10 처음 깰 때) + 출석 보상 버튼 -->
+        <!-- 7일 출석 (2026-10-22 사용자: 팝업 대신 미션 창 안에). 오늘 칸을 누르면 받음 -->
+        <div id="attendBox">
+          <div class="sr-head"><b data-i18n="attend.title">7일 출석 보상</b></div>
+          <div class="sr-scroll"><div class="sr-track at-track"><i class="sr-line"><i class="sr-fill"></i></i></div></div><!-- 스테이지 보상처럼 옆으로 넘김 (2026-10-22 사용자) -->
+        </div>
+        <div id="stageRw">
+          <div class="sr-head"><b data-i18n="srw.title">스테이지 보상</b></div>
+          <div class="sr-scroll"><div class="sr-track"><i class="sr-line"><i class="sr-fill"></i></i></div></div>
+        </div>
+        <div class="sr-head mission-head"><b data-i18n="mission.title">오늘의 미션</b><small id="missionHint"></small></div><!-- 세 구역 제목 모두 왼쪽 정렬, 새 미션까지 남은 시간은 오른쪽 (2026-10-22 사용자) -->
         <div id="missionList"></div>
         <div class="row bonus" id="missionBonus">
           <span class="big"><img src="assets/img/icon_star.webp" alt="⭐"></span>
@@ -166,8 +176,8 @@
   <!-- 첫 플레이 안내 (tutorial.js): 클릭은 아래로 통과한다 -->
   <div id="tut" class="hidden"><div id="tutRing"></div><img id="tutHand" src="assets/img/ui_tut_hand.webp" alt="👆"><div id="tutBubble"><span id="tutText"></span></div></div>
   <!-- 시작할 때 그림을 다 불러오기 전 빈 화면 가리기 (2026-10-22 사용자) — main.js가 준비되면 지움 -->
-  <div id="bootCover"><img src="assets/img/ui_title_logo_en.webp" alt=""><p data-i18n="video.loading">불러오는 중…</p></div>
-  <div id="tapStart" class="hidden"><img src="assets/img/ui_logo.webp" alt=""><p data-i18n="video.tap">화면을 눌러 시작</p></div>
+  <div id="bootCover"><img id="bootLogo" alt=""><p data-i18n="video.loading">불러오는 중…</p></div>
+  <div id="tapStart" class="hidden"><img alt=""><p data-i18n="video.tap">화면을 눌러 시작</p></div>
   <div id="prologue" class="hidden"><video muted playsinline webkit-playsinline preload="auto"></video><!-- src는 main.js loadPrologue가 blob으로 넣음 --><audio id="prologueAudio" preload="auto"></audio><div id="prologueSub"></div><button id="btnSkipVideo" data-i18n="video.skip">건너뛰기</button></div><!-- 오프닝 영상 -->
   <div id="modal" class="hidden"><div class="box"><button id="modalX" aria-label="닫기" data-i18n-aria="aria.close"></button><div id="modalBody"></div><button id="modalBtn"></button><button id="modalCancel" class="hidden" data-i18n="common.cancel">취소</button></div></div>
 </div>
@@ -175,6 +185,7 @@
 <script src="balance.js"></script>
 <script src="strings.js"></script><!-- 언어별 문구 (localization/strings.csv → tools/build_strings.py) -->
 <script src="i18n.js"></script>
+<script>document.getElementById('bootLogo').src = `assets/img/${LANG === 'ko' ? 'ui_title_logo' : 'ui_title_logo_en'}.webp`; // 시작 가림막 로고도 언어에 맞춤 (2026-10-22)</script>
 <script src="sound.js"></script>
 <script src="main.js"></script>
 <script src="base.js"></script>

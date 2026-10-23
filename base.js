@@ -145,9 +145,9 @@ function updateBase() {
       card.parentNode.classList.toggle('ready', !!show);
     }
   });
-  // 알림 점: 수확할 게 있거나, 건설 슬롯이 비었고 지을 수 있는 게 있을 때
+  // 알림 점: 오븐 골드·카운터 다이아가 최대치로 꽉 찼거나(2026-10-22 사용자: 예전엔 골드 반·다이아 1개), 건설 슬롯이 비었고 지을 수 있는 게 있을 때
   const canBuild = !b && STATIONS.some((st) => { const s = stState(st); return (s === 'empty' || s === 'idle') && S.gold >= stCost(st); });
-  const ready = canBuild || S.base.gold >= ovenCap() * 0.5 && stLv('oven') > 0 || S.base.gems >= 1;
+  const ready = canBuild || S.base.gold >= ovenCap() && stLv('oven') > 0 || stLv('counter') > 0 && S.base.gems >= counterCap();
   document.querySelectorAll('[data-tab="base"]').forEach((el) => el.classList.toggle('ready', !!ready));
 }
 

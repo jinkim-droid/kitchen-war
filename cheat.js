@@ -43,6 +43,7 @@ if (CHEAT_ON) {
       <div class="ch-row"><b>속도</b>${[1, 3, 10].map((s) => `<button data-c="spd" data-v="${s}" class="${cheat.speed === s ? 'on' : ''}">×${s}</button>`).join('')}</div>
       <div class="ch-row"><b>재화</b><button data-c="gold">골드 ×10</button><button data-c="gem">💎 +500</button><button data-c="star">⭐ +10</button></div>
       <div class="ch-row"><b>동료</b><button data-c="mates">전부 고용</button><button data-c="mateup">전부 +5 Lv</button><button data-c="matereset">초기화</button></div>
+      <div class="ch-row"><b>보상</b><button data-c="attendreset">출석 리셋</button><button data-c="srwreset">스테이지 보상 리셋</button></div>
       <div class="ch-row"><b>초기화</b><button data-c="daily">오늘 횟수</button><button data-c="offline">오프라인 1시간</button></div>
       <div class="ch-row"><b>영상</b><button data-c="video">오프닝 영상 보기</button></div>
       <div class="ch-row"><b>첫 시작</b>${localStorage.getItem(BACKUP_KEY) ? '<button data-c="restore" class="on">원래 저장 되돌리기</button>' : '<button data-c="fresh">처음 시작 미리보기</button>'}</div>
@@ -65,6 +66,8 @@ if (CHEAT_ON) {
     if (c === 'star') S.stars += 10;
     if (c === 'mates') { MATES.forEach((m) => { if (!mateLv(m)) S.mates[m.id] = 1; }); syncMates(); toast('동료 전부 고용'); }
     if (c === 'mateup') { MATES.forEach((m) => { S.mates[m.id] = mateLv(m) + 5; }); syncMates(); toast('동료 전부 +5 Lv'); }
+    if (c === 'attendreset') { S.attend = { n: 0, last: '' }; attendSig = ''; attendShown = todayKey(); toast('출석 리셋 — 1일차부터'); } // 2026-10-22 사용자
+    if (c === 'srwreset') { S.stageRw = {}; stageRwSig = ''; toast('스테이지 보상 리셋 — 다시 받을 수 있음'); }
     if (c === 'matereset') { // 동료 전부 고용 전으로 (화면의 동료 그림도 지운다)
       S.mates = {};
       for (const id in mateSprites) { mateSprites[id].c.destroy({ children: true }); delete mateSprites[id]; }
