@@ -10,14 +10,19 @@ const Sound = (() => {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       ctx = new AC();
-      // 전체 볼륨 0.55 → 0.85 (2026-10-22 사용자: 폰에서 작게 들림). 소리가 겹쳐 깨지지 않게 끝에 리미터(압축기)를 둔다
+      // 소리 크기 (2026-10-23 사용자: 0.85로 올려도 폰에서 작음). 효과음 하나하나가 원래 작게(0.05~0.13) 합성돼 있어서
+      // 압축기로 큰 소리를 살짝 누른 뒤 3.5배 키우고, 맨 끝 리미터로 겹쳐도 깨지지 않게 막는다: master → 압축 → 키움 → 리미터 → 스피커
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -24; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.2;
+      const makeup = ctx.createGain(); makeup.gain.value = 3.5;
       const limiter = ctx.createDynamicsCompressor();
-      limiter.threshold.value = -6; limiter.knee.value = 6; limiter.ratio.value = 12; limiter.attack.value = 0.003; limiter.release.value = 0.15;
-      limiter.connect(ctx.destination);
-      master = ctx.createGain(); master.gain.value = 0.85; master.connect(limiter);
+      limiter.threshold.value = -2; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.1;
+      comp.connect(makeup); makeup.connect(limiter); limiter.connect(ctx.destination);
+      master = ctx.createGain(); master.gain.value = 0.85; master.connect(comp);
       sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? 0.9 : 0; sfxBus.connect(master);
       musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? 0.35 : 0; musicBus.connect(master);
       startMusic();
+      loadSamples();
     }
     if (ctx.state === 'suspended') ctx.resume();
   }
@@ -104,8 +109,47 @@ const Sound = (() => {
   const midiF = (n) => 440 * Math.pow(2, (n - 69) / 12);
   // 오프닝 영상 동안 배경음악을 잠깐 끈다
   function duckMusic(on) { if (musicBus) musicBus.gain.setTargetAtTime(on || !musicOn ? 0 : 0.35, ctx.currentTime, 0.15); }
+  // 녹음 효과음 (2026-10-23 사용자 1차: assets/sfx/*.mp3, ElevenLabs 생성) — 받아 둔 게 있으면 합성음 대신 이걸 튼다
+  // vol: 버스에 들어가는 크기(뒤에서 압축·키움이 걸려서 작게), gap: 같은 소리 최소 간격(ms, 연타로 뭉개지지 않게)
+  const SAMPLE = { throw: { vol: 0.18, gap: 90 }, hit: { vol: 0.25, gap: 80 }, coin: { vol: 0.35, gap: 90 },
+    merge: { vol: 0.5, gap: 200 }, warn: { vol: 0.55, gap: 800 }, clear: { vol: 0.5, gap: 500 },
+    // 2차(SOUND_TODO.md) — 파일이 오면 자동으로 씀, 없으면 합성음
+    boss: { vol: 0.55, gap: 500 }, wall: { vol: 0.6, gap: 800 }, bossHit: { vol: 0.25, gap: 90 },
+    kill: { vol: 0.25, gap: 60 }, coinTick: { vol: 0.12, gap: 55 }, buy: { vol: 0.35, gap: 60 }, claim: { vol: 0.45, gap: 150 },
+    prestige: { vol: 0.55, gap: 800 }, retreat: { vol: 0.45, gap: 500 }, hurt: { vol: 0.35, gap: 150 }, stun: { vol: 0.35, gap: 300 } };
+  let bgmBuf = null, bgmSrc = null; // 배경음악 파일(assets/sfx/bgm_battle.mp3)이 있으면 코드 반복음 대신 이걸 무한 반복
+  const buffers = {};
+  function loadSamples() {
+    for (const n in SAMPLE) {
+      fetch(`assets/sfx/${n}.mp3`).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no))).then((b) => { buffers[n] = b; })
+        .catch(() => {}); // 없으면 합성음 그대로
+    }
+    fetch('assets/sfx/bgm_battle.mp3').then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+      .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+      .then((b) => {
+        // MP3는 앞뒤에 인코더가 넣은 짧은 무음이 있어 그대로 반복하면 이음새에서 '툭' 끊김 → 실제 소리 구간만 반복
+        const d = b.getChannelData(0), th = 0.002; let a0 = 0, a1 = d.length - 1;
+        while (a0 < d.length && Math.abs(d[a0]) < th) a0++;
+        while (a1 > a0 && Math.abs(d[a1]) < th) a1--;
+        bgmBuf = b; bgmSrc = ctx.createBufferSource(); bgmSrc.buffer = b; bgmSrc.loop = true;
+        bgmSrc.loopStart = a0 / b.sampleRate; bgmSrc.loopEnd = (a1 + 1) / b.sampleRate;
+        const g = ctx.createGain(); g.gain.value = 0.6; bgmSrc.connect(g); g.connect(musicBus); bgmSrc.start(0, bgmSrc.loopStart);
+      })
+      .catch(() => {}); // 없으면 코드 반복음 그대로
+  }
+  function playSample(name) {
+    const sp = SAMPLE[name], b = buffers[name];
+    if (!sp || !b) return false;
+    if (throttled('s_' + name, sp.gap)) return true;
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = b; g.gain.value = sp.vol;
+    src.connect(g); g.connect(sfxBus); src.start();
+    return true;
+  }
   function play(name) {
     if (!ctx || !sfxOn || ctx.state !== 'running') return;
+    if (playSample(name)) return;
     const f = SFX[name];
     if (f) f();
   }
@@ -122,7 +166,7 @@ const Sound = (() => {
     nextT = ctx.currentTime + 0.1;
     setInterval(() => {
       if (!ctx || ctx.state !== 'running') return;
-      if (!musicOn) { nextT = ctx.currentTime + 0.1; return; } // 꺼져 있으면 예약하지 않는다
+      if (!musicOn || bgmBuf) { nextT = ctx.currentTime + 0.1; return; } // 꺼져 있거나 배경음악 파일을 틀고 있으면 예약하지 않는다
       while (nextT < ctx.currentTime + 0.2) {
         const i = step % MEL.length, d = nextT - ctx.currentTime;
         if (MEL[i]) tone(midi(MEL[i]), STEP * 0.9, { type: 'triangle', vol: 0.06, delay: d, bus: musicBus });

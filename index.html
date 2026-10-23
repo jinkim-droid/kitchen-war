@@ -35,6 +35,7 @@
       <div id="stageLabel">Stage 1-1</div>
       <div id="chapterLabel"></div><!-- 스테이지 명판 아래 매달린 꼬리표 -->
       <button id="btnSaver" data-i18n="hud.saver">절전모드</button>
+      <button id="btnChalSpd" style="display:none">x1</button><!-- 스테이지 도전 중에만: 배속 x1·x2·x3 (2026-10-23 사용자) -->
       <div id="bossTimer" class="pill"></div>
       <!-- 보스 체력 (보스가 나와 있을 때만) -->
       <div id="bossBar"><i id="bossFill"></i><b id="bossTime"></b></div><!-- 남은 시간은 체력 바 오른쪽 끝 -->
@@ -109,17 +110,18 @@
       </div>
       <div class="pane" id="pane-rush">
         <div class="chal-list">
-          <div class="row rush-row">
+          <div class="chal-head"><span data-i18n="daily.head">오늘의 도전</span><small data-i18n="daily.head_sub">하루 3번 · 최고 기록에 도전</small></div><!-- 보스 러시·대군 모드 묶음 (2026-10-23 사용자) -->
+          <div class="row rush-row bn" style="--art:url(assets/img/banner_rush.webp);--bg:#3a1010">
             <span class="big"><img src="assets/img/illust_rush.webp" alt=""></span>
-            <div class="info"><b data-i18n="rush.name">보스 러시</b><span class="desc" id="rushDesc"></span><span class="desc" id="rushBest"></span></div>
-            <div class="act-col"><button class="act" id="btnRush">도전 시작</button><span class="stat tries" id="rushTries"></span></div>
+            <div class="info"><b data-i18n="rush.name">보스 러시</b><span class="desc" id="rushDesc"></span><span class="stat tries" id="rushTries"></span><span class="desc" id="rushBest"></span></div>
+            <div class="act-col"><button class="act" id="btnRush">도전 시작</button></div>
           </div>
-          <div class="row rush-row horde-row">
+          <div class="row rush-row horde-row bn" style="--art:url(assets/img/banner_horde.webp);--bg:#2e2116">
             <span class="big"><img id="hordeImg" src="assets/img/enemy_tomato.webp" alt=""></span>
-            <div class="info"><b data-i18n="horde.name">대군 모드</b><span class="desc" data-i18n-html="horde.desc">60초 동안 끝없이 몰려오는 적을 잡아요.<br>잡은 만큼 골드를 받아요</span><span class="desc" id="hordeBest"></span></div>
-            <div class="act-col"><button class="act" id="btnHorde">도전 시작</button><span class="stat tries" id="hordeTries"></span></div>
+            <div class="info"><b data-i18n="horde.name">대군 모드</b><span class="desc" data-i18n-html="horde.desc">60초 동안 끝없이 몰려오는 적을 잡아요.<br>잡은 만큼 골드를 받아요</span><span class="stat tries" id="hordeTries"></span><span class="desc" id="hordeBest"></span></div>
+            <div class="act-col"><button class="act" id="btnHorde">도전 시작</button></div>
           </div>
-          <div class="chal-head"><span data-i18n="chal.head">스테이지 도전</span> <small data-i18n="chal.head_sub">챕터마다 한 번 · 1분 안에 모두 처치</small></div>
+          <div class="chal-head"><span data-i18n="chal.head">스테이지 도전</span><small data-i18n="chal.head_sub">챕터마다 한 번 · 1분 안에 모두 처치</small></div>
           <div id="chalList"></div>
         </div>
       </div>

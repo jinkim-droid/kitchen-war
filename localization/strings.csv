@@ -12,10 +12,10 @@ video.sub1,"Another peaceful day in Chef Bear's kitchen.",오늘도 평화로운
 video.sub2,"But that night…",그런데 그날 밤…,오프닝 자막
 video.sub3,"A strange smoke seeped out of the fridge!",냉장고에서 수상한 연기가 새어 나왔어요!,오프닝 자막
 video.sub4,"The rotten King Onion woke up the veggies!",썩은 대왕 양파가 채소들을 깨웠어요!,오프닝 자막
-video.sub5,"Next morning, the kitchen was a total mess!",다음 날 아침, 주방은 엉망진창!,오프닝 자막
+video.sub5,"Next morning, the kitchen was a total mess!","다음 날 아침, 주방은 엉망진창!",오프닝 자막
 video.sub6,"What… what happened here?!",이게… 다 무슨 일이야?!,오프닝 자막
 video.sub7,"I'll protect my kitchen!",내 주방은 내가 지킨다!,오프닝 자막
-video.sub8,"Kitchen War — begin!",주방 대전쟁, 시작!,오프닝 자막
+video.sub8,"Kitchen War — begin!","주방 대전쟁, 시작!",오프닝 자막
 settings.version,Kitchen War {ver} · Game Jam Prototype,주방 대전쟁 {ver} · 게임잼 프로토타입,설정 창 아래
 # 첫 플레이 안내,,,
 tut.open_tools,Open the Toolbox!,도구함을 열어 보세요!,
@@ -55,7 +55,7 @@ menu.prestige,Rebirth,환생,
 menu.challenge,Challenge,도전,
 # 업그레이드 카드·능력치,,,
 stat.atk,Attack,공격력,
-stat.spd,Attack Speed,공격속도,
+stat.spd,Atk Speed,공격속도,업그레이드 카드 이름 — 영어는 카드 폭에 맞게 짧게 (2026-10-23)
 stat.gold,Gold Gain,골드 획득량,
 stat.atk_s,ATK,공격력,스킨 효과 칸 (짧게)
 stat.spd_s,SPD,공격속도,스킨 효과 칸 (짧게)
@@ -77,21 +77,21 @@ tool.8,Kettle,주전자,
 tool.legend,Legendary {name} +{n},전설 {name} +{n},Lv9 이상
 tools.slot,Lv {lv} {name},Lv {lv} {name},도구 칸
 # 동료,,,
-mates.hint,Buddies follow the chef and fight together.<br>Attack upgrades and skin effects apply too,동료는 셰프를 따라다니며 함께 싸워요.<br>공격력 업그레이드와 스킨 효과도 적용돼요,
+mates.hint,Buddies fight beside the chef.<br>Upgrades and skins boost them too,동료는 셰프를 따라다니며 함께 싸워요.<br>공격력 업그레이드와 스킨 효과도 적용돼요,
 mate.chick,Chick Helper,병아리 조수,
 mate.chick.desc,Throws eggs,달걀을 던져요,
 mate.bunny,Bunny Pâtissier,토끼 파티시에,
 mate.bunny.desc,Throws macarons,마카롱을 던져요,
 mate.penguin,Penguin Barista,펭귄 바리스타,
-mate.penguin.desc,Support: coffee speeds up everyone's attacks,지원: 커피로 모두의 공격 속도를 올려요,
+mate.penguin.desc,Coffee speeds up everyone's attacks,커피로 모두의 공격 속도를 올려요,
 mate.squirrel,Squirrel Baker,다람쥐 제빵사,
 mate.squirrel.desc,Throws fresh croissants,갓 구운 크루아상을 던져요,
 mate.fox,Fox Sauce Chef,여우 소스 셰프,
 mate.fox.desc,Flicks drops of ketchup,케첩 방울을 톡톡 쏴요,
 mate.panda,Panda Dumpling Master,판다 만두 장인,
-mate.panda.desc,Tank: tough and draws enemies to itself,방어: 튼튼하고 적을 자기 쪽으로 끌어요,
+mate.panda.desc,Tough and pulls enemies to itself,튼튼하고 적을 자기 쪽으로 끌어요,
 mate.frog,Frog Dishwasher,개구리 설거지 담당,
-mate.frog.desc,Healer: bubbles restore everyone's HP,회복: 비눗방울로 모두의 체력을 채워요,
+mate.frog.desc,Bubbles heal everyone,비눗방울로 모두의 체력을 채워요,
 mates.stat_owned,Lv {lv} · {dmg} / {iv}s · {hp} → next {next},Lv {lv} · {dmg} / {iv}초 · {hp} → 다음 {next},
 mates.stat_new,{dmg} / {iv}s · {hp},{dmg} / {iv}초 · {hp},
 mates.iv,{iv}s,{iv}초,동료 공격 간격 (알약)
@@ -176,18 +176,20 @@ mission.star_banner,⭐ Chef Star +1,⭐ 셰프 별 +1,
 common.star_use,Spend it on permanent upgrades in Rebirth,환생 탭에서 영구 강화에 써요,
 # 도전 (보스 러시·대군 모드·스테이지 도전),,,
 rush.name,Boss Rush,보스 러시,
-rush.desc,Keep beating ever-stronger bosses for 60s.<br>The more you beat the bigger the reward,60초 동안 강해지는 보스를 계속 잡아요.<br>잡을수록 보상이 높아져요,
+rush.desc,"Beat ever-stronger bosses for 60s.<br>More kills, bigger rewards",60초 동안 강해지는 보스를 계속 잡아요.<br>잡을수록 보상이 높아져요,
 horde.name,Horde Mode,대군 모드,
 horde.desc,Beat an endless horde for 60s.<br>Earn gold for every kill,60초 동안 끝없이 몰려오는 적을 잡아요.<br>잡은 만큼 골드를 받아요,
 chal.tries,Tries left {n} / {total},남은 도전 {n} / {total},
-chal.reset_in,{time},{time},남은 도전이 0일 때 버튼 아래
+chal.reset_in,Resets in {time},{time} 뒤 초기화,남은 도전이 0일 때 (2026-10-23 사용자: 숫자만이면 뜻을 몰라서)
 rush.best,Best: {n} bosses,최고 기록: 보스 {n}마리,
 horde.best,Best: {n} kills,최고 기록: {n}마리,
-chal.start,Start,도전 시작,
+chal.start,Go,도전,
 chal.running,In progress…,도전 중…,
 chal.tomorrow,Tomorrow,내일 다시,
+daily.head,Daily Challenge,오늘의 도전,도전 창 보스 러시·대군 모드 묶음 제목 (2026-10-23)
+daily.head_sub,3 tries a day — beat your best!,하루 3번 최고 기록에 도전하세요.,
 chal.head,Stage Challenge,스테이지 도전,
-chal.head_sub,Once per chapter · Beat them all in 1 min,챕터마다 한 번 · 1분 안에 모두 처치,
+chal.head_sub,Harder each clear! Beat them all in 1 min.,깰 때마다 난이도 상승! 1분 안에 처치하세요.,
 chal.row,CHAPTER {n} · {name},CHAPTER {n} · {name},
 chal.row_desc,Beat all {n} in 1 min,1분 안에 {n}마리 모두 처치,
 chal.go,Challenge,도전,
@@ -219,6 +221,11 @@ chal.win,Challenge Cleared!,도전 성공!,
 chal.lose,Challenge Failed,도전 실패,
 chal.win_desc,You beat all {n} foes of CHAPTER {c},CHAPTER {c} 적 {n}마리를 모두 처치했어요,
 chal.lose_desc,{n} / {total} defeated,{n} / {total}마리 처치,
+chal.go_lv,Lv {lv},Lv {lv} 도전,스테이지 도전 버튼 (2026-10-23 단계)
+chal.lv_reward,Lv {lv} reward,Lv {lv} 보상,도전 줄 보상 글자 (다이아 아이콘·숫자 앞)
+chal.next_lv,Lv {lv} is now open!,다음 Lv {lv} 도전이 열렸어요!,성공 창 아래
+chal.lock_ov,Unlocks after Stage {n},스테이지 {n} 클리어 시 오픈,잠긴 챕터 카드 가운데 (2026-10-23 사용자 시안)
+chal.not_open,Locked,미오픈,잠긴 챕터 버튼
 chal.retry,You can try again anytime,언제든 다시 도전할 수 있어요,
 common.ok,OK,확인,
 common.cancel,Cancel,취소,

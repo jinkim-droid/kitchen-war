@@ -1646,18 +1646,19 @@ html[lang="en"] .mission.done::after { content: '' !important; border: 0 !import
 
 /* 숫자도 한글 폰트(밑미)로 (2026-10-22 사용자: 한글 옆 숫자가 튐) — 떠오르는 데미지 숫자만 Mplus 숫자 유지. 영어 화면은 그대로 */
 @font-face { font-family: "Game KR"; src: url("assets/fonts/Ongeulip-Meetme.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
-html:not([lang="en"]) body, html:not([lang="en"]) button, html:not([lang="en"]) input { font-family: "Game KR", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
-html:not([lang="en"]) .dmg { font-family: "Game Font", -apple-system, sans-serif; }
-/* B안 (2026-10-22 사용자): 한글과 섞인 문장은 밑미, 숫자만 있는 곳은 원래 숫자 글꼴(Mplus) */
-html:not([lang="en"]) :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
+html[lang] body, html[lang] button, html[lang] input { font-family: "Game KR", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+html[lang] .dmg { font-family: "Game Font", -apple-system, sans-serif; }
+/* 2026-10-23 사용자: 영어도 한국어와 같은 글꼴(밑미 + 숫자만 Mplus)로 → html[lang] = 모든 언어
+   B안 (2026-10-22 사용자): 한글과 섞인 문장은 밑미, 숫자만 있는 곳은 원래 숫자 글꼴(Mplus) */
+html[lang] :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
   #sheet .act .cost, #btnBuy .cost, #btnBonus .cost, #mateList .stat .pill, .eq-card .eq-row i, #grid .gun .glv, .skin-tag, .skin-sum b,
-  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, #chalList .reward, .st-lv, #mateList .lvtag) {
+  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, .st-lv, #mateList .lvtag) {
   font-family: "Game Font", -apple-system, "Apple SD Gothic Neo", sans-serif; }
 /* 한글 글꼴 자간 조금 넓게 (2026-10-22 사용자: 붙어 보임) — 숫자 글꼴 쓰는 곳은 그대로 */
-html:not([lang="en"]) body, html:not([lang="en"]) button { letter-spacing: 0.04em; }
-html:not([lang="en"]) :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
+html[lang] body, html[lang] button { letter-spacing: 0.04em; }
+html[lang] :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #goldLabel, #gemLabel, #stageLabel, #bossTime span,
   #sheet .act .cost, #btnBuy .cost, #btnBonus .cost, #mateList .stat .pill, .eq-card .eq-row i, #grid .gun .glv, .skin-tag, .skin-sum b,
-  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, #chalList .reward, .st-lv, #mateList .lvtag, .dmg) { letter-spacing: 0.01em; }
+  #shopHint .own, .pr-wallet b, #starGain, .perm .info b, .perm-cost, .perm-lv, .st-lv, #mateList .lvtag, .dmg) { letter-spacing: 0.01em; }
 
 /* ==================== 팝업 새 디자인 (2026-10-22 사용자 시안, CSS) ====================
    크림 판 + 진갈색 테두리 + 안쪽 황토 테두리(아래 두껍게) · 제목은 위쪽 테두리에 걸친 주황 알약 · 내용은 베이지 안쪽 판 · 주황 알약 버튼 · 빨간 X */
@@ -1688,7 +1689,7 @@ html:not([lang="en"]) :is(#panel .up .val, #panel .up .lv, #panel .up .cost, #go
 #shell #modal .title.small { font-size: 36px !important; }
 #shell #modalBtn.hidden, #shell #modalCancel.hidden, #shell #modalX.hidden { display: none !important; }
 #shell #modalX.below { right: auto; top: auto; left: 50%; bottom: -110px; margin-left: -33px; } /* 아래 가운데 X(오프라인 보상 등)는 그대로 */
-html:not([lang="en"]) #modal .reward { font-family: "Game Font", -apple-system, sans-serif; letter-spacing: 0.01em; } /* 보상 숫자는 숫자 글꼴 */
+html[lang] #modal .reward { font-family: "Game Font", -apple-system, sans-serif; letter-spacing: 0.01em; } /* 보상 숫자는 숫자 글꼴 */
 #shell #settings .setbox { padding-top: 30px !important; } /* 설정은 제목 알약이 없어서 위 여백 줄임 */
 /* 도전 시작 팝업: 'CHAPTER N'도 주황 제목 알약, 설명 띠는 안쪽 판 안에 */
 #shell #modal .chal-title { position: absolute; left: 50%; top: -44px; transform: translateX(-50%); width: 72%; box-sizing: border-box; height: 80px; line-height: 70px; margin: 0;
@@ -1945,3 +1946,129 @@ body.has-check :is(#stageRw, #attendBox) .sr-node.got .sr-card::after { top: 46%
 .skcard .sk-eff { margin-top: 26px; font-size: 34px !important; }
 .skcard .sk-note { bottom: 16px; }
 .skcard .sk-tag { font-size: 32px !important; }
+/* 상단 골드·다이아 알약 숫자 정렬 통일: 둘 다 아이콘 바로 뒤에 왼쪽 정렬 (2026-10-23 사용자) */
+#shell #goldLabel, #shell #gemLabel { justify-content: flex-start !important; padding-left: 52px !important; padding-right: 10px !important; }
+#shell #goldLabel, #shell #gemLabel { width: 158px !important; min-width: 0 !important; } /* 두 알약 폭을 같게 → 아이콘·숫자 시작 위치가 위아래로 맞음 */
+#shell #goldLabel, #shell #gemLabel { padding-left: 46px !important; padding-right: 6px !important; } /* 폭 줄인 만큼 숫자 앞 여백도 줄임 (2026-10-23 사용자: 너무 길어서 웨이브 줄을 가림) */
+/* 스테이지 도전 배속 버튼 (절전모드 버튼 자리, 도전 중에만) — 주황 알약 (2026-10-23 사용자) */
+#btnChalSpd { pointer-events: auto; margin-top: 6px; min-width: 96px; height: 44px; padding: 0 18px; border-radius: 999px; background: var(--c-act); border: 3px solid #4b3021;
+  box-shadow: inset 0 -5px 0 var(--c-act-d, #e07a1c), 0 3px 0 #3a2418; font-size: 28px; color: #fff; -webkit-text-stroke: 6px #2a1a10; paint-order: stroke fill; }
+#btnChalSpd:active { transform: translateY(2px); }
+.chal-reward .cr-items { display: flex; justify-content: center; align-items: flex-end; gap: 56px; }
+.chal-reward .cr-it { display: flex; flex-direction: column; align-items: center; }
+
+/* ---------- 도전 창 그림 배너 카드 (2026-10-23 사용자 시안) ----------
+   카드: 왼쪽 어두운 글자판(--bg) + 오른쪽 그림(--art, 사선으로 나뉨). 노란 큰 제목·흰 설명·기록/보상, 오른쪽 위 남은 횟수, 오른쪽 아래 주황 버튼 */
+#shell #pane-rush .row.bn { position: relative; display: block !important; height: 196px !important; min-height: 0 !important; padding: 0 !important; overflow: hidden;
+  background: var(--bg) !important; border: 4px solid #1e120a !important; border-radius: 18px !important; box-shadow: 0 5px 0 #1e120a66 !important; filter: none !important; }
+#shell #pane-rush .row.bn::before { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 60%; background: var(--art) right center / cover no-repeat;
+  clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); }
+#shell #pane-rush .row.bn > .big { display: none !important; }
+#shell #pane-rush .row.bn .info { position: absolute; left: 26px; top: 16px; bottom: 14px; width: 58%; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; z-index: 1; }
+#shell #pane-rush .row.bn .info > b { font-size: 44px !important; line-height: 1.05; color: #ffd34d !important; -webkit-text-stroke: 0 !important; text-shadow: 0 3px 0 #0006 !important; margin: 0; }
+#shell #pane-rush .row.bn .info > b small { display: none; }
+#shell #pane-rush .row.bn .desc { font-size: 22px !important; color: #fff !important; -webkit-text-stroke: 0 !important; line-height: 1.35; text-shadow: 0 2px 0 #0008 !important; opacity: 1 !important; }
+#shell #pane-rush .row.bn #rushBest, #shell #pane-rush .row.bn #hordeBest, #shell #pane-rush .row.bn .reward { margin-top: auto; font-size: 22px !important; color: #f3e2c2 !important;
+  -webkit-text-stroke: 0 !important; text-shadow: 0 2px 0 #0008 !important; display: flex; align-items: center; gap: 6px; }
+#shell #pane-rush .row.bn .reward img.ic { height: 30px; }
+#shell #pane-rush .row.bn .act-col { position: absolute; right: 16px; top: 12px; bottom: 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; z-index: 1; }
+#shell #pane-rush .row.bn .act-col .tries { order: -1; font-size: 20px !important; color: #ffd34d !important; -webkit-text-stroke: 4px #2a1a10 !important; paint-order: stroke fill; }
+#shell #pane-rush .row.bn .act { min-width: 168px; height: 74px !important; font-size: 32px !important; }
+#shell #pane-rush .row.chal.bn > .act { position: absolute; right: 16px; bottom: 16px; z-index: 1; }
+#shell #pane-rush .row.bn.locked::before { filter: grayscale(.8) brightness(.55); }
+/* 묶음 제목: 큰 제목 왼쪽 + 같은 줄 오른쪽에 작은 설명 */
+#shell #pane-rush .chal-head { display: flex !important; align-items: baseline; gap: 16px; text-align: left !important; padding: 6px 6px 0; border: 0 !important; margin-top: 8px; }
+#shell #pane-rush .chal-head > span { font-size: 40px !important; color: #fff3dc; -webkit-text-stroke: 7px #4b3021; paint-order: stroke fill; }
+#shell #pane-rush .chal-head > small { font-size: 22px !important; color: #fff3dc; -webkit-text-stroke: 5px #4b3021; paint-order: stroke fill; }
+#shell #pane-rush .chal-list > *, #shell #pane-rush .row.bn { flex: none !important; } /* 목록이 줄어들며 카드가 납작해지지 않게 */
+#shell #pane-rush .row.bn .info > b { font-size: 52px !important; }
+#shell #pane-rush .row.bn .desc { font-size: 24px !important; }
+#shell #pane-rush .row.bn #rushBest, #shell #pane-rush .row.bn #hordeBest, #shell #pane-rush .row.bn .reward { font-size: 24px !important; }
+#shell #pane-rush .row.bn { height: 216px !important; }
+#shell #pane-rush .chal-head { padding-left: 14px !important; }
+#shell #pane-rush .row.bn .info > b .en { font-size: inherit !important; color: inherit !important; -webkit-text-stroke: 0 !important; }
+/* 스테이지 도전 카드는 오늘의 도전보다 낮게 (시안 비율: 오늘의 도전 약 2.8:1, 스테이지 도전 약 3.9:1) (2026-10-23 사용자) */
+#shell #pane-rush .row.chal.bn { height: 158px !important; }
+#shell #pane-rush .row.chal.bn .info { top: 10px; bottom: 10px; gap: 0; }
+#shell #pane-rush .row.chal.bn .info > b { font-size: 46px !important; }
+#shell #pane-rush .row.chal.bn > .act { bottom: 14px; height: 66px !important; }
+/* 배너 그림을 카드 전체에 깔고 왼쪽 글자판을 사선으로 덮음 → 그림 속 얼굴이 왼쪽으로 와서 버튼에 덜 가림 (2026-10-23 사용자) */
+#shell #pane-rush .row.bn::before { width: 100%; clip-path: none; background: var(--art) var(--artx, 100%) center / cover no-repeat; }
+#shell #pane-rush .row.bn::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: var(--bg); clip-path: polygon(0 0, 100% 0, 72% 100%, 0 100%); }
+/* 오늘의 도전: 남은 횟수는 왼쪽 설명 아래 (2026-10-23 사용자) */
+#shell #pane-rush .row.bn .info .tries { order: 0; margin-top: 6px; font-size: 22px !important; color: #ffd34d !important; -webkit-text-stroke: 0 !important; text-shadow: 0 2px 0 #0008 !important; }
+#shell #pane-rush .row.bn .act-col { justify-content: flex-end; }
+/* 스테이지 도전 그림은 조금 더 왼쪽으로: 그림을 카드보다 18% 크게 깔고 오른쪽 끝에 맞춤 → 얼굴이 약 35px 왼쪽으로 (2026-10-23 사용자) */
+#shell #pane-rush .row.chal.bn::before { background-size: 118% auto; background-position: 100% center; }
+/* 치트 창: 줄이 많아져서 위아래로 넘김 (2026-10-23) */
+#cheat .box { max-height: 92%; overflow-y: auto; }
+#cheat .ch-row { flex-wrap: wrap; row-gap: 6px; }
+/* 잠긴 챕터 카드 (2026-10-23 사용자 시안): 카드 전체 어둡게, 가운데 큰 자물쇠 + 흰 '스테이지 N 클리어 시 오픈', 버튼은 회색 '미오픈' */
+#shell #pane-rush .row.chal.bn.locked::before { filter: brightness(.55) saturate(.7); }
+#shell #pane-rush .row.chal.bn.locked .info { opacity: .45; }
+#shell #pane-rush .row.chal.bn .lock-ov { position: absolute; left: 30%; right: 30%; top: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; pointer-events: none; }
+#shell #pane-rush .row.chal.bn .lock-ov img { height: 62px; filter: drop-shadow(0 3px 0 #0008); }
+#shell #pane-rush .row.chal.bn .lock-ov span { font-size: 26px; color: #fff; -webkit-text-stroke: 6px #1e120a; paint-order: stroke fill; white-space: nowrap; }
+#shell #pane-rush .row.chal.bn.locked > .act { background: #5a524c !important; box-shadow: inset 0 -5px 0 #3e3833 !important; border-color: #1e120a !important; color: #cfc6bd !important; }
+#shell #pane-rush .row.chal.bn.locked .info { filter: brightness(.5); } /* opacity는 메뉴 판 전체 규칙(opacity 1 고정)에 막혀서 밝기로 어둡게 */
+#shell #pane-rush .row.chal.bn.locked::before { filter: brightness(.4) saturate(.6) !important; }
+#shell #pane-rush .row.chal.bn.locked::after { filter: brightness(.45); } /* 왼쪽 글자판 바탕도 같이 어둡게 (2026-10-23 사용자) */
+#shell #pane-rush .row.chal.bn.locked .info { filter: brightness(.4); }
+#shell #pane-rush .row.chal.bn.locked > .act { filter: brightness(.55); } /* 미오픈 버튼도 같이 어둡게 (2026-10-23 사용자) */
+#shell #pane-rush .chal-head { padding-left: 22px !important; } /* 제목 글자(외곽선 포함) 왼쪽 끝 = 카드 왼쪽 끝 (2026-10-23 사용자) */
+html[lang="en"] #shell #panel .up .name { font-size: 24px !important; white-space: nowrap; } /* 영어: 카드 가운데 정렬 유지, 'Attack Speed'는 문구를 'Atk Speed'로 줄여 아이콘과 안 겹치게 (2026-10-23 사용자) */
+/* 영어 메뉴 이름: 알약·동그라미 밖으로 넘치거나 화면 끝에 붙어서 글자를 줄임 (2026-10-23 사용자) */
+html[lang="en"] #shell .side .sbtn > span:not(.ico), html[lang="en"] #shell #btnMission > span:not(.ico) { font-size: 25px !important; -webkit-text-stroke-width: 5px; letter-spacing: 0; }
+
+/* ---------- 2026-10-23 사용자 수정 묶음 (영어판 점검) ---------- */
+/* 2. 스킨 카드: 효과 알약과 안내 글이 겹침 → 아래 칸 안에서 위아래로 차례대로 */
+.skcard .sk-info { justify-content: center !important; gap: 10px !important; }
+.skcard .sk-eff { margin-top: 0 !important; text-align: center; }
+.skcard .sk-note { position: static !important; padding: 0 20px; line-height: 1.2; }
+/* 3. 동료 역할 알약: 이름 옆(줄 넘어감) 대신 그림 아래 가운데 */
+#mateList .row .big { position: relative; overflow: visible; }
+#shell #mateList .row .big .role { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); margin: 0; z-index: 2; white-space: nowrap; font-size: 18px !important; padding: 1px 10px; }
+/* 5. 주방 수확 알약(코인·다이아): 카드 오른쪽 위 모서리에 걸치게 (한/영 같음) */
+#base .st-collect { right: 6px !important; top: -24px !important; }
+/* 6. 도전 창 묶음 제목: 제목 한 줄 + 설명은 그 아래 줄 */
+#shell #pane-rush .chal-head { flex-direction: column !important; align-items: flex-start !important; gap: 0 !important; }
+#shell #pane-rush .chal-head > span { white-space: nowrap; }
+#shell #pane-rush .chal-head > small { margin-top: -2px; }
+/* 7·9. 배너 글자 읽기 쉽게: 진한 그림자 + 어두운 바깥 번짐, 보상 줄은 반투명 어두운 알약 위에 */
+#shell #pane-rush .row.bn .info > b, #shell #pane-rush .row.bn .desc, #shell #pane-rush .row.bn .tries, #shell #pane-rush .row.bn #rushBest, #shell #pane-rush .row.bn #hordeBest, #shell #pane-rush .row.bn .reward {
+  text-shadow: 0 2px 0 #000, 0 0 6px #000, 0 0 10px #000c !important; }
+#shell #pane-rush .row.bn .reward { align-self: flex-start; padding: 2px 12px 2px 8px; border-radius: 999px; background: #000a; }
+/* 8. '내일 다시/Tomorrow' 버튼 글자 조금 작게 */
+#shell #pane-rush .row.bn .act:disabled { font-size: 26px !important; }
+
+/* 1. 스킨 카드 아래 칸 위치를 v2 그림 칸에 정확히 맞춤(칸: 위에서 71~92.5%), 안내 글은 작게 (2026-10-23 사용자) */
+.skcard .sk-info { top: 72.5% !important; bottom: 8.5% !important; }
+.skcard .sk-eff { font-size: 30px !important; padding: 8px 32px 10px !important; }
+.skcard .sk-note { font-size: 19px !important; }
+/* 2. 주방 수확 알약: 시설 그림 오른쪽 위에 (2026-10-23 사용자) */
+#base .st-collect { right: auto !important; left: 86px !important; top: 2px !important; height: 44px !important; padding: 0 12px 0 44px !important; z-index: 3; }
+#base .st-collect img.ic { height: 46px !important; }
+#base .st-collect span { font-size: 22px !important; }
+#base .st-collect { left: 62px !important; top: -22px !important; } /* 이름을 가리지 않게 그림 오른쪽 위 = 카드 위 테두리에 걸침 */
+
+/* ---------- 2026-10-23 사용자 수정 ---------- */
+/* 영어 글자 조금 크게: 밑미 영문은 작아서 영어(라틴 글자)만 12% 키운 같은 글꼴 */
+@font-face { font-family: "Game KR EN"; src: url("assets/fonts/Ongeulip-Meetme.ttf") format("truetype"); font-weight: 100 900; font-display: block; size-adjust: 112%; }
+html[lang="en"] body, html[lang="en"] button, html[lang="en"] input { font-family: "Game KR EN", "Game KR", -apple-system, sans-serif; }
+/* 큰 배너 제목(보스 러시·대군 모드·CHAPTER N)은 크기 그대로 → 영어에서 12% 키운 만큼 되돌림 */
+html[lang="en"] #shell #pane-rush .row.bn .info > b { font-size: 46px !important; }
+html[lang="en"] #shell #pane-rush .row.chal.bn .info > b { font-size: 41px !important; }
+/* 도전 창 제목·카드 제목 영어는 대문자 */
+html[lang="en"] #shell #pane-rush .chal-head > span, html[lang="en"] #shell #pane-rush .row.bn .info > b { text-transform: uppercase; }
+/* 스킨 카드: 효과 알약·안내 글을 조금 더 아래로 */
+.skcard .sk-info { justify-content: flex-start !important; padding-top: 34px; box-sizing: border-box; gap: 22px !important; }
+/* 주방 수확 알약: 시설 그림 아래쪽에 겹치게 */
+#base .st-collect { left: 10px !important; top: auto !important; bottom: 10px !important; }
+.skcard .sk-info { padding-top: 22px !important; gap: 16px !important; }
+html[lang="en"] #shell #panel .up .name { font-size: 31px !important; } /* 영어 업그레이드 카드 이름 조금 크게 (2026-10-23 사용자) */
+html[lang="en"] #shell #panel .up .name { transform: translateY(-8px); } /* 큰 영어 이름이 아래 카드와 겹치지 않게 위로 (2026-10-23 사용자) */
+/* 2026-10-23 사용자: 메뉴 이름은 아이콘과 살짝 겹쳐도 됨 → 조금 위로 올려 알약 안에 / 한국어도 메뉴 이름·업그레이드 카드 이름 조금 크게 */
+#shell .side .sbtn > span:not(.ico), #shell #btnMission > span:not(.ico) { bottom: 4px !important; }
+html:not([lang="en"]) #shell .side .sbtn > span:not(.ico), html:not([lang="en"]) #shell #btnMission > span:not(.ico) { font-size: 27px !important; }
+html:not([lang="en"]) #shell #panel .up .name { font-size: 31px !important; transform: translateY(-6px); }
+#shell #goldLabel.lift, #shell #gemLabel.lift { z-index: 25; } /* 보상 날아가는 동안 메뉴·팝업 딤 위로 */

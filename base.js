@@ -159,10 +159,10 @@ $('baseGrid').addEventListener('click', (e) => {
     const sx = (r.left - fr.left + r.width / 2) / scale, sy = (r.top - fr.top + r.height / 3) / scale;
     if (st.id === 'oven' && S.base.gold >= 1) {
       const g = Math.floor(S.base.gold); S.gold += g; S.base.gold = 0;
-      coinBurst(sx, sy, 14); Sound.play('claim'); popText(cam.x + sx, cam.y + sy, '+' + fmt(g), 'gold big');
+      rewardFly('gold', 12); Sound.play('claim');
     } else if (st.id === 'counter' && S.base.gems >= 1) {
       const g = Math.floor(S.base.gems); S.gems += g; S.base.gems -= g;
-      gemBurst(sx, sy, Math.min(10, g + 2)); Sound.play('claim');
+      rewardFly('gem', Math.min(10, g + 3)); Sound.play('claim');
     }
     updateUI(); save(); return;
   }

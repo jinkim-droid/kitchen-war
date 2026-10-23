@@ -834,6 +834,56 @@ function makeGemTexture() {
   return app.renderer.generateTexture({ target: g, resolution: 3 });
 }
 function gemBurst(sx, sy, n) { coinBurst(sx, sy, n, 'gem'); }
+// ---------- 보상 받기 연출 (2026-10-23 사용자): 누른 자리(보상 카드·버튼)에서 코인·다이아가 퍼졌다가 위 골드/다이아 칸으로 날아감 ----------
+// 메뉴·팝업 위로 보이게 화면 맨 위(body, fixed)에 그린다. 도착할 때마다 칸이 '통' 튀고 짤랑
+let lastTap = null;
+// 다이아 숫자 올라가는 연출 (2026-10-23 사용자): 320 → 340을 바로 바꾸지 않고 321, 322… 일의 자리부터 올라감. 코인은 단위가 커서 그대로
+let gemShown = 0, gemCount = null;
+function countGems() {
+  if (gemCount) return;
+  gemCount = setInterval(() => {
+    const d = S.gems - gemShown;
+    if (d === 0) { clearInterval(gemCount); gemCount = null; return; }
+    gemShown += Math.sign(d) * Math.max(1, Math.ceil(Math.abs(d) / 25)); // 차이가 크면 한 번에 여러 개(약 0.9초 안에 끝)
+    if ((d > 0 && gemShown > S.gems) || (d < 0 && gemShown < S.gems)) gemShown = S.gems;
+    setHTML($('gemLabel'), GEM + ' ' + fmt(gemShown));
+  }, 35);
+}
+addEventListener('pointerdown', (e) => { lastTap = { x: e.clientX, y: e.clientY }; }, true);
+function rewardFly(kind, n = 10) {
+  const tgt = $(kind === 'gem' ? 'gemLabel' : 'goldLabel');
+  if (!tgt) return;
+  const tr = tgt.getBoundingClientRect(), sh = $('shell').getBoundingClientRect(), k = sh.width / 720;
+  const from = lastTap || { x: sh.left + sh.width / 2, y: sh.top + sh.height / 2 };
+  const tx = tr.left + 24 * k, ty = tr.top + tr.height / 2, size = 60 * k;
+  n = Math.min(14, Math.max(4, n));
+  // 날아가는 동안 그 칸만 딤(메뉴 판·팝업) 위로 올림 → 다 도착하면 0.4초 뒤 원래대로 (2026-10-23 사용자)
+  tgt.classList.add('lift'); tgt._fly = (tgt._fly || 0) + n;
+  if (kind === 'gem' && !gemCount) gemCount = -1; // 첫 다이아가 닿을 때까지 숫자를 예전 값으로 붙잡아 둠
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('img');
+    el.src = `${IMG}${kind === 'gem' ? 'icon_gem' : 'icon_coin'}.webp`;
+    el.style.cssText = `position:fixed;left:0;top:0;width:${size}px;height:${size}px;z-index:9999;pointer-events:none;filter:drop-shadow(0 2px 0 #0006);`;
+    document.body.appendChild(el);
+    const a = Math.random() * Math.PI * 2, r = (40 + Math.random() * 50) * k;
+    const bx = from.x + Math.cos(a) * r, by = from.y + Math.sin(a) * r;
+    const mx = (bx + tx) / 2 + (Math.random() - 0.5) * 120 * k, my = Math.min(by, ty) - 60 * k;
+    const delay = i * 45, dur = 620 + Math.random() * 160, h = size / 2;
+    const anim = el.animate([
+      { transform: `translate(${from.x - h}px, ${from.y - h}px) scale(.5)`, opacity: 0.6, easing: 'cubic-bezier(.2,.8,.3,1)' },
+      { transform: `translate(${bx - h}px, ${by - h}px) scale(1.1)`, opacity: 1, offset: 0.3, easing: 'ease-in' },
+      { transform: `translate(${mx - h}px, ${my - h}px) scale(.95)`, offset: 0.65, easing: 'ease-in' },
+      { transform: `translate(${tx - h}px, ${ty - h}px) scale(.6)`, opacity: 1 },
+    ], { duration: dur, delay, fill: 'both' }); // 터지듯 빠르게 퍼졌다가(0.3) 위 칸으로 빨려 들어감
+    anim.onfinish = () => {
+      el.remove();
+      tgt.classList.remove('pulse'); void tgt.offsetWidth; tgt.classList.add('pulse');
+      Sound.play('coinTick');
+      if (kind === 'gem' && gemCount === -1) { gemCount = null; countGems(); }
+      if (--tgt._fly <= 0) setTimeout(() => { if (!tgt._fly) tgt.classList.remove('lift'); }, 400);
+    };
+  }
+}
 // 화면에 동시에 떠 있는 코인 상한 (연출용 — 많아도 스프라이트라 가볍다)
 const COIN_MAX = 240;
 function coinBurst(sx, sy, n, kind = 'gold') {
@@ -900,6 +950,11 @@ function renderEquip() {
       <span class="eq-row"><img class="ic" src="${IMG}icon_atk.webp" alt=""><i>${fmt(gunDmg(L) * atkMul())}</i></span>
       <span class="eq-row"><img class="ic" src="${IMG}icon_timer.webp" alt=""><i>${fireInterval().toFixed(2)}${t('mates.iv', { iv: '' }).trim()}</i></span></div>`;
   }).join('');
+  // 이름이 칸보다 길면(영어 'Lv 5 Salt Shaker' 등) 글자를 줄여 맞춤 — 최소 16px (2026-10-23 사용자: 영어판 글자 잘림)
+  document.querySelectorAll('#equip .eq-name').forEach((el) => {
+    if (!el.clientWidth) return;
+    for (let fs = 28; fs >= 16 && el.scrollWidth > el.clientWidth + 1; fs -= 2) el.style.setProperty('font-size', fs - 2 + 'px', 'important');
+  });
 }
 function renderGrid(popIdx = -1) {
   renderEquip();
@@ -1036,7 +1091,7 @@ function updateMenus() {
     setText(row.querySelector('.lvtag'), lv ? `Lv ${lv}` : '');
     // 역할 동료는 이름 옆에 색 알약 (2026-10-22 사용자)
     const rl = mateRole(m);
-    if (rl && !row.querySelector('.role')) row.querySelector('.info > b').insertAdjacentHTML('beforeend', `<i class="role ${rl.role}">${t('role.' + rl.role)}</i>`);
+    if (rl && !row.querySelector('.role')) row.querySelector('.big').insertAdjacentHTML('beforeend', `<i class="role ${rl.role}">${t('role.' + rl.role)}</i>`); // 역할 알약은 그림 아래에 (2026-10-23 사용자: 이름 옆에선 줄이 넘어감)
     const b = row.querySelector('.act');
     setHTML(b, `${lv ? t('mates.upgrade_to', { lvl: `Lv ${lv + 1}` + (LANG === 'ko' ? roKo(lv + 1) : '') }) : t('mates.hire')}<span class="cost">${COIN} ${fmt(c)}</span>`); // 'Lv 9로 강화', 오르는 공격력은 공격력 알약 안 초록 글씨 (2026-10-21 사용자 A안)
     b.disabled = S.gold < c;
@@ -1087,7 +1142,7 @@ function updateUI() {
   const bossOn = wave.bossSpawned && enemies.some((e) => e.boss);
   const wall = isWallStage(S.stage);
   if (chal) {
-    setText($('stageLabel'), chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 }));
+    setText($('stageLabel'), chal.horde ? t('horde.label') : t('chal.label', { n: chal.ci + 1 }) + ` · Lv ${chal.lv}`);
     setText($('chapterLabel'), CHAPTERS[chal.ci].name);
     $('bossTimer').classList.add('on', 'rush');
     if (chal.horde) setHTML($('bossTimer'), t('horde.pill', { sec: TIMER + ' ' + Math.ceil(chal.t), n: chal.kills, coin: COIN, gold: fmt(chal.gold) }));
@@ -1110,7 +1165,8 @@ function updateUI() {
   // 스테이지 명판: 보스가 나왔거나 강한 보스 스테이지·보스 러시면 보스 명판(ui_stage_plate_boss)
   $('stageLabel').style.visibility = rush || (chal && chal.horde) ? 'hidden' : ''; // 보스 러시·대군 모드는 위 알약에 이미 나와서 이름 글자 숨김 (2026-10-22 사용자)
   $('stageLabel').classList.toggle('boss', !!(rush || wall || bossOn) && !chal);
-  setHTML($('gemLabel'), GEM + ' ' + fmt(S.gems)); // + 버튼은 결제로 오해할 수 있어 뺐다 (2026-10-21 사용자 결정)
+  if (!gemCount) gemShown = S.gems; // 다이아 받을 때는 숫자를 하나씩 올려 보여줌(gemCount 동안)
+  setHTML($('gemLabel'), GEM + ' ' + fmt(gemShown)); // + 버튼은 결제로 오해할 수 있어 뺐다 (2026-10-21 사용자 결정)
   const boostLeft = (S.boostUntil - Date.now()) / 1000;
   $('boostPill').classList.toggle('on', boostLeft > 0);
   if (boostLeft > 0) setText($('boostPill'), t('hud.boost', { time: `${Math.floor(boostLeft / 60)}:${String(Math.floor(boostLeft % 60)).padStart(2, '0')}` }));
@@ -1167,6 +1223,8 @@ function updateUI() {
   card($('btnGold'), S.goldLv, `x${goldMul().toFixed(2)}`, costGold(), false);
   $('btnSaver').classList.toggle('on', !!S.settings.saver);
   $('btnSaver').style.display = rush || chal ? 'none' : ''; // 보스 러시·대군·스테이지 도전 중에는 절전모드 버튼을 뺀다 (2026-10-22 사용자)
+  $('btnChalSpd').style.display = chal && !chal.horde ? '' : 'none'; // 그 자리에 스테이지 도전 배속 버튼
+  setText($('btnChalSpd'), `x${S.chalSpd || 1}`);
   // 절전모드: 가려진 전장은 그리지 않는다(전투 계산은 그대로), 가운데 셰프는 지금 스킨으로
   if (world) world.visible = !S.settings.saver;
   if (S.settings.saver && $('saverChef').dataset.skin !== S.skin) { $('saverChef').dataset.skin = S.skin; $('saverChef').src = skinThumb[S.skin] || `${IMG}hero_chef.webp`; }
@@ -1308,6 +1366,8 @@ function showModal(html, btn, onOk, cancelText, opt = {}) {
   $('modalBtn').classList.toggle('hidden', !btn);
   $('modalBtn').disabled = false;
   $('modal').classList.remove('hidden');
+  // 제목이 주황 알약보다 길면 글자를 줄여 맞춤 (2026-10-23 사용자: 영어 팝업 제목 넘침)
+  box.querySelectorAll('.title, .chal-title').forEach((el) => { el.style.removeProperty('font-size'); let fs = parseFloat(getComputedStyle(el).fontSize); while (el.scrollWidth > el.clientWidth + 1 && fs > 18) { fs -= 2; el.style.setProperty('font-size', fs + 'px', 'important'); } });
   const close = () => { $('modal').classList.add('hidden'); paused = false; };
   const ok = () => { close(); Sound.unlock(); onOk && onOk(); };
   $('modalBtn').onclick = ok;
@@ -1358,7 +1418,7 @@ function offerOffline(away) {
     Object.assign(S, plan.after);
     S.gold += plan.gold;
     if (moved) { clearField(); resetWave(); syncChapter(false); }
-    if (plan.gold > 0) { popText(P.x, P.y - 130, '+' + fmt(plan.gold), 'gold big'); coinBurst(FW / 2, FH * 0.5, 30); }
+    if (plan.gold > 0) { popText(P.x, P.y - 130, '+' + fmt(plan.gold), 'gold big'); rewardFly('gold', 14); }
     renderGrid(); updateUI(); save();
     banner(`STAGE ${S.stage}`, 1.4, 'under');
   };
@@ -1460,15 +1520,13 @@ $('missionList').onclick = (e) => {
   if (S.daily.claimed[id] || (S.daily.prog[id] || 0) < m.n) return;
   const g = missionGold();
   S.daily.claimed[id] = true; S.gold += g; S.gems += 5;
-  gemBurst(FW / 2, FH * 0.55, 5);
-  popText(P.x, P.y - 140, '+' + fmt(g), 'gold big'); Sound.play('claim');
-  coinBurst(FW / 2, FH * 0.55, 18);
+  rewardFly('gold', 10); rewardFly('gem', 5); Sound.play('claim');
   updateUI(); save();
 };
 $('btnBonus').onclick = () => {
   if (!S.daily || S.daily.bonus || !S.daily.ids.every((id) => S.daily.claimed[id])) return;
   S.daily.bonus = true; S.stars += 1; S.gems += 20;
-  gemBurst(FW / 2, FH * 0.55, 12);
+  rewardFly('gem', 10);
   banner(`${t('mission.star_banner')}<small>${t('common.star_use')}</small>`, 2);
   Sound.play('prestige'); renderGrid(); updateUI(); save();
 };
@@ -1543,8 +1601,8 @@ function claimStageRw(st) {
   const r = STAGE_RW.find((x) => x.st === st);
   if (!r || !stageRwReady(r)) return;
   S.stageRw = S.stageRw || {}; S.stageRw[st] = true;
-  if (r.gold) { S.gold += stageRwGold(st); coinBurst(FW / 2, FH * 0.45, 20); }
-  else { S.gems += r.gems; gemBurst(FW / 2, FH * 0.45, 10); }
+  if (r.gold) { S.gold += stageRwGold(st); rewardFly('gold', 12); }
+  else { S.gems += r.gems; rewardFly('gem', 10); }
   banner(t('srw.got', { n: st }), 1.4); Sound.play('claim');
   stageRwSig = ''; updateUI(); save();
 }
@@ -1559,10 +1617,10 @@ function claimAttend() {
   if (!attendReady()) return;
   const idx = S.attend.n % 7, a = ATTEND[idx];
   S.attend.n++; S.attend.last = todayKey();
-  if (a.gems) { S.gems += a.gems; gemBurst(FW / 2, FH * 0.5, 10); }
+  if (a.gems) { S.gems += a.gems; rewardFly('gem', 10); }
   if (a.boost) S.boostUntil = Math.max(Date.now(), S.boostUntil) + a.boost * 60 * 1000;
-  if (a.gold) { S.gold += attendGold(); coinBurst(FW / 2, FH * 0.5, 20); }
-  if (a.skin) { if (S.skins.includes(a.skin)) S.gems += a.alt; else S.skins.push(a.skin); gemBurst(FW / 2, FH * 0.5, 12); }
+  if (a.gold) { S.gold += attendGold(); rewardFly('gold', 12); }
+  if (a.skin) { if (S.skins.includes(a.skin)) { S.gems += a.alt; rewardFly('gem', 12); } else S.skins.push(a.skin); }
   banner(t('attend.got', { n: idx + 1 }), 1.6); Sound.play('prestige');
   renderGrid(); updateUI(); save();
 }
@@ -1823,6 +1881,7 @@ function endRush(reason) {
     <div class="reward">${GEM} ${r.gems}</div>
     <p class="sub">${t('end.tries_left', { n: RUSH_TRIES - rushToday().used, total: RUSH_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
+      if (r.gems > 0) rewardFly('gem', 10);
       banner(`STAGE ${S.stage}`, 1.4, 'under');
     });
 }
@@ -1830,20 +1889,26 @@ $('btnRush').onclick = startRush;
 
 // ---------- ⚔️ 스테이지 도전 (총고식): 챕터마다 한 번, 1분 안에 그 챕터 적을 모두 처치하면 💎 ----------
 const CHAL_TIME = 60, CHAL_N = 40, CHAL_GEMS = 30, CHAL_GAP = 0.35;
+// 스테이지 도전 단계 (2026-10-23 사용자): 챕터마다 Lv 1, 2, 3… 계속 — 성공하면 다음 단계(적 체력 ×1.5씩). 실패는 몇 번이든 다시. 하루 횟수 제한 없음(단계마다 보상은 처음 한 번뿐이라)
+const CHAL_HP_STEP = 1.5, CHAL_GEMS_NEXT = 10;
+const chalCleared = (ci) => (S.chalLv && S.chalLv[ci]) || (S.chal[ci] ? 1 : 0); // 깬 단계 수 (예전 저장본: 깼으면 1)
+const chalGems = (lv) => (lv === 1 ? CHAL_GEMS : CHAL_GEMS_NEXT);
+const chalGold = (ci, lv) => Math.round(enemyGold((ci + 1) * 10) * CHAL_N * 4 * Math.pow(1.25, lv - 2)); // Lv 2 = 적 골드×160, 단계마다 ×1.25 (적 체력 ×1.5가 스테이지 약 1.75개 차이 → 골드도 그만큼, 2026-10-23)
 let chal = null;
-const chalOpen = (ci) => (S.bestStage || S.stage) > (ci + 1) * 10; // 그 챕터 강한 보스(10·20…)를 넘었으면 열린다
+const chalOpen = (ci) => (typeof cheat !== 'undefined' && cheat.chalLockFrom != null && ci >= cheat.chalLockFrom ? false : (S.bestStage || S.stage) > (ci + 1) * 10); // 치트 '잠금 보기'는 저장을 안 바꾸고 화면만 잠금 // 그 챕터 강한 보스(10·20…)를 넘었으면 열린다
 const chalArt = (ch, boss) => { const k = boss ? 'boss_' + ch.boss : 'enemy_' + ch.enemies[0]; return AVAIL.has(k) ? `${IMG}${k}.webp` : `${IMG}${boss ? 'boss_onion' : 'enemy_tomato'}.webp`; };
 // 하루 횟수 초기화(자정)까지 남은 시간 'H:MM'
 function untilMidnight() {
   const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1), s = Math.max(0, Math.floor((mid - now) / 1000));
   return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`; // 시:분 (초는 안 보임)
 }
+const CHAL_BG = { kitchen: '#2a1432', fridge: '#0f2238', pantry: '#2e2010', hall: '#3a1212', bakery: '#3a240e' }; // 배너 왼쪽 글자판 색 (그림 분위기에 맞춤)
 function buildChal() {
   $('rushDesc').innerHTML = t('rush.desc', { gem: GEM }); // 다이아 그림이 들어가서 data-i18n 대신 여기서
   $('chalList').innerHTML = CHAPTERS.map((ch, ci) => `
-    <div class="row chal" data-ci="${ci}">
+    <div class="row chal bn" data-ci="${ci}" style="--art:url(${IMG}banner_ch_${ch.id}.webp);--bg:${CHAL_BG[ch.id] || '#2a1a10'}"><!-- 그림 배너 카드 (2026-10-23 사용자 시안) -->
       <span class="big"><img src="${chalArt(ch)}" alt=""></span>
-      <div class="info"><b>${t('chal.row', { n: ci + 1, name: ch.name }).replace(/CHAPTER \d+/, (m) => `<span class="en">${m}</span>`)}</b><span class="desc">${t('chal.row_desc', { n: CHAL_N })}</span><span class="reward">${t('chal.first_reward')} ${GEM} ${CHAL_GEMS}</span></div>
+      <div class="info"><b><span class="en">CHAPTER ${ci + 1}</span></b><span class="desc">${t('chal.row_desc', { n: CHAL_N })}</span><span class="reward"></span></div>
       <button class="act"></button>
     </div>`).join('');
   $('chalList').onclick = (e) => {
@@ -1852,19 +1917,20 @@ function buildChal() {
   };
 }
 function openChal(ci) {
-  if (S.chal[ci] || !chalOpen(ci) || rush || chal) return;
-  const ch = CHAPTERS[ci];
-  showModal(`<div class="chal-title">CHAPTER ${ci + 1}</div>
+  if (!chalOpen(ci) || rush || chal) return;
+  const ch = CHAPTERS[ci], lv = chalCleared(ci) + 1;
+  showModal(`<div class="chal-title">CHAPTER ${ci + 1} · Lv ${lv}</div>
     <div class="chal-band">${t('chal.band', { place: ch.name, n: CHAL_N })}</div>
-    <div class="chal-reward"><small>${t('chal.reward')}</small><span>${GEM}</span><b>${CHAL_GEMS}</b></div>`,
+    <div class="chal-reward"><small>${t('chal.reward')}</small><div class="cr-items"><div class="cr-it"><span>${GEM}</span><b>${chalGems(lv)}</b></div>${lv > 1 ? `<div class="cr-it"><span>${COIN}</span><b>${fmt(chalGold(ci, lv))}</b></div>` : ''}</div></div>`, // 보상은 가로로 나란히 (2026-10-23 사용자)
     t('chal.confirm'), () => startChal(ci), null, { peek: chalArt(ch, true), xClose: true, variant: 'chal' });
 }
+$('btnChalSpd').onclick = () => { S.chalSpd = (S.chalSpd || 1) % 3 + 1; setText($('btnChalSpd'), `x${S.chalSpd}`); Sound.play('buy'); save(); }; // x1 → x2 → x3 → x1, 고른 배속은 기억
 function startChal(ci) {
   if (rush || chal) return;
   closeSheet();
   clearField();
   heroHp = heroMax;
-  chal = { ci, st: (ci + 1) * 10, t: CHAL_TIME, spawned: 0, kills: 0, spawnT: 0.4 };
+  chal = { ci, st: (ci + 1) * 10, lv: chalCleared(ci) + 1, t: CHAL_TIME, spawned: 0, kills: 0, spawnT: 0.4 };
   syncChapter(false);
   banner(t('chal.start_banner', { n: CHAL_N }), 1.8);
   Sound.play('wall'); shake(8);
@@ -1877,13 +1943,15 @@ function endChal(ok, reason) {
   syncChapter(false);
   heroHp = heroMax;
   for (const id in mateSprites) { const ms = mateSprites[id]; ms.stun = 0.01; ms.hp = 0; }
-  const first = ok && !S.chal[c.ci];
-  if (first) { S.chal[c.ci] = true; S.gems += CHAL_GEMS; }
+  const first = ok; // 성공 = 늘 새 단계 첫 클리어
+  const gems = chalGems(c.lv), gold = c.lv > 1 ? chalGold(c.ci, c.lv) : 0;
+  if (ok) { S.chal[c.ci] = true; S.chalLv = S.chalLv || {}; S.chalLv[c.ci] = c.lv; S.gems += gems; S.gold += gold; }
   save();
   showModal(`<div class="title small">${ok ? t('chal.win') : t('chal.lose')}</div>
     <p>${ok ? t('chal.win_desc', { c: c.ci + 1, n: CHAL_N }) : `${reason}<br>${t('chal.lose_desc', { n: c.kills, total: CHAL_N })}`}</p>
-    ${first ? `<div class="reward">${GEM} ${CHAL_GEMS}</div>` : `<p class="sub">${t('chal.retry')}</p>`}`, t('common.ok'), () => {
+    ${first ? `<div class="reward">${GEM} ${gems}${gold ? ` · ${COIN} ${fmt(gold)}` : ''}</div><p class="sub">${t('chal.next_lv', { lv: c.lv + 1 })}</p>` : `<p class="sub">${t('chal.retry')}</p>`}`, t('common.ok'), () => {
       Sound.play('clear');
+      if (first) { rewardFly('gem', 10); if (gold) rewardFly('gold', 10); }
       banner(`STAGE ${S.stage}`, 1.4, 'under');
     }, null, { peek: chalArt(CHAPTERS[c.ci], true) });
 }
@@ -1935,6 +2003,7 @@ function endHorde(reason) {
     <div class="reward">${COIN} ${fmt(c.gold)}</div>
     <p class="sub">${t('end.tries_left', { n: HORDE_TRIES - hordeToday().used, total: HORDE_TRIES })}</p>`, t('common.ok'), () => {
       Sound.play('clear');
+      if (c.gold > 0) rewardFly('gold', 12);
       banner(`STAGE ${S.stage}`, 1.4, 'under');
     });
 }
@@ -1959,12 +2028,16 @@ function updateShopRush() {
   setText($('btnRush'), rush ? t('chal.running') : left > 0 ? t('chal.start') : t('chal.tomorrow'));
   let chalReady = false;
   document.querySelectorAll('#chalList .chal').forEach((row) => {
-    const ci = +row.dataset.ci, done = !!S.chal[ci], open = chalOpen(ci), b = row.querySelector('.act');
-    setHTML(b, done ? t('chal.done') : open ? t('chal.go') : `${icon('icon_lock', '🔒')}<span class="cost">${t('chal.locked', { n: (ci + 1) * 10 })}</span>`);
-    b.disabled = done || !open || !!rush || !!chal;
-    b.classList.toggle('claimed', done);
+    const ci = +row.dataset.ci, lv = chalCleared(ci) + 1, open = chalOpen(ci), b = row.querySelector('.act');
+    setHTML(b, open ? t('chal.go_lv', { lv }) : t('chal.not_open'));
+    // 잠긴 챕터: 카드 가운데 큰 자물쇠 + '스테이지 N 클리어 시 오픈' (2026-10-23 사용자 시안)
+    let ov = row.querySelector('.lock-ov');
+    if (!open && !ov) { row.insertAdjacentHTML('beforeend', `<div class="lock-ov"><img src="${IMG}icon_lock.webp" alt=""><span>${t('chal.lock_ov', { n: (ci + 1) * 10 })}</span></div>`); }
+    else if (open && ov) ov.remove();
+    setHTML(row.querySelector('.reward'), `${lv === 1 ? t('chal.first_reward') : t('chal.lv_reward', { lv })} ${GEM} ${chalGems(lv)}`);
+    b.disabled = !open || !!rush || !!chal;
     row.classList.toggle('locked', !open);
-    if (open && !done) chalReady = true;
+    if (open && lv === 1) chalReady = true; // 빨간 점은 아직 한 번도 안 깬 챕터만
   });
   const hLeft = HORDE_TRIES - hordeToday().used, hImg = chalArt(chapterOf(S.stage));
   if ($('hordeImg').dataset.src !== hImg) { $('hordeImg').dataset.src = hImg; $('hordeImg').src = hImg; } // 지금 챕터 적 그림
@@ -2148,7 +2221,7 @@ function spawnEnemy(boss, wall = false) {
   else { x = cam.x + FW + 50; y = cam.y + 150 + Math.random() * (FH * 0.6); }
   c.position.set(x, y);
   field.addChild(c);
-  const hp = enemyHp(est) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1) * (strong ? STRONG.hp : 1);
+  const hp = enemyHp(est) * (boss ? BAL.bossHp : 1) * (wall ? WALL_HP : 1) * (strong ? STRONG.hp : 1) * (chal && !chal.horde && chal.lv ? Math.pow(CHAL_HP_STEP, chal.lv - 1) : 1); // 도전 단계마다 ×1.5
   const e = { c, g, bar, x, y, r, hp, max: hp, boss, speed: boss ? 34 : 50 + Math.random() * 22 + S.stage * 0.5,
     gold: enemyGold(est) * (boss ? BAL.bossGold : 1) * (wall ? BAL.wallGold : 1) * (strong ? STRONG.gold : 1) * goldAll(), wall, strong, glow, anim, hit: 0, dead: false, wob: Math.random() * 6, atkT: 0.3, lunge: 0, lx: 0, ly: 0, barY, hpY };
   drawBar(e);
@@ -2908,13 +2981,13 @@ function update(dt) {
 
   const cover = $('bootCover'); if (cover) cover.remove();
   // 진단(치트 빌드): 같은 실행 중에 화면(웹뷰)이 다시 시작됐으면 알려 줌 — PlayForge는 웹뷰가 죽으면 새로 만들고 sessionStorage는 남는다
-  try { if (sessionStorage.getItem('kw-booted') && typeof CHEAT_ON !== 'undefined' && CHEAT_ON) setTimeout(() => banner('화면 다시 시작됨 (웹뷰 재시작)', 3), 1500); sessionStorage.setItem('kw-booted', '1'); } catch (e) {} // 준비 끝 — 첫 실행이면 같은 그림의 '눌러서 시작' 화면이 이미 위에 떠 있음
+  try { const navType = (performance.getEntriesByType('navigation')[0] || {}).type; if (sessionStorage.getItem('kw-booted') && navType !== 'reload' && typeof CHEAT_ON !== 'undefined' && CHEAT_ON) setTimeout(() => banner('화면 다시 시작됨 (웹뷰 재시작)', 3), 1500); sessionStorage.setItem('kw-booted', '1'); } catch (e) {} // 준비 끝 — 첫 실행이면 같은 그림의 '눌러서 시작' 화면이 이미 위에 떠 있음
 
   let uiT = 0, saveT = 0;
   app.ticker.add((tk) => {
     const dt = Math.min(0.1, tk.deltaMS / 1000);
     if (!paused) {
-      const steps = (Date.now() < S.boostUntil ? 2 : 1) * (typeof cheat !== 'undefined' ? cheat.speed : 1); // ⏩ 2배속 · 🛠 치트 속도
+      const steps = (Date.now() < S.boostUntil ? 2 : 1) * (typeof cheat !== 'undefined' ? cheat.speed : 1) * (chal && !chal.horde ? S.chalSpd || 1 : 1); // ⏩ 2배속 · 🛠 치트 속도 · 스테이지 도전 배속
       for (let i = 0; i < steps && !paused; i++) update(dt);
       mission('time', dt);
       autoMergeTick(dt);
