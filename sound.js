@@ -117,7 +117,19 @@ const Sound = (() => {
     boss: { vol: 0.55, gap: 500 }, wall: { vol: 0.6, gap: 800 }, bossHit: { vol: 0.25, gap: 90 },
     kill: { vol: 0.25, gap: 60 }, coinTick: { vol: 0.12, gap: 55 }, buy: { vol: 0.35, gap: 60 }, claim: { vol: 0.45, gap: 150 },
     prestige: { vol: 0.55, gap: 800 }, retreat: { vol: 0.45, gap: 500 }, hurt: { vol: 0.35, gap: 150 }, stun: { vol: 0.35, gap: 300 } };
-  let bgmBuf = null, bgmSrc = null; // 배경음악 파일(assets/sfx/bgm_battle.mp3)이 있으면 코드 반복음 대신 이걸 무한 반복
+  let bgmBuf = null, bgmSrc = null, bgmLoop = [0, 0], bgmGain = null;
+  // 배경음악 재생 (2026-10-23 실기: 폰에서 안 들림) — PlayForge는 소리가 막힌 동안 시작된 소리를 풀릴 때 멈춰 버린다
+  // (다른 앱 음악·화면 꺼짐 등). 효과음은 매번 새로 틀어서 괜찮지만 배경음악은 한 번만 틀어서 영영 멈췄음
+  // → 멈추면(onended) 지우고, 막힘이 풀린 상태면 0.5초 안에 다시 튼다(아래 startMusic 감시)
+  const pfBlocked = () => { const lc = window.__playforgeAudioLifecycle; return !!(lc && lc.reasons && lc.reasons().length); };
+  function startBgm() {
+    if (!bgmBuf || bgmSrc || !ctx || ctx.state !== 'running' || pfBlocked()) return;
+    if (!bgmGain) { bgmGain = ctx.createGain(); bgmGain.gain.value = 0.6; bgmGain.connect(musicBus); }
+    const src = ctx.createBufferSource(); src.buffer = bgmBuf; src.loop = true;
+    src.loopStart = bgmLoop[0]; src.loopEnd = bgmLoop[1];
+    src.connect(bgmGain); src.onended = () => { if (bgmSrc === src) bgmSrc = null; };
+    src.start(0, bgmLoop[0]); bgmSrc = src;
+  } // 배경음악 파일(assets/sfx/bgm_battle.mp3)이 있으면 코드 반복음 대신 이걸 무한 반복
   const buffers = {};
   function loadSamples() {
     for (const n in SAMPLE) {
@@ -132,9 +144,8 @@ const Sound = (() => {
         const d = b.getChannelData(0), th = 0.002; let a0 = 0, a1 = d.length - 1;
         while (a0 < d.length && Math.abs(d[a0]) < th) a0++;
         while (a1 > a0 && Math.abs(d[a1]) < th) a1--;
-        bgmBuf = b; bgmSrc = ctx.createBufferSource(); bgmSrc.buffer = b; bgmSrc.loop = true;
-        bgmSrc.loopStart = a0 / b.sampleRate; bgmSrc.loopEnd = (a1 + 1) / b.sampleRate;
-        const g = ctx.createGain(); g.gain.value = 0.6; bgmSrc.connect(g); g.connect(musicBus); bgmSrc.start(0, bgmSrc.loopStart);
+        bgmLoop = [a0 / b.sampleRate, (a1 + 1) / b.sampleRate];
+        bgmBuf = b; startBgm();
       })
       .catch(() => {}); // 없으면 코드 반복음 그대로
   }
@@ -166,6 +177,7 @@ const Sound = (() => {
     nextT = ctx.currentTime + 0.1;
     setInterval(() => {
       if (!ctx || ctx.state !== 'running') return;
+      if (bgmBuf) startBgm(); // 배경음악이 멈췄으면 다시 (막힘 풀린 뒤)
       if (!musicOn || bgmBuf) { nextT = ctx.currentTime + 0.1; return; } // 꺼져 있거나 배경음악 파일을 틀고 있으면 예약하지 않는다
       while (nextT < ctx.currentTime + 0.2) {
         const i = step % MEL.length, d = nextT - ctx.currentTime;
