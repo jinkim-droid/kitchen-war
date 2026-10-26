@@ -1,6 +1,6 @@
 // 🛠 치트 (개발·테스트용, 2026-10-21) — 미션 버튼 아래 버튼으로 연다
 // 제출 빌드에서는 CHEAT_ON = false 로 끈다 (버튼이 아예 안 생긴다). 개발 도구라 문구는 strings.csv 에 넣지 않고 한국어로 둔다
-const CHEAT_ON = true;
+const CHEAT_ON = false;
 // main.js 가 읽는 값: 무적·한 방·속도 배수 (저장하지 않는다 — 새로 고치면 꺼진다)
 const cheat = { god: false, oneshot: false, speed: 1, chalLockFrom: null }; // chalLockFrom: 이 챕터(0부터)부터 도전 잠금으로 보이기 (저장 안 바뀜)
 const BACKUP_KEY = 'kitchen-war-save-backup'; // 처음 시작 미리보기 동안 원래 저장을 보관

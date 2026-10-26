@@ -6,7 +6,7 @@
 // FH = 업그레이드 카드 위로 보이는 전장(카메라·조준 기준), CH = 캔버스 높이. 카드 뒤에도 바닥이 비치도록 캔버스는 화면 끝까지 그린다
 // 폰 위쪽 카메라 구멍·아래쪽 제스처 막대를 피하는 여백 (2026-10-21 실기: 위쪽 진행 바가 카메라 구멍에 가림) — 위쪽 표시는 SAFE_TOP만큼 내리고, 아래 카드·옆 메뉴는 SAFE_BOTTOM만큼 올린다
 const SAFE_TOP = 44, SAFE_BOTTOM = 24;
-const PANEL_H = 190 + SAFE_BOTTOM; // 카드 칸 190 + 아래 여백
+const PANEL_H = 206 + SAFE_BOTTOM; // 카드 칸 206 + 아래 여백 (2026-10-23 사용자: UI 키움, 190 → 206)
 const W = 720, H = Math.round(Math.min(1700, Math.max(1280, 720 * innerHeight / Math.max(1, innerWidth)))), FW = 720, FH = H - PANEL_H, CH = H;
 document.documentElement.style.setProperty('--shell-h', H + 'px'); // style.css 셸·전장·카드 위치
 document.documentElement.style.setProperty('--safe-top', SAFE_TOP + 'px');
@@ -946,7 +946,7 @@ function renderEquip() {
   $('equip').innerHTML = Array.from({ length: EQUIP_N }, (_, k) => {
     const i = eq[k], L = i === undefined ? 0 : S.grid[i];
     if (!L) return `<div class="eq-card empty"></div>`;
-    return `<div class="eq-card" style="--c:${gunColor(L)}"><b class="eq-name">Lv ${L} ${toolName(L)}</b><img class="eq-img" src="${toolImg(L)}" alt="">
+    return `<div class="eq-card" style="--c:${gunColor(L)}"><b class="eq-name">Lv ${L}<br>${toolName(L)}</b><img class="eq-img" src="${toolImg(L)}" alt="">
       <span class="eq-row"><img class="ic" src="${IMG}icon_atk.webp" alt=""><i>${fmt(gunDmg(L) * atkMul())}</i></span>
       <span class="eq-row"><img class="ic" src="${IMG}icon_timer.webp" alt=""><i>${fireInterval().toFixed(2)}${t('mates.iv', { iv: '' }).trim()}</i></span></div>`;
   }).join('');
@@ -1728,6 +1728,20 @@ $('btnPrestige').onclick = () => {
 
 // ---------- ⚙️ 설정 ----------
 const GAME_VERSION = 'v0.1';
+// 업그레이드 카드 이름이 왼쪽 위 아이콘과 겹치면 글자를 2px씩 줄여 맞춤(가운데 정렬 유지) (2026-10-23 사용자: 카드 글자는 겹치면 안 됨)
+function fitUpNames() {
+  document.querySelectorAll('#panel .up').forEach((c) => {
+    const n = c.querySelector('.name'), ic = c.querySelector('.uico');
+    if (!n || !ic || !ic.getBoundingClientRect().width) return;
+    n.style.removeProperty('font-size');
+    const rg = document.createRange(); rg.selectNodeContents(n);
+    let fs = parseFloat(getComputedStyle(n).fontSize);
+    while (fs > 18 && rg.getBoundingClientRect().left < ic.getBoundingClientRect().right + 4) { fs -= 1; n.style.setProperty('font-size', fs + 'px', 'important'); }
+  });
+  // 세 카드 이름 크기는 같게 (가장 작아진 것에 맞춤)
+  const names = [...document.querySelectorAll('#panel .up .name')], min = Math.min(...names.map((n) => parseFloat(getComputedStyle(n).fontSize)));
+  names.forEach((n) => n.style.setProperty('font-size', min + 'px', 'important'));
+}
 function applySettings() {
   const st = S.settings;
   Sound.setSfx(st.sfx); Sound.setMusic(st.music);
@@ -2966,6 +2980,7 @@ function update(dt) {
   resetWave();
   ensureDaily(); buildMissions(); buildShop(); buildPerm(); buildChal();
   applySettings();
+  fitUpNames(); document.fonts && document.fonts.ready.then(fitUpNames);
   $('verLabel').textContent = t('settings.version', { ver: GAME_VERSION });
   renderGrid(); updateUI();
 

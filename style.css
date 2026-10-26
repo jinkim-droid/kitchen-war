@@ -2077,3 +2077,45 @@ html:not([lang="en"]) #shell #panel .up .name { font-size: 31px !important; tran
 #shell #bossTimer.rush img.ic { height: 1.2em; }
 #btnChalSpd { margin-top: 10px; }
 #shell #bossTimer img.ic { filter: drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 0 1.5px #3a2418) drop-shadow(0 0 1px #3a2418); } /* 타이머 아이콘 진갈색 테두리 (2026-10-23 사용자) */
+/* 2배속 알약: 절전모드 버튼 아래, 조금 크게 (2026-10-23 사용자) */
+#shell #boostPill { margin: 8px auto 0; width: max-content; font-size: 24px !important; padding: 4px 18px !important; height: auto !important; border: 3px solid #4b3021; border-radius: 999px; color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; }
+
+/* ==================== UI 전체 키우기 (2026-10-23 사용자: 글자·버튼 다 작음) ====================
+   기준 화면 가로 720. 누르는 것은 88 안팎, 가장 작은 글자 26 이상 */
+/* 아래 업그레이드 카드 칸 190 → 206 (main.js PANEL_H와 같이) */
+#shell #panel { top: calc(var(--shell-h, 1280px) - 206px - var(--safe-bottom, 0px)) !important; height: 206px !important; }
+#shell .side { bottom: calc(224px + var(--safe-bottom, 0px)) !important; }
+#shell #panel .up .val { font-size: 42px !important; }
+#shell #panel .up .uico { height: 58px; left: -16px; top: -24px; }
+#shell #panel .up .cost img.ic { height: 46px; }
+/* 옆 메뉴 알약 104×80 → 120×96, 아이콘 크게 */
+#shell .side .sbtn, #shell .side .sbtn:nth-child(odd), #shell .side .sbtn:nth-child(even), #shell .side.right .sbtn[data-tab="rush"] { width: 120px !important; height: 96px !important; }
+#shell .side .sbtn[data-tab="tools"], #shell .side.right .sbtn[data-tab="rush"] { width: 140px !important; }
+#shell .side .sbtn .ico img { height: 62px !important; }
+/* 미션 동그라미 72 → 90, 설정 60 → 80 */
+#shell #btnMission { width: 90px !important; height: 90px !important; }
+#shell #btnMission .ico img { height: 62px !important; }
+#shell #btnSettings { width: 80px !important; height: 80px !important; }
+/* 절전모드 높이 46 → 56, 상단 골드·다이아 52 → 60 */
+#shell #btnSaver { height: 56px !important; line-height: 56px !important; font-size: 30px !important; }
+#shell #goldLabel, #shell #gemLabel { height: 60px !important; font-size: 30px !important; width: 172px !important; padding-left: 54px !important; }
+#shell #goldLabel img.ic, #shell #gemLabel img.ic { height: 48px !important; }
+/* 메뉴 판 닫기 X 66 → 80 */
+#shell #btnClose { width: 80px !important; height: 80px !important; }
+/* 글자: 맨 위 진행 바 22 → 26, 스테이지 명판 25 → 30, 메뉴 안 설명 24 → 26 */
+#shell #topPct { font-size: 26px !important; }
+#shell #stageLabel { font-size: 30px !important; }
+#shell #sheet .row .desc, #shell #mateList .stat .pill, #shell #sheet .row .info .desc { font-size: 26px !important; }
+/* 버튼·아이콘이 커진 만큼 글자도 (2026-10-23 사용자) */
+html:not([lang="en"]) #shell .side .sbtn > span:not(.ico) { font-size: 30px !important; }
+html[lang="en"] #shell .side .sbtn > span:not(.ico) { font-size: 28px !important; }
+html:not([lang="en"]) #shell #btnMission > span:not(.ico) { font-size: 28px !important; }
+#shell #panel .up .cost, #shell #panel .up .lv { font-size: 31px !important; }
+html:not([lang="en"]) #shell #panel .up .name { font-size: 34px !important; }
+html[lang="en"] #shell #panel .up .name { font-size: 33px !important; }
+/* 도구함 (2026-10-23 사용자): 'ON' 알약에 진갈색 테두리, 장착 카드 이름은 'Lv 7' / 'Pot' 두 줄 */
+#shell #grid .gun .eq-tag { border: 3px solid var(--c-ink) !important; }
+#shell .eq-card .eq-name { white-space: normal !important; line-height: 1.05; }
+#shell .eq-card { aspect-ratio: 3 / 4 !important; } #shell .eq-card .eq-img { max-height: 32% !important; } /* 이름이 두 줄이 돼서 카드 조금 길게, 그림은 조금 작게 */
+#shell .eq-card .eq-name { overflow: visible !important; padding-left: 4px; } /* 글자 외곽선 왼쪽이 잘려서 (2026-10-23 사용자) */
+#shell .eq-card .eq-row img.ic { height: 40px !important; width: auto !important; flex: none; margin-right: 2px; } /* 공격·타이머 아이콘 크게 (2026-10-23 사용자) */

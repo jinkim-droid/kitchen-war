@@ -1,7 +1,7 @@
 ﻿key,en,ko,note
 # 타이틀·처음 시작,,,
 game.title,Kitchen War,주방 대전쟁,게임 이름
-game.doc_title,Kitchen War Prototype,주방 대전쟁 프로토타입,브라우저 제목
+game.doc_title,Kitchen War,주방 대전쟁,브라우저 제목
 intro.line1,The veggies in the fridge went rotten and started a <b>rebellion</b>!,냉장고 속 채소들이 썩어서 <b>반란</b>을 일으켰다!,첫 실행 창
 intro.line2,Chef Bear will defend the kitchen.,셰프 곰이 주방을 지킨다.,첫 실행 창
 intro.start,To the Kitchen!,주방 지키러 가기,첫 실행 창 버튼
@@ -16,7 +16,7 @@ video.sub5,"Next morning, the kitchen was a total mess!","다음 날 아침, 주
 video.sub6,"What… what happened here?!",이게… 다 무슨 일이야?!,오프닝 자막
 video.sub7,"I'll protect my kitchen!",내 주방은 내가 지킨다!,오프닝 자막
 video.sub8,"Kitchen War — begin!","주방 대전쟁, 시작!",오프닝 자막
-settings.version,Kitchen War {ver} · Game Jam Prototype,주방 대전쟁 {ver} · 게임잼 프로토타입,설정 창 아래
+settings.version,Kitchen War {ver},주방 대전쟁 {ver},설정 창 아래
 # 첫 플레이 안내,,,
 tut.open_tools,Open the Toolbox!,도구함을 열어 보세요!,
 tut.open_tools_sub,"More tools, more power",도구가 많을수록 강해져요,
@@ -55,7 +55,7 @@ menu.prestige,Rebirth,환생,
 menu.challenge,Challenge,도전,
 # 업그레이드 카드·능력치,,,
 stat.atk,Attack,공격력,
-stat.spd,Atk Speed,공격속도,업그레이드 카드 이름 — 영어는 카드 폭에 맞게 짧게 (2026-10-23)
+stat.spd,Speed,공격속도,업그레이드 카드 이름 — 영어는 카드 폭에 맞게 짧게 (2026-10-23)
 stat.gold,Gold Gain,골드 획득량,
 stat.atk_s,ATK,공격력,스킨 효과 칸 (짧게)
 stat.spd_s,SPD,공격속도,스킨 효과 칸 (짧게)

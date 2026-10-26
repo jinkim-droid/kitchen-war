@@ -4,3 +4,10 @@ bmdak-legacy-removal.md.lock.guard
 .crumbs/
 .DS_Store
 builds/
+tools/ua/out/
+tools/ua/render/
+tools/ua/ov/
+tools/ua/art/
+tools/ua/sheets/
+tools/playable/gen/
+tools/aso/out/
